@@ -438,16 +438,13 @@ double geoid_height(double fi, double la, int gid)
     // Outside geoid model
     return Ng;
   }
-//printf(T(">>> Inside geoid model %d\n"), gid); //xxx
 
   x = fi; y = la;
-//printf(T(">>> x: %.10f, y: %.10f\n"), x, y); //xxx
 
   xi = (fi - gfimin)/gfiinc1; ix = (int)xtrunc(xi);
   if (gid == 2) yi = (la - glamin)/glainc1; //egm2008
   else yi = (la - glamin)/glainc15; //slo2000, bessel
   iy = (int)xtrunc(yi);
-//printf(T(">>> xi: %.3f, yi: %.3f\n"), xi, yi); //xxx
 
   gixmax = 105; giymax = (gid == 2) ? 210 : 140;
   if (ix <= 0 || ix >= gixmax || iy <= 0 || iy >= giymax) {
@@ -456,8 +453,6 @@ double geoid_height(double fi, double la, int gid)
   }
 
   if (gid == 1) {
- // printf(T(">>> geoid_wgs[%d,%d]: %.3f\n"), ix, iy, geoid_wgs[ix][iy]); //xxx
-
     x1 = gfimin + ix*gfiinc1; y1 = glamin + iy*glainc15;
     x2 = x1 + gfiinc1;        y2 = y1 + glainc15;
 
@@ -465,8 +460,6 @@ double geoid_height(double fi, double la, int gid)
     p1 = geoid_wgs[ix][iy];   p2 = geoid_wgs[ix][iy+1];
   }
   else if (gid == 2) {
- // printf(T(">>> geoid_egm[%d,%d]: %.3f\n"), ix, iy, geoid_egm[ix][iy]); //xxx
-
     x1 = gfimin + ix*gfiinc1; y1 = glamin + iy*glainc15;
     x2 = x1 + gfiinc1;        y2 = y1 + glainc1;
 
@@ -474,8 +467,6 @@ double geoid_height(double fi, double la, int gid)
     p1 = geoid_egm[ix][iy];   p2 = geoid_egm[ix][iy+1];
   }
   else {
- // printf(T(">>> geoid_bes[%d,%d]: %.3f\n"), ix, iy, geoid_bes[ix][iy]); //xxx
-
     x1 = gfimin + ix*gfiinc1; y1 = glamin + iy*glainc15;
     x2 = x1 + gfiinc1;        y2 = y1 + glainc15;
 
@@ -486,13 +477,6 @@ double geoid_height(double fi, double la, int gid)
     // No data in geoid model (outside Slovenia for slo2000)
     return Ng;
   }
-//printf(T(">>> Inside Slovenia\n")); //xxx
-
-//printf(T(">>> x1: %.10f, y1: %.10f\n"), x1, y1); //xxx
-//printf(T(">>> x2: %.10f, y2: %.10f\n"), x2, y2); //xxx
-
-//printf(T(">>> p3 p4: %6.3f %6.3f\n"), p3, p4); //xxx
-//printf(T(">>> p1 p2: %6.3f %6.3f\n"), p1, p2); //xxx
 
   // Add missing values on Slovenia borders for slo2000
   if (p3 == 0.0) p3 = p1; if (p4 == 0.0) p4 = p1;
@@ -502,7 +486,7 @@ double geoid_height(double fi, double la, int gid)
   R1 = (y2 - y)/(y2 - y1)*p1 + (y - y1)/(y2 - y1)*p2;
   R2 = (y2 - y)/(y2 - y1)*p3 + (y - y1)/(y2 - y1)*p4;
   Ng = (x2 - x)/(x2 - x1)*R1 + (x - x1)/(x2 - x1)*R2;
-//printf(T(">>> Ng: %.3f\n"), Ng); //xxx
+
   return Ng;
 } /* geoid_height */
 
@@ -524,7 +508,6 @@ void xy2fila_ellips(GEOUTM in, GEOGRA *out, int oid)
   // Convert from relative to real coordinates
   in.x = (in.x - tm.false_northing)/tm.scale;
   in.y = (in.y - tm.false_easting)/tm.scale;
-//printf(T(">> x: %.3f, y: %.3f\n"), in.x, in.y); //xxx
 
   // Calculate fi0 - footpoint latitude
   // See "Geometrical Geodesy (Hooijberg, 2008), pg. 165(pdf: 183)"
@@ -554,7 +537,6 @@ void xy2fila_ellips(GEOUTM in, GEOGRA *out, int oid)
   fi0 = fiq + ellipsoid.beta*sin(2.0*fiq) + ellipsoid.gama*sin(4.0*fiq)
     + ellipsoid.delta*sin(6.0*fiq) + ellipsoid.epsilon*sin(8.0*fiq);
 #endif
-//printf(T(">> fi0: %.18f\n"), fi0); //xxx
 
   sinFi0 = sin(fi0);
   sin2Fi0 = pow(sinFi0,2);
@@ -604,7 +586,7 @@ void xy2fila_ellips(GEOUTM in, GEOGRA *out, int oid)
     + ellipsoid.C/4.0*sin(4.0*out->fi) - ellipsoid.D/6.0*sin(6.0*out->fi)
     + ellipsoid.E/8.0*sin(8.0*out->fi) - ellipsoid.F/10.0*sin(10.0*out->fi));
 #endif
-  printf(T(">> L: %.10f\n"), L); //xxx
+  printf(T(">> L: %.10f\n"), L);
 #endif
 
 #if 1
@@ -629,11 +611,9 @@ void xy2fila_ellips(GEOUTM in, GEOGRA *out, int oid)
         + 720.0*tan6Fi0)*pow(in.y,7);
 #endif
 
-//printf(T(">> rad: fi: %.10f, la: %.10f\n"), out->fi, out->la); //xxx
   // Convert from radians to degrees
   out->fi = out->fi*180.0/PI;
   out->la = out->la*180.0/PI;
-//printf(T(">> deg: fi: %.10f, la: %.10f\n"), out->fi, out->la); //xxx
 
   if (oid == 1 || oid == 2) //wgs84/etrs89
     Ng = geoid_height(out->fi, out->la, gid_wgs); //slo2000/egm2008
@@ -643,7 +623,6 @@ void xy2fila_ellips(GEOUTM in, GEOGRA *out, int oid)
 
   // Geoid height
   out->h = in.H + Ng;
-//printf(T(">> out.h: %.3f (geoid)\n"), out->h); //xxx
 } /* xy2fila_ellips */
 
 
@@ -667,11 +646,9 @@ void fila_ellips2xy(GEOGRA in, GEOUTM *out, int oid)
     Ng = geoid_height(in.fi, in.la, 0); //bessel
   out->Ng = Ng;
 
-//printf(T(">> deg: fi: %.10f, la: %.10f\n"), in.fi, in.la); //xxx
   // Convert from degrees to radians
   in.fi = in.fi*PI/180.0;
   in.la = in.la*PI/180.0;
-//printf(T(">> rad: fi: %.10f, la: %.10f\n"), in.fi, in.la); //xxx
 
   dl = in.la - tm.lambda0;
   dl2 = pow(dl,2); dl3 = pow(dl,3); dl4 = pow(dl,4); dl5 = pow(dl,5);
@@ -702,7 +679,6 @@ void fila_ellips2xy(GEOGRA in, GEOUTM *out, int oid)
     + ellipsoid.C/4.0*sin(4.0*in.fi) - ellipsoid.D/6.0*sin(6.0*in.fi)
     + ellipsoid.E/8.0*sin(8.0*in.fi) - ellipsoid.F/10.0*sin(10.0*in.fi));
 #endif
-//printf(T(">> L: %.10f\n"), L); //xxx
 
 #if 1
   // See "Stara in nova drzavna kartografska projekcija (2008), pg. 8)"
@@ -744,11 +720,9 @@ void fila_ellips2xy(GEOGRA in, GEOUTM *out, int oid)
   // Convert from real to relative coordinates
   out->x = out->x*tm.scale + tm.false_northing;
   out->y = out->y*tm.scale + tm.false_easting;
-//printf(T(">> x: %.3f, y: %.3f\n"), out->x, out->y); //xxx
 
   // Geoid height
   out->H = in.h - Ng;
-//printf(T(">> out.H: %.3f (geoid)\n"), out->H); //xxx
 } /* fila_ellips2xy */
 
 
@@ -779,13 +753,10 @@ int xy2fila_ellips_loop(GEOUTM in, GEOGRA *out, int oid)
   rxx = xllround(xy.x*prec); ryy = xllround(xy.y*prec);
 
   found = 0;
-//printf(T("Initial x: %.6f, y: %.6f\n"), in.x, in.y); //xxx
   for ( ; ; ) {
     for ( ; fl.fi <= fi_max; fl.fi += fi_inc) {
       for ( ; fl.la <= la_max; fl.la += la_inc) {
         fila_ellips2xy(fl, &xy, oid);
-     // printf(T("xfi: %.10f xla: %.10f xx: %.6f, yy: %.6f\n"),
-     //        fl.fi, fl.la, xy.x, xy.y); //xxx
         ryy = xllround(xy.y*prec);
         if ((ry - ryy) < 0) {
           fl.la -= la_inc;
@@ -805,8 +776,6 @@ int xy2fila_ellips_loop(GEOUTM in, GEOGRA *out, int oid)
     if (fi_inc < 1e-18 || la_inc < 1e-18) break;
   } // outer loop
   fila_ellips2xy(fl, &xy, oid);
-//printf(T("%s xfi: %.10f xla: %.10f xx: %.6f, yy: %.6f\n"),
-//       found ? T("Found") : T("Final"), fl.fi, fl.la, xy.x, xy.y); //xxx
 
   out->fi = fl.fi; out->la = fl.la;
 
@@ -818,7 +787,6 @@ int xy2fila_ellips_loop(GEOUTM in, GEOGRA *out, int oid)
 
   // Geoid height
   out->h = in.H + Ng;
-//printf(T(">> out.h: %.3f (geoid)\n"), out->h); //xxx
 
   return found;
 } /* xy2fila_ellips_loop */
@@ -857,13 +825,10 @@ int fila_ellips2xy_loop(GEOGRA in, GEOUTM *out, int oid)
   rxfi = xllround(fl.fi*prec); rxla = xllround(fl.la*prec);
 
   found = 0;
-//printf(T("Initial fi: %.10f, la: %.10f\n"), in.fi, in.la); //xxx
   for ( ; ; ) {
     for ( ; xy.x <= x_max; xy.x += x_inc) {
       for ( ; xy.y <= y_max; xy.y += y_inc) {
         xy2fila_ellips(xy, &fl, oid);
-     // printf(T("xx: %.6f, yy: %.6f, xfi: %.10f xla: %.10f\n"),
-     //         xy.x, xy.y, fl.fi, fl.la); //xxx
         rxla = xllround(fl.la*prec);
         if ((rla - rxla) < 0) {
           xy.y -= y_inc;
@@ -883,14 +848,11 @@ int fila_ellips2xy_loop(GEOGRA in, GEOUTM *out, int oid)
     if (x_inc < 1e-18 || y_inc < 1e-18) break;
   } // outer loop
   xy2fila_ellips(xy, &fl, oid);
-//printf(T("%s xx: %.6f, yy: %.6f, xfi: %.10f xla: %.10f\n"),
-//       found ? T("Found") : T("Final"), xy.x, xy.y, fl.fi, fl.la); //xxx
 
   out->x = xy.x; out->y = xy.y;
 
   // Geoid height
   out->H = in.h - Ng;
-//printf(T(">> out.H: %.3f (geoid)\n"), out->H); //xxx
 
   return found;
 } /* fila_ellips2xy_loop */
@@ -939,7 +901,6 @@ void xyz2fila_ellips(GEOCEN in, GEOGRA *out, int oid)
 #endif
   out->la = atan2(in.Y, in.X);
   out->h = p/cos(out->fi) - N;
-//printf(T(">> out.h: %.3f (calc)\n"), out->h); //xxx
 
   // Convert from radians to degrees
   out->fi = out->fi*180.0/PI;
@@ -1038,34 +999,25 @@ void gkxy2fila_wgs(GEOUTM in, GEOGRA *out)
   DMS lat, lon;
   double Ng, H;
 
-//printf(T("> input in.H: %.3f\n"), in.H); //xxx
   H = in.H; // in.H = 0.0;
 
   // Convert GK x,y,H to fi,la,h on Bessel 1841
   xy2fila_ellips(in, &flb, 0); // no change in height because of bessel
 
-//printf(T("> flb.h: %.3f\n"), flb.h); //xxx
-
 #if 0 //xxx
   deg2dms(flb.fi, &lat); deg2dms(flb.la, &lon);
   printf(T("> lat_b: %2.0f %2.0f %6.3f, lon_b: %2.0f %2.0f %6.3f\n"),
-         lat.deg, lat.min, lat.sec, lon.deg, lon.min, lon.sec); //xxx
+         lat.deg, lat.min, lat.sec, lon.deg, lon.min, lon.sec);
 #endif
 
   // Convert fi,la,h on Bessel 1841 to X,Y,Z on Bessel 1841
   fila_ellips2xyz(flb, &xyzb, 0); // height included in calculation of XYZ
 
-//printf(T("> Xb: %.10f, Yb: %.10f, Zb: %.10f\n"), xyzb.X, xyzb.Y, xyzb.Z); //xxx
-
   // Convert X,Y,Z on Bessel 1841 to X,Y,Z on WGS 84
   xyz2xyz_helmert(xyzb, &xyzw, slo7);
 
-//printf(T("> Xw: %.10f, Yw: %.10f, Zw: %.10f\n"), xyzw.X, xyzw.Y, xyzw.Z); //xxx
-
   // Convert X,Y,Z on WGS 84 to fi,la,h on WGS 84
   xyz2fila_ellips(xyzw, out, 1); // transformed height calculated from XYZ
-
-//printf(T("> trans out.h: %.3f\n"), out->h); //xxx
 
 //if (hsel < 0) out->h;             // default: transformed height (SiTra)
   if (hsel == 1) out->h = H;        // copied height
@@ -1073,8 +1025,6 @@ void gkxy2fila_wgs(GEOUTM in, GEOGRA *out)
     Ng = geoid_height(out->fi, out->la, gid_wgs); //slo2000/egm2008
     out->h = H + Ng;                // geoid height
   }
-
-//printf(T("> final out.h: %.3f\n"), out->h); //xxx
 } /* gkxy2fila_wgs */
 
 
@@ -1090,7 +1040,6 @@ void fila_wgs2gkxy(GEOGRA in, GEOUTM *out)
   DMS lat, lon;
   double Ng, h;
 
-//printf(T("> input in.h: %.3f\n"), in.h); //xxx
   h = in.h; // in.h = 0.0;
   if (hsel < 0 || hsel == 2)
     Ng = geoid_height(in.fi, in.la, gid_wgs); //slo2000/egm2008
@@ -1099,34 +1048,24 @@ void fila_wgs2gkxy(GEOGRA in, GEOUTM *out)
   // Convert fi,la,h on WGS 84 to X,Y,Z on WGS 84
   fila_ellips2xyz(in, &xyzw, 1); // height included in calculation of XYZ
 
-//printf(T("> Xw: %.10f, Yw: %.10f, Zw: %.10f\n"), xyzw.X, xyzw.Y, xyzw.Z); //xxx
-
   // Convert X,Y,Z on WGS 84 to X,Y,Z on Bessel 1841
   xyz2xyz_helmert(xyzw, &xyzb, slo7inv);
-
-//printf(T("> Xb: %.10f, Yb: %.10f, Zb: %.10f\n"), xyzb.X, xyzb.Y, xyzb.Z); //xxx
 
   // Convert X,Y,Z on Bessel 1841 to fi,la,h on Bessel 1841
   xyz2fila_ellips(xyzb, &flb, 0); // transformed height calculated from XYZ
 
-//printf(T("> trans flb.h: %.3f\n"), flb.h); //xxx
-
 #if 0 //xxx
   deg2dms(flb.fi, &lat); deg2dms(flb.la, &lon);
   printf(T("> lat_b: %2.0f %2.0f %6.3f, lon_b: %2.0f %2.0f %6.3f\n"),
-         lat.deg, lat.min, lat.sec, lon.deg, lon.min, lon.sec); //xxx
+         lat.deg, lat.min, lat.sec, lon.deg, lon.min, lon.sec);
 #endif
 
   // Convert fi,la,h to GK x,y,H on Bessel 1841
   fila_ellips2xy(flb, out, 0); // no change in height because of bessel
 
-//printf(T("> out.H: %.3f\n"), out->H); //xxx
-
   if (hsel < 0) out->H = h - Ng;       // default: geoid height (SiTra)
   else if (hsel == 1) out->H = h;      // copied height
   else if (hsel == 2) out->H = h - Ng; // geoid height
-
-//printf(T("> final out.H: %.3f\n"), out->H); //xxx
 } /* fila_wgs2gkxy */
 
 
@@ -1142,46 +1081,34 @@ void gkxy2tmxy(GEOUTM in, GEOUTM *out)
   DMS lat, lon;
   double Ng, H, ht;
 
-//printf(T("> input in.H: %.3f\n"), in.H); //xxx
   H = in.H; // in.H = 0.0;
 
   // Convert GK x,y,H to fi,la,h on Bessel 1841
   xy2fila_ellips(in, &flb, 0); // no change in height because of bessel
 
-//printf(T("> flb.h: %.3f\n"), flb.h); //xxx
-
 #if 0 //xxx
   deg2dms(flb.fi, &lat); deg2dms(flb.la, &lon);
   printf(T("> lat_b: %2.0f %2.0f %6.3f, lon_b: %2.0f %2.0f %6.3f\n"),
-         lat.deg, lat.min, lat.sec, lon.deg, lon.min, lon.sec); //xxx
+         lat.deg, lat.min, lat.sec, lon.deg, lon.min, lon.sec);
 #endif
 
   // Convert fi,la,h on Bessel 1841 to X,Y,Z on Bessel 1841
   fila_ellips2xyz(flb, &xyzb, 0); // height included in calculation of XYZ
 
-//printf(T("> Xb: %.10f, Yb: %.10f, Zb: %.10f\n"), xyzb.X, xyzb.Y, xyzb.Z); //xxx
-
   // Convert X,Y,Z on Bessel 1841 to X,Y,Z on WGS 84
   xyz2xyz_helmert(xyzb, &xyzw, slo7);
-
-//printf(T("> Xw: %.10f, Yw: %.10f, Zw: %.10f\n"), xyzw.X, xyzw.Y, xyzw.Z); //xxx
 
   // Convert X,Y,Z on WGS 84 to fi,la,h on WGS 84
   xyz2fila_ellips(xyzw, &fl, 1); // transformed height calculated from XYZ
 
-//printf(T("> trans fl.h: %.3f\n"), fl.h); //xxx
   ht = fl.h; // fl.h = 0.0;
 
   // Convert fi,la,h on WGS 84 to TM n,e,H on WGS 84
   fila_ellips2xy(fl, out, 1); // height calculated from geoid (H = h - Ng)
 
-//printf(T("> out.H: %.3f\n"), out->H); //xxx
-
 //if (hsel < 0) out->H;            // default: geoid height (closest)
   if (hsel == 1) out->H = H;       // copied height
   else if (hsel == 0) out->H = ht; // transformed height
-
-//printf(T("> final out.H: %.3f\n"), out->H); //xxx
 } /* gkxy2tmxy */
 
 
@@ -1197,46 +1124,34 @@ void tmxy2gkxy(GEOUTM in, GEOUTM *out)
   DMS lat, lon;
   double Ng, hg, H;
 
-//printf(T("> input in.H: %.3f\n"), in.H); //xxx
   H = in.H; // in.H = 0.0;
 
   // Convert TM n,e,H on WGS 84 to fi,la,h on WGS 84
   xy2fila_ellips(in, &fl, 1); // height calculated from geoid (h = H + Ng)
 
-//printf(T("> fl.h: %.3f\n"), fl.h); //xxx
   hg = fl.h; // fl.h = 0.0;
 
   // Convert fi,la,h on WGS 84 to X,Y,Z on WGS 84
   fila_ellips2xyz(fl, &xyzw, 1); // height included in calculation of XYZ
 
-//printf(T("> Xw: %.10f, Yw: %.10f, Zw: %.10f\n"), xyzw.X, xyzw.Y, xyzw.Z); //xxx
-
   // Convert X,Y,Z on WGS 84 to X,Y,Z on Bessel 1841
   xyz2xyz_helmert(xyzw, &xyzb, slo7inv);
-
-//printf(T("> Xb: %.10f, Yb: %.10f, Zb: %.10f\n"), xyzb.X, xyzb.Y, xyzb.Z); //xxx
 
   // Convert X,Y,Z on Bessel 1841 to fi,la,h on Bessel 1841
   xyz2fila_ellips(xyzb, &flb, 0); // transformed height calculated from XYZ
 
-//printf(T("> trans flb.h: %.3f\n"), flb.h); //xxx
-
 #if 0 //xxx
   deg2dms(flb.fi, &lat); deg2dms(flb.la, &lon);
   printf(T("> lat_b: %2.0f %2.0f %6.3f, lon_b: %2.0f %2.0f %6.3f\n"),
-         lat.deg, lat.min, lat.sec, lon.deg, lon.min, lon.sec); //xxx
+         lat.deg, lat.min, lat.sec, lon.deg, lon.min, lon.sec);
 #endif
 
   // Convert fi,la,h to GK x,y,H on Bessel 1841
   fila_ellips2xy(flb, out, 0); // no change in height because of bessel
 
-//printf(T("> out.H: %.3f\n"), out->H); //xxx
-
 //if (hsel < 0) out->H;            // default: transformed height (closest)
   if (hsel == 1) out->H = H;       // copied height
   else if (hsel == 2) out->H = hg; // geoid height (already calculated)
-
-//printf(T("> final out.H: %.3f\n"), out->H); //xxx
 } /* tmxy2gkxy */
 
 
@@ -1249,19 +1164,14 @@ void tmxy2fila_wgs(GEOUTM in, GEOGRA *out)
 {
   double H;
 
-//printf(T("> input in.H: %.3f\n"), in.H); //xxx
   H = in.H; // in.H = 0.0;
 
   // Convert TM n,e,H on WGS 84 to fi,la,h on WGS 84
   xy2fila_ellips(in, out, 1); // height calculated from geoid (h = H + Ng)
 
-//printf(T("> out.h: %.3f\n"), out->h); //xxx
-
 //if (hsel < 0) out->h;             // default: geoid height
   if (hsel == 1) out->h = H;        // copied height
   // no transformed height possible
-
-//printf(T("> final out.h: %.3f\n"), out->h); //xxx
 } /* tmxy2fila_wgs */
 
 
@@ -1274,17 +1184,12 @@ void fila_wgs2tmxy(GEOGRA in, GEOUTM *out)
 {
   double h;
 
-//printf(T("> input in.h: %.3f\n"), in.h); //xxx
   h = in.h; // in.h = 0.0;
 
   // Convert fi,la,h on WGS 84 to TM n,e,H on WGS 84
   fila_ellips2xy(in, out, 1); // height calculated from geoid (H = h - Ng)
 
-//printf(T("> out.H: %.3f\n"), out->H); //xxx
-
 //if (hsel < 0) out->H;            // default: geoid height
   if (hsel == 1) out->H = h;       // copied height
   // no transformed height possible
-
-//printf(T("> final out.H: %.3f\n"), out->H); //xxx
 } /* fila_wgs2tmxy */

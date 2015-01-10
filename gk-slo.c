@@ -31,8 +31,8 @@
 #include "common.h"
 #include "geo.h"
 
-#define SW_VERSION T("6.01")
-#define SW_BUILD   T("Jan 8, 2015")
+#define SW_VERSION T("6.02")
+#define SW_BUILD   T("Jan 9, 2015")
 
 // global variables
 TCHAR *prog;  // program name
