@@ -1,0 +1,9 @@
+CC = cl
+RM = del /q
+
+all: gk-slo.c geoid_wgs.h geoid_egm.h
+#	$(CC) /Zi /DEBUG /Wall gk-slo.c
+	$(CC) /O2 /Wall gk-slo.c
+
+clean:
+	$(RM) gk-slo.o* gk-slo.exe

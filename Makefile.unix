@@ -1,0 +1,9 @@
+#CC = gcc
+RM = rm -f
+
+all: gk-slo.c geoid_wgs.h geoid_egm.h
+#	$(CC) -g2 -gstabs+ -Wall gk-slo.c -o gk-slo -pg -lm -lrt
+	$(CC) -O2 -Wall gk-slo.c -o gk-slo -lm -lrt
+
+clean:
+	$(RM) gk-slo.o* gk-slo
