@@ -31,8 +31,8 @@
 #include "common.h"
 #include "geo.h"
 
-#define SW_VERSION T("6.02")
-#define SW_BUILD   T("Jan 9, 2015")
+#define SW_VERSION T("6.03")
+#define SW_BUILD   T("Jan 11, 2015")
 
 // global variables
 TCHAR *prog;  // program name
@@ -370,32 +370,34 @@ void usage(TCHAR *prog, int ver_only)
           prog, SW_VERSION, SW_BUILD);
   if (ver_only) return;
   fprintf(stderr, T("Usage: %s [<options>] [<inpname> ...]\n"), prog);
-  fprintf(stderr, T("  -d            enable debug output\n"));
-  fprintf(stderr, T("  -x            print reference test and exit\n"));
-  fprintf(stderr, T("  -gd <n>       generate data and exit\n"));
-  fprintf(stderr, T("                1: generate xy   (d96tm)  data\n"));
-  fprintf(stderr, T("                2: generate fila (etrs89) data\n"));
-  fprintf(stderr, T("                3: generate xy   (d48gk)  data\n"));
-  fprintf(stderr, T("  -ht           calculate output height with 7-params Helmert trans.\n"));
-  fprintf(stderr, T("  -hc           copy input height unchanged to output\n"));
-  fprintf(stderr, T("  -hg           calculate output height from geoid model (default)\n"));
-  fprintf(stderr, T("  -dms          display fila in DMS format after height\n"));
-  fprintf(stderr, T("  -g slo|egm    select geoid model (Slo2000 or EGM2008)\n"));
-  fprintf(stderr, T("                default: Slo2000\n"));
-  fprintf(stderr, T("  -t <n>        select transformation:\n"));
-  fprintf(stderr, T("                1: xy   (d96tm)  --> fila (etrs89),hg?, default\n"));
-  fprintf(stderr, T("                2: fila (etrs89) --> xy   (d96tm), hg\n"));
-  fprintf(stderr, T("                3: xy   (d48gk)  --> fila (etrs89),ht\n"));
-  fprintf(stderr, T("                4: fila (etrs89) --> xy   (d48gk), hg\n"));
-  fprintf(stderr, T("                5: xy   (d48gk)  --> xy   (d96tm), hg(hc)\n"));
-  fprintf(stderr, T("                6: xy   (d96tm)  --> xy   (d48gk), ht(hc)\n"));
-  fprintf(stderr, T("  -r            reverse parsing order of xy/fila\n"));
-  fprintf(stderr, T("  <inpname>     parse and convert input data from <inpname>\n"));
+  fprintf(stderr, T("  -d                enable debug output\n"));
+  fprintf(stderr, T("  -x                print reference test and exit\n"));
+  fprintf(stderr, T("  -gd <n>           generate data (inside Slovenia) and exit\n"));
+  fprintf(stderr, T("                    1: generate xy   (d96tm)  data\n"));
+  fprintf(stderr, T("                    2: generate fila (etrs89) data\n"));
+  fprintf(stderr, T("                    3: generate xy   (d48gk)  data\n"));
+  fprintf(stderr, T("  -ht               calculate output height with 7-params Helmert trans.\n"));
+  fprintf(stderr, T("  -hc               copy input height unchanged to output\n"));
+  fprintf(stderr, T("  -hg               calculate output height from geoid model (default)\n"));
+  fprintf(stderr, T("  -g slo|egm        select geoid model (Slo2000 or EGM2008)\n"));
+  fprintf(stderr, T("                    default: Slo2000\n"));
+  fprintf(stderr, T("  -dms              display fila in DMS format after height\n"));
+  fprintf(stderr, T("  -t <n>            select transformation:\n"));
+  fprintf(stderr, T("                    1: xy   (d96tm)  --> fila (etrs89), hg?, default\n"));
+  fprintf(stderr, T("                    2: fila (etrs89) --> xy   (d96tm),  hg\n"));
+  fprintf(stderr, T("                    3: xy   (d48gk)  --> fila (etrs89), ht\n"));
+  fprintf(stderr, T("                    4: fila (etrs89) --> xy   (d48gk),  hg\n"));
+  fprintf(stderr, T("                    5: xy   (d48gk)  --> xy   (d96tm),  hg(hc)\n"));
+  fprintf(stderr, T("                    6: xy   (d96tm)  --> xy   (d48gk),  ht(hc)\n"));
+  fprintf(stderr, T("  -r                reverse parsing order of xy/fila\n"));
+  fprintf(stderr, T("                    (warning displayed if y < 200000)\n"));
+  fprintf(stderr, T("  <inpname>         parse and convert input data from <inpname>\n"));
+  fprintf(stderr, T("                    <inpname> \"-\" means stdin, use -- before\n"));
   fprintf(stderr, T("  -o -|=|<outname>  write output data to:\n"));
-  fprintf(stderr, T("                -: stdout (default)\n"));
-  fprintf(stderr, T("                =: append \".out\" to each <inpname> and\n"));
-  fprintf(stderr, T("                   write output to these separate files\n"));
-  fprintf(stderr, T("                <outname>: write all output to 1 file <outname>\n"));
+  fprintf(stderr, T("                    -: stdout (default)\n"));
+  fprintf(stderr, T("                    =: append \".out\" to each <inpname> and\n"));
+  fprintf(stderr, T("                       write output to these separate files\n"));
+  fprintf(stderr, T("                    <outname>: write all output to 1 file <outname>\n"));
   fprintf(stderr, T("\n"));
   fprintf(stderr, T("Typical input data file format (SiTra):\n"));
   fprintf(stderr, T("[<label>]  <fi|x>  <la|y>  <h|H>\n"));

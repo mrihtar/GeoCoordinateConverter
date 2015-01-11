@@ -52,8 +52,8 @@ ELLIPSOID ellips[3];
 // y: 363001.945 - 633454.830 (D48/GK)
 // la: 13°15' - 16°45' = 210'/1.0' = 210
 double geoid_bes[106][141];   // (doesn't exist) on Bessel 1841 (0)
-//double geoid_wgs[106][141]; // Slo2000 on WGS 84 (1)
-#include "geoid_wgs.h"
+//double geoid_slo[106][141]; // Slo2000 on WGS 84 (1)
+#include "geoid_slo.h"
 //double geoid_egm[106][211]; // EGM2008 on WGS 84 (2)
 #include "geoid_egm.h"
 double gfimin, gfimax, gfiinc1;
@@ -456,8 +456,8 @@ double geoid_height(double fi, double la, int gid)
     x1 = gfimin + ix*gfiinc1; y1 = glamin + iy*glainc15;
     x2 = x1 + gfiinc1;        y2 = y1 + glainc15;
 
-    p3 = geoid_wgs[ix+1][iy]; p4 = geoid_wgs[ix+1][iy+1];
-    p1 = geoid_wgs[ix][iy];   p2 = geoid_wgs[ix][iy+1];
+    p3 = geoid_slo[ix+1][iy]; p4 = geoid_slo[ix+1][iy+1];
+    p1 = geoid_slo[ix][iy];   p2 = geoid_slo[ix][iy+1];
   }
   else if (gid == 2) {
     x1 = gfimin + ix*gfiinc1; y1 = glamin + iy*glainc15;

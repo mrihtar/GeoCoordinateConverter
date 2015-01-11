@@ -1,9 +1,20 @@
+SHELL = %SystemRoot%/System32/cmd.exe
 CC = gcc
-RM = nuke
+RM = del /q
 
-all: gk-slo.c util.c geo.c common.h geo.h geoid_wgs.h geoid_egm.h
+gk-slo.exe: gk-slo.c util.c geo.c common.h geo.h geoid_slo.h geoid_egm.h
 #	$(CC) -g2 -gstabs+ -Wall gk-slo.c util.c geo.c -o gk-slo.exe -pg
 	$(CC) -O2 -Wall gk-slo.c util.c geo.c -o gk-slo.exe
+
+test: gk-slo.exe
+	gk-slo.exe -x > gk-slo.tmp
+	fc /l gk-slo.tmp refout-slo.txt
+	gk-slo.exe -x -g egm > gk-slo.tmp
+	fc /l gk-slo.tmp refout-egm.txt
+	@$(RM) gk-slo.tmp > NUL
+
+install: gk-slo.exe
+	@echo Copy gk-slo.exe to a directory of your choice
 
 clean:
 	$(RM) gk-slo.o* util.o* geo.o* gk-slo.exe

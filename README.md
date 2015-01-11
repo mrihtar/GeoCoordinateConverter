@@ -4,7 +4,7 @@
 (latitude/longitude on ETRS89/WGS84) for Slovenia. It can be used
 as a replacement for the official conversion program [SiTra] (with Helmert
 parameters for the whole Slovenia, no regional parameters). When calculating
-heights, it can use two absolute geoid models for Slovenia: Slo2000 and EGM2008.
+heights, it can use two absolute geoid models for Slovenia: Slo2000 and [EGM2008].
 
 It's written in C language and can be compiled and used on all major
 operating systems. Coordinate conversion routines (in module "geo.c")
@@ -12,7 +12,8 @@ can be easily adapted to locations other than Slovenia (via ellipsoid,
 projection and Helmert parameters).
 
 Precompiled version of **gk-slo for Windows** (32-bit, compiled with MinGW)
-can be downloaded from [gk-slo-6.02.zip].
+can be downloaded from  
+[gk-slo-6.02.zip].
 
 ### Conventions
 Cartesian coordinates                 | Geodetic coordinates
@@ -23,19 +24,19 @@ H = ortometric/above sea level height | h = ellipsoidal height
 Ng = geoid height
 
 ### Files
-- **common.h**  
+- **[common.h]**  
   Include file with common definitions for Windows and Unix environment
-- **util.c**  
+- **[util.c]**  
   Collection of utility functions for use in other parts of program
-- **geoid_wgs.h**  
+- **[geoid_slo.h]**  
   Absolute geoid model for Slovenia from GURS (Slo2000)
-- **geoid_egm.h**  
+- **[geoid_egm.h]**  
   Absolute geoid model for Slovenia from [EGM2008]
-- **geo.h**  
+- **[geo.h]**  
   Include file for using coordinate conversion routines
-- **geo.c**  
+- **[geo.c]**  
   Collection of coordinate conversion routines
-- **gk-slo.c**  
+- **[gk-slo.c]**  
   Main cmd-line program for converting coordinates
 
 ### How to compile
@@ -153,7 +154,7 @@ $ gk-slo -t 1 -r -g egm VTC0512.XYZ
 
 #### Example 3 (ETRS89/WGS84)
 Convert ETRS89/WGS84 coordinates to Transverse Mercator/D96 via keyboard
-(ignoring height):
+(ignoring height, use "**--**" to stop parsing options):
 <pre>
 $ gk-slo -t 2 -- -
 46.0071929697 13.8669428837 0 <i>&lt;Enter&gt;</i>
@@ -167,9 +168,10 @@ $ gk-slo -t 4 VTG2225.flh
 0000002 76000.000 509005.000 342.396
 0000003 76000.000 509010.000 341.896
 </pre>
-If you compare the output with the original VTG2225.XYZ, you can notice
-a small difference in heights, because in VTG2225.flh they were calculated
-using Helmert transformation, and the default for "-t 4" is using geoid model.
+If you compare the output with the original VTG2225.XYZ, you'll notice
+a small difference in heights. This is because in VTG2225.flh they were
+calculated using Helmert transformation but the default for "-t 4" is
+using geoid model.
 
 Which height calculation you use for conversion depends on input data. There
 are some reasonable defaults (see usage) for each type of conversion.
@@ -210,4 +212,13 @@ VTH0722.XYZ.out
 [SiTra]: http://sitra.sitranet.si
 [SiTraNet]: http://sitranet.si
 [EGM2008]: http://earth-info.nga.mil/GandG/wgs84/gravitymod/egm2008/egm08_wgs84.html
+
 [gk-slo-6.02.zip]: https://app.box.com/s/vyj1mlghsuevcy921zhs
+
+[common.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/common.h
+[util.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/util.c
+[geoid_slo.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geoid_slo.h
+[geoid_egm.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geoid_egm.h
+[geo.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo.h
+[geo.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo.c
+[gk-slo.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/gk-slo.c
