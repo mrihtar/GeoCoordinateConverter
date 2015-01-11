@@ -392,14 +392,14 @@ void usage(TCHAR *prog, int ver_only)
   fprintf(stderr, T("  -r                reverse parsing order of xy/fila\n"));
   fprintf(stderr, T("                    (warning displayed if y < 200000)\n"));
   fprintf(stderr, T("  <inpname>         parse and convert input data from <inpname>\n"));
-  fprintf(stderr, T("                    <inpname> \"-\" means stdin, use -- before\n"));
+  fprintf(stderr, T("                    <inpname> \"-\" means stdin, use \"--\" before\n"));
   fprintf(stderr, T("  -o -|=|<outname>  write output data to:\n"));
   fprintf(stderr, T("                    -: stdout (default)\n"));
   fprintf(stderr, T("                    =: append \".out\" to each <inpname> and\n"));
   fprintf(stderr, T("                       write output to these separate files\n"));
   fprintf(stderr, T("                    <outname>: write all output to 1 file <outname>\n"));
   fprintf(stderr, T("\n"));
-  fprintf(stderr, T("Typical input data file format (SiTra):\n"));
+  fprintf(stderr, T("Typical input data format (SiTra):\n"));
   fprintf(stderr, T("[<label>]  <fi|x>  <la|y>  <h|H>\n"));
 } /* usage */
 

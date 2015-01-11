@@ -74,7 +74,7 @@ int hsel;    // selected output height (via cmd line)
 
 // German expressions:
 // Breite = Latitude (N/S)
-// Laenge = Longitude (W/E)
+// Laenge = Longitude (E/W)
 // Kennziffer = GK zone = {0°, 3°, 6°, ..., 351°, 354°, 357°} / 3°
 // zone = xround(lon.deg / 3.0);
 

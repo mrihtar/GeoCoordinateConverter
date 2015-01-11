@@ -1,27 +1,32 @@
 ## GeoCoordinateConverter
+Za slovensko verzijo te datoteke glej [PREBERIME.md].
+
 **gk-slo** is a converter between geographic cartesian coordinates
 (Gauss-Krueger/D48, Transverse Mercator/D96) and geodetic coordinates
 (latitude/longitude on ETRS89/WGS84) for Slovenia. It can be used
-as a replacement for the official conversion program [SiTra] (with Helmert
-parameters for the whole Slovenia, no regional parameters). When calculating
-heights, it can use two absolute geoid models for Slovenia: Slo2000 and [EGM2008].
+as a replacement for the official conversion program [SiTra] &#40;with Helmert
+parameters for the whole Slovenia, no regional parameters&#41;. For calculating
+heights with the help of geoid model two absolute geoid models for Slovenia are
+available: Slo2000 and [EGM2008].
 
 It's written in C language and can be compiled and used on all major
 operating systems. Coordinate conversion routines (in module "geo.c")
-can be easily adapted to locations other than Slovenia (via ellipsoid,
-projection and Helmert parameters).
+can be easily adapted to locations other than Slovenia (via definition of
+ellipsoid, projection and Helmert parameters).
 
 Precompiled version of **gk-slo for Windows** (32-bit, compiled with MinGW)
 can be downloaded from  
-[gk-slo-6.02.zip].
+[gk-slo-6.03.zip].
+
 
 ### Conventions
 Cartesian coordinates                 | Geodetic coordinates
 :------------------------------------ |:--------------------
 x = easting                           | fi = phi (&phi;), latitude, Breite (N/S)
-y = northing                          | la = lambda (&lambda;), longitude, L&auml;nge (W/E)
+y = northing                          | la = lambda (&lambda;), longitude, L&auml;nge (E/W)
 H = ortometric/above sea level height | h = ellipsoidal height
 Ng = geoid height
+
 
 ### Files
 - **[common.h]**  
@@ -39,6 +44,7 @@ Ng = geoid height
 - **[gk-slo.c]**  
   Main cmd-line program for converting coordinates
 
+
 ### How to compile
 #### Unix
 ```$ cc -O2 -Wall gk-slo.c util.c geo.c -o gk-slo -lm -lrt``` or  
@@ -50,39 +56,43 @@ Ng = geoid height
 ```$ cl /O2 /Wall gk-slo.c util.c geo.c``` or  
 ```$ make -f Makefile.msc```
 
+
 ### Usage
 <pre>
 $ gk-slo [&lt;options&gt;] [&lt;inpname&gt; ...]
-  -d            enable debug output
-  -x            print reference test and exit
-  -gd &lt;n&gt;       generate data and exit
-                1: generate xy   (d96tm)  data
-                2: generate fila (etrs89) data
-                3: generate xy   (d48gk)  data
-  -ht           calculate output height with 7-params Helmert trans.
-  -hc           copy input height unchanged to output
-  -hg           calculate output height from geoid model (default)
-  -dms          display fila in DMS format after height
-  -g slo|egm    select geoid model (Slo2000 or EGM2008)
-                default: Slo2000
-  -t &lt;n&gt;        select transformation:
-                1: xy   (d96tm)  --&gt; fila (etrs89),hg?, default
-                2: fila (etrs89) --&gt; xy   (d96tm), hg
-                3: xy   (d48gk)  --&gt; fila (etrs89),ht
-                4: fila (etrs89) --&gt; xy   (d48gk), hg
-                5: xy   (d48gk)  --&gt; xy   (d96tm), hg(hc)
-                6: xy   (d96tm)  --&gt; xy   (d48gk), ht(hc)
-  -r            reverse parsing order of xy/fila
-  &lt;inpname&gt;     parse and convert input data from &lt;inpname&gt;
+  -d                enable debug output
+  -x                print reference test and exit
+  -gd &lt;n&gt;           generate data (inside Slovenia) and exit
+                    1: generate xy   (d96tm)  data
+                    2: generate fila (etrs89) data
+                    3: generate xy   (d48gk)  data
+  -ht               calculate output height with 7-params Helmert trans.
+  -hc               copy input height unchanged to output
+  -hg               calculate output height from geoid model (default)
+  -g slo|egm        select geoid model (Slo2000 or EGM2008)
+                    default: Slo2000
+  -dms              display fila in DMS format after height
+  -t &lt;n&gt;            select transformation:
+                    1: xy   (d96tm)  --&gt; fila (etrs89), hg?, default
+                    2: fila (etrs89) --&gt; xy   (d96tm),  hg
+                    3: xy   (d48gk)  --&gt; fila (etrs89), ht
+                    4: fila (etrs89) --&gt; xy   (d48gk),  hg
+                    5: xy   (d48gk)  --&gt; xy   (d96tm),  hg(hc)
+                    6: xy   (d96tm)  --&gt; xy   (d48gk),  ht(hc)
+  -r                reverse parsing order of xy/fila
+                    (warning displayed if y &lt; 200000)
+  &lt;inpname&gt;         parse and convert input data from &lt;inpname&gt;
+                    &lt;inpname&gt; "-" means stdin, use "--" before
   -o -|=|&lt;outname&gt;  write output data to:
-                -: stdout (default)
-                =: append ".out" to each &lt;inpname&gt; and
-                   write output to these separate files
-                &lt;outname&gt;: write all output to 1 file &lt;outname&gt;
+                    -: stdout (default)
+                    =: append ".out" to each &lt;inpname&gt; and
+                       write output to these separate files
+                    &lt;outname&gt;: write all output to 1 file &lt;outname&gt;
 
-Typical input data file format (SiTra):
+Typical input data format (SiTra):
 [&lt;label&gt;]  &lt;fi|x&gt;  &lt;la|y&gt;  &lt;h|H&gt;
 </pre>
+
 
 #### Example 1 (D48)
 Input file VTG2225.XYZ (DMV, in [SiTraNet] format, Gauss-Krueger/D48):
@@ -91,7 +101,7 @@ Input file VTG2225.XYZ (DMV, in [SiTraNet] format, Gauss-Krueger/D48):
 0000002 509005.000 76000.000 342.80
 0000003 509010.000 76000.000 342.30
 </pre>
-Convert to new coordinate system (Transverse Mercator/D96), heights should
+Convert to new coordinate system (Transverse Mercator/D96); heights should
 be copied, not calculated:
 <pre>
 $ gk-slo -t 5 -hc VTG2225.XYZ
@@ -129,6 +139,7 @@ $ gk-slo -t 3 -r VTG2225.XYZ -o VTG2225.flh
 <i>(creates file VTG2225.flh)</i>
 </pre>
 
+
 #### Example 2 (D96)
 Input file VTC0512.XYZ (DMV, in [SiTraNet] format, Transverse Mercator/D96):
 <pre>
@@ -152,6 +163,7 @@ $ gk-slo -t 1 -r -g egm VTC0512.XYZ
 0000003 46.0071030110 13.8669447206 654.359
 </pre>
 
+
 #### Example 3 (ETRS89/WGS84)
 Convert ETRS89/WGS84 coordinates to Transverse Mercator/D96 via keyboard
 (ignoring height, use "**--**" to stop parsing options):
@@ -169,12 +181,13 @@ $ gk-slo -t 4 VTG2225.flh
 0000003 76000.000 509010.000 341.896
 </pre>
 If you compare the output with the original VTG2225.XYZ, you'll notice
-a small difference in heights. This is because in VTG2225.flh they were
-calculated using Helmert transformation but the default for "-t 4" is
-using geoid model.
+a small difference in heights. This is because the heights in VTG2225.flh
+were calculated using Helmert transformation but the default height
+calculation for "-t 4" is using geoid model.
 
-Which height calculation you use for conversion depends on input data. There
-are some reasonable defaults (see usage) for each type of conversion.
+Which height calculation you use for conversion depends also on input data.
+There are some recommended defaults for each type of conversion (see Usage).
+
 
 #### Example 4 (processing many files)
 If gk-slo was compiled with MinGW on Windows or is being used on Unix, you
@@ -209,12 +222,11 @@ VTH0722.XYZ.out
 ...
 </pre>
 
+[PREBERIME.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/PREBERIME.md
 [SiTra]: http://sitra.sitranet.si
 [SiTraNet]: http://sitranet.si
 [EGM2008]: http://earth-info.nga.mil/GandG/wgs84/gravitymod/egm2008/egm08_wgs84.html
-
-[gk-slo-6.02.zip]: https://app.box.com/s/vyj1mlghsuevcy921zhs
-
+[gk-slo-6.03.zip]: https://app.box.com/s/vyj1mlghsuevcy921zhs
 [common.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/common.h
 [util.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/util.c
 [geoid_slo.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geoid_slo.h
