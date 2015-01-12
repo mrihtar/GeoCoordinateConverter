@@ -10,13 +10,15 @@ višin s pomočjo modela geoida sta na razpolago dva absolutna modela geoida
 za Slovenijo: Slo2000 in [EGM2008].
 
 Napisan je v jeziku C in se ga da prevesti in uporabljati na vseh pomembnejših
-operacijskih sistemih. Podprogrami za konverzijo koordinat (v modulu "geo.c")
-se lahko enostavno priredijo za uporabo tudi na drugih lokacijah, ne samo
-v Sloveniji (preko definicij elipsoida ter projekcijskih in Helmertovih
-parametrov).
+operacijskih sistemih. Podprogrami za konverzijo koordinat se lahko enostavno
+priredijo za uporabo tudi na drugih lokacijah, ne samo v Sloveniji (preko
+definicij elipsoida ter projekcijskih in Helmertovih parametrov).
 
 Natančnejši opis podprogramov za konverzijo koordinat in njihov API
-iz modula "geo.c" je v datoteki [geo_api.md].
+(v modulu "geo.c") je v datoteki [geo_api.md].
+
+Spisek uporabljene literature (s povezavami do dokumentov) je v datoteki
+[literature.md].
 
 Prevedeno verzijo **gk-slo za Windows** (32-bitna, prevedena z MinGW)
 lahko dobite na  
@@ -233,6 +235,7 @@ VTH0722.XYZ.out
 [SiTraNet]: http://sitranet.si
 [EGM2008]: http://earth-info.nga.mil/GandG/wgs84/gravitymod/egm2008/egm08_wgs84.html
 [geo_api.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo_api.md
+[literature.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/literature.md
 [gk-slo-6.03.zip]: https://app.box.com/s/vyj1mlghsuevcy921zhs
 [common.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/common.h
 [util.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/util.c
