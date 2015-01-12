@@ -15,6 +15,9 @@ se lahko enostavno priredijo za uporabo tudi na drugih lokacijah, ne samo
 v Sloveniji (preko definicij elipsoida ter projekcijskih in Helmertovih
 parametrov).
 
+Natančnejši opis podprogramov za konverzijo koordinat in njihov API
+iz modula "geo.c" je v datoteki [geo_api.md].
+
 Prevedeno verzijo **gk-slo za Windows** (32-bitna, prevedena z MinGW)
 lahko dobite na  
 [gk-slo-6.03.zip].
@@ -229,6 +232,7 @@ VTH0722.XYZ.out
 [SiTra]: http://sitra.sitranet.si
 [SiTraNet]: http://sitranet.si
 [EGM2008]: http://earth-info.nga.mil/GandG/wgs84/gravitymod/egm2008/egm08_wgs84.html
+[geo_api.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo_api.md
 [gk-slo-6.03.zip]: https://app.box.com/s/vyj1mlghsuevcy921zhs
 [common.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/common.h
 [util.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/util.c

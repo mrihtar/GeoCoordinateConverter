@@ -14,6 +14,9 @@ operating systems. Coordinate conversion routines (in module "geo.c")
 can be easily adapted to locations other than Slovenia (via definition of
 ellipsoid, projection and Helmert parameters).
 
+Detailed description of coordinate conversion routines and their API
+from module "geo.c" is in file [geo_api.md].
+
 Precompiled version of **gk-slo for Windows** (32-bit, compiled with MinGW)
 can be downloaded from  
 [gk-slo-6.03.zip].
@@ -226,6 +229,7 @@ VTH0722.XYZ.out
 [SiTra]: http://sitra.sitranet.si
 [SiTraNet]: http://sitranet.si
 [EGM2008]: http://earth-info.nga.mil/GandG/wgs84/gravitymod/egm2008/egm08_wgs84.html
+[geo_api.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo_api.md
 [gk-slo-6.03.zip]: https://app.box.com/s/vyj1mlghsuevcy921zhs
 [common.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/common.h
 [util.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/util.c
