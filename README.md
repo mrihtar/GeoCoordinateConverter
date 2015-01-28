@@ -1,4 +1,4 @@
-## GeoCoordinateConverter
+## [GeoCoordinateConverter]
 Za slovensko verzijo te datoteke glej [PREBERIME.md].
 
 **gk-slo** is a converter between geographic cartesian coordinates
@@ -227,6 +227,7 @@ VTH0722.XYZ.out
 ...
 </pre>
 
+[GeoCoordinateConverter]: http://geocoordinateconverter.tk
 [PREBERIME.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/PREBERIME.md
 [SiTra]: http://sitra.sitranet.si
 [SiTraNet]: http://sitranet.si
