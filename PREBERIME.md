@@ -1,4 +1,4 @@
-## GeoCoordinateConverter
+## [GeoCoordinateConverter]
 For English version of this file see [README.md].
 
 **gk-slo** je konverter med geografskimi kartezičnimi koordinatami
@@ -230,6 +230,7 @@ VTH0722.XYZ.out
 ...
 </pre>
 
+[GeoCoordinateConverter]: http://geocoordinateconverter.tk/indeks.html
 [README.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/README.md
 [SiTra]: http://sitra.sitranet.si
 [SiTraNet]: http://sitranet.si
