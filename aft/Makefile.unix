@@ -1,0 +1,22 @@
+#CC = gcc
+RM = rm -f
+
+CFLAGS = -Wall -msse2 -mfpmath=sse
+DEBUG = -O2
+#DEBUG = -g
+
+all: ctt triangle showme
+
+ctt: ctt.c ../util.c ../common.h
+	$(CC) $(CFLAGS) $(DEBUG) -I.. ctt.c ../util.c -o ctt -lm
+
+triangle: triangle.c triangle.h
+	$(CC) $(CFLAGS) $(DEBUG) triangle.c -o triangle -lm
+
+showme: showme.c
+	$(CC) $(CFLAGS) $(DEBUG) showme.c -o showme -lX11
+
+clean:
+	$(RM) ctt.o* util.o* ctt
+	$(RM) triangle.o* triangle
+	$(RM) showme.o* showme

@@ -1,9 +1,16 @@
+SHELL = %SystemRoot%/System32/cmd.exe
 CC = cl
 RM = del /q
 
+CFLAGS = /Wall
+DEBUG = /O2
+#DEBUG = /Zi /DEBUG
+
+all: gk-slo.exe
+
 gk-slo.exe: gk-slo.c util.c geo.c common.h geo.h geoid_slo.h geoid_egm.h
-#	$(CC) /Zi /DEBUG /Wall gk-slo.c util.c geo.c
-	$(CC) /O2 /Wall gk-slo.c util.c geo.c
+#	$(CC) $(CFLAGS) /Zi /DEBUG /Wall gk-slo.c util.c geo.c
+	$(CC) $(CFLAGS) $(DEBUG) gk-slo.c util.c geo.c
 
 test: gk-slo.exe
 	gk-slo.exe -x > gk-slo.tmp

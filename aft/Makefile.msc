@@ -1,0 +1,19 @@
+SHELL = %SystemRoot%/System32/cmd.exe
+CC = cl
+RM = del /q
+
+CFLAGS = /Wall
+DEBUG = /O2
+#DEBUG = /Zi /DEBUG
+
+all: ctt.exe triangle.exe
+
+ctt.exe: ctt.c ../util.c ../common.h
+	$(CC) $(CFLAGS) $(DEBUG) /I.. ctt.c ../util.c
+
+triangle.exe: triangle.c triangle.h
+	$(CC) $(CFLAGS) $(DEBUG) /DNO_TIMER triangle.c
+
+clean:
+	$(RM) ctt.o* util.o* ctt.exe
+	$(RM) triangle.o* triangle.exe

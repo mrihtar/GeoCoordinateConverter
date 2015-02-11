@@ -105,14 +105,17 @@
     novim državnim koordinatnim sistemom Slovenije_**, [Link33]
 [Link33]: http://www.transformacije.si/media/Berk_Komadina_2010_GISS_10.pdf
 
-34. Civicioglu, 2012: **_Transforming geocentric cartesian coordinates to geodetic
-    coordinates by using differential search algorithm_**, [Link34]
-[Link34]: http://www.sciencedirect.com/science/article/pii/S0098300411004353
+34. GIS 2009: **_Razvoj DGS 2009 - Prehod na nov koordinatni sistem_**, Končno poročilo, [Link34]
+[Link34]: http://e-prostor.gov.si/fileadmin/projekti/DGS/2009/Razvoj_DGS_2009_koncno_porocilo.pdf
 
-35. Guowei Cai, Chen, Lee, 2011: **_Unmanned Rotorcraft Systems_**, Springer, [Link35a]  
-    Chapter 2: **_Coordinate Systems and Transformations_**, [Link35b]
-[Link35a]: http://books.google.si/books?id=RJYtO51KZ6kC&printsec=frontcover
-[Link35b]: http://www.springer.com/cda/content/document/cda_downloaddocument/9780857296344-c2.pdf?SGWID=0-0-45-1143141-p174116371
+35. Civicioglu, 2012: **_Transforming geocentric cartesian coordinates to geodetic
+    coordinates by using differential search algorithm_**, [Link35]
+[Link35]: http://www.sciencedirect.com/science/article/pii/S0098300411004353
 
-36. Ganić, Milutinović, Meri, 2014: **_User defined function for transformation of ellipsoidal coordinates_**, [Link36]
-[Link36]: http://www.rgf.bg.ac.rs/publikacije/PodzemniRadovi/radovi/jun2014/eng/04%20PR%2024_02%20ENG.pdf
+36. Guowei Cai, Chen, Lee, 2011: **_Unmanned Rotorcraft Systems_**, Springer, [Link36a]  
+    Chapter 2: **_Coordinate Systems and Transformations_**, [Link36b]
+[Link36a]: http://books.google.si/books?id=RJYtO51KZ6kC&printsec=frontcover
+[Link36b]: http://www.springer.com/cda/content/document/cda_downloaddocument/9780857296344-c2.pdf?SGWID=0-0-45-1143141-p174116371
+
+37. Ganić, Milutinović, Meri, 2014: **_User defined function for transformation of ellipsoidal coordinates_**, [Link37]
+[Link37]: http://www.rgf.bg.ac.rs/publikacije/PodzemniRadovi/radovi/jun2014/eng/04%20PR%2024_02%20ENG.pdf

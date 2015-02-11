@@ -1,9 +1,15 @@
 #CC = gcc
 RM = rm -f
 
+CFLAGS = -Wall -msse2 -mfpmath=sse
+DEBUG = -O2
+#DEBUG = -g
+
+all: gk-slo
+
 gk-slo: gk-slo.c util.c geo.c common.h geo.h geoid_slo.h geoid_egm.h
-#	$(CC) -g2 -gstabs+ -Wall gk-slo.c util.c geo.c -o gk-slo -pg -lm -lrt
-	$(CC) -O2 -Wall gk-slo.c util.c geo.c -o gk-slo -lm -lrt
+#	$(CC) $(CFLAGS) -g2 -gstabs+ gk-slo.c util.c geo.c -o gk-slo -pg -lm -lrt
+	$(CC) $(CFLAGS) $(DEBUG) gk-slo.c util.c geo.c -o gk-slo -lm -lrt
 
 test: gk-slo
 	./gk-slo -x > gk-slo.tmp
