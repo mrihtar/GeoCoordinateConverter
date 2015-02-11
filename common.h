@@ -122,6 +122,8 @@ struct timespec {
 double xtrunc(double d);
 int xround(double d);
 long long int xllround(double d);
+double xfmin(double d1, double d2);
+double xfmax(double d1, double d2);
 TCHAR *xstrncpy(TCHAR *s1, const TCHAR *s2, size_t n);
 TCHAR *xstrncat(TCHAR *s1, const TCHAR *s2, size_t n);
 TCHAR *xstrtrim(TCHAR *str);

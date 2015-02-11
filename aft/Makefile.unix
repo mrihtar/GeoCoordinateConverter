@@ -7,7 +7,7 @@ DEBUG = -O2
 
 all: ctt triangle showme
 
-ctt: ctt.c ../util.c ../common.h
+ctt: ctt.c ../util.c ../common.h ../geo.h
 	$(CC) $(CFLAGS) $(DEBUG) -I.. ctt.c ../util.c -o ctt -lm
 
 triangle: triangle.c triangle.h

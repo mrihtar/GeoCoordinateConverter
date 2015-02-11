@@ -92,6 +92,17 @@ GKLM gkzones[] = {
   { 40.0, 55.0, 22.0, 26.0, 0.0, 0.0, 0.0, 0.0 }   // 8
 };
 
+// Pre-calculated affine transformation tables
+#define MAXAFT 1776
+//AFT aft_gktm[MAXAFT];  // Affine transformation table from GK to TM for Slovenia
+#include "aft_gktm.h"
+//AFT aft_tmgk[MAXAFT];  // Affine transformation table from TM to GK for Slovenia
+#include "aft_tmgk.h"
+
+// Distance to triangle segment
+#define EPSILON  0.001
+#define EPSILON2 EPSILON*EPSILON
+
 // Projection parameters
 PROJ tm;
 
@@ -489,6 +500,98 @@ double geoid_height(double fi, double la, int gid)
 
   return Ng;
 } /* geoid_height */
+
+
+// ----------------------------------------------------------------------------
+// point_in_bounding_box
+// ----------------------------------------------------------------------------
+int point_in_bounding_box(double x1, double y1, double x2, double y2, double x3, double y3, double x, double y)
+{
+  double xMin, xMax, yMin, yMax;
+
+  xMin = xfmin(x1, xfmin(x2, x3)) - EPSILON;
+  xMax = xfmax(x1, xfmax(x2, x3)) + EPSILON;
+  yMin = xfmin(y1, xfmin(y2, y3)) - EPSILON;
+  yMax = xfmax(y1, xfmax(y2, y3)) + EPSILON;
+ 
+  if (x < xMin || x > xMax || y < yMin || y > yMax)
+    return 0;
+  else
+    return 1;
+} /* point_in_bounding_box */
+
+
+// ----------------------------------------------------------------------------
+// side
+// ----------------------------------------------------------------------------
+double side(double x1, double y1, double x2, double y2, double x, double y)
+{
+  return (y2 - y1)*(x - x1) + (-x2 + x1)*(y - y1);
+} /* side */
+
+// ----------------------------------------------------------------------------
+// point_in_triangle
+// ----------------------------------------------------------------------------
+int point_in_triangle(double x1, double y1, double x2, double y2, double x3, double y3, double x, double y)
+{
+  int checkSide1, checkSide2, checkSide3;
+
+  checkSide1 = side(x1, y1, x2, y2, x, y) >= 0.0;
+  checkSide2 = side(x2, y2, x3, y3, x, y) >= 0.0;
+  checkSide3 = side(x3, y3, x1, y1, x, y) >= 0.0;
+
+  return checkSide1 && checkSide2 && checkSide3;
+} /* point_in_triangle */
+
+
+// ----------------------------------------------------------------------------
+// dist_to_segm
+// ----------------------------------------------------------------------------
+double dist_to_segm(double x1, double y1, double x2, double y2, double x, double y)
+{
+  double p1_p2_squareLen, p_p1_squareLen;
+  double dotProduct;
+
+  p1_p2_squareLen = (x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1);
+  dotProduct = ((x - x1)*(x2 - x1) + (y - y1)*(y2 - y1)) / p1_p2_squareLen;
+  if (dotProduct < 0.0)
+    return (x - x1)*(x - x1) + (y - y1)*(y - y1);
+  else if (dotProduct <= 1.0) {
+    p_p1_squareLen = (x1 - x)*(x1 - x) + (y1 - y)*(y1 - y);
+    return p_p1_squareLen - dotProduct * dotProduct * p1_p2_squareLen;
+  }
+  else
+    return (x - x2)*(x - x2) + (y - y2)*(y - y2);
+} /* dist_to_segm */
+
+
+// ----------------------------------------------------------------------------
+// coord_in_triangle
+// ----------------------------------------------------------------------------
+int coord_in_triangle(GEOUTM in, AFT aft)
+{
+  double x, y, x1, y1, x2, y2, x3, y3;
+
+  x = in.x; y = in.y;
+  x1 = aft.src[0].x; y1 = aft.src[0].y;
+  x2 = aft.src[1].x; y2 = aft.src[1].y;
+  x3 = aft.src[2].x; y3 = aft.src[2].y;
+
+  if (!point_in_bounding_box(x1, y1, x2, y2, x3, y3, x, y))
+    return 0;
+ 
+  if (point_in_triangle(x1, y1, x2, y2, x3, y3, x, y))
+    return 1;
+ 
+  if (dist_to_segm(x1, y1, x2, y2, x, y) <= EPSILON2)
+    return 1;
+  if (dist_to_segm(x2, y2, x3, y3, x, y) <= EPSILON2)
+    return 1;
+  if (dist_to_segm(x3, y3, x1, y1, x, y) <= EPSILON2)
+    return 1;
+ 
+  return 0;
+} /* coord_in_triangle */
 
 
 // ----------------------------------------------------------------------------
@@ -1153,6 +1256,66 @@ void tmxy2gkxy(GEOUTM in, GEOUTM *out)
   if (hsel == 1) out->H = H;       // copied height
   else if (hsel == 2) out->H = hg; // geoid height (already calculated)
 } /* tmxy2gkxy */
+
+
+// ----------------------------------------------------------------------------
+// gkxy2tmxy_aft (height copied)
+// ----------------------------------------------------------------------------
+// Transform from GK x,y,H on Bessel 1841 to TM n,e,H on WGS 84
+// using pre-calculated affine transformation table
+// ----------------------------------------------------------------------------
+int gkxy2tmxy_aft(GEOUTM in, GEOUTM *out)
+{
+  double H;
+  int ii, found;
+
+  H = in.H;
+
+  out->x = 0.0; out->y = 0.0;
+
+  found = 0;
+  for (ii = 0; ii < MAXAFT; ii++) {
+    if (coord_in_triangle(in, aft_gktm[ii])) {
+      out->x = aft_gktm[ii].a*in.x + aft_gktm[ii].b*in.y + aft_gktm[ii].c;
+      out->y = aft_gktm[ii].d*in.x + aft_gktm[ii].e*in.y + aft_gktm[ii].f;
+      found = 1; break;
+    }
+  }
+
+  out->H = H;  // default: copied height
+
+  return found;
+} /* gkxy2tmxy_aft */
+
+
+// ----------------------------------------------------------------------------
+// tmxy2gkxy_aft (height copied)
+// ----------------------------------------------------------------------------
+// Transform from TM n,e,H on WGS 84 to GK x,y,H on Bessel 1841
+// using pre-calculated affine transformation table
+// ----------------------------------------------------------------------------
+int tmxy2gkxy_aft(GEOUTM in, GEOUTM *out)
+{
+  double H;
+  int ii, found;
+
+  H = in.H;
+
+  out->x = 0.0; out->y = 0.0;
+
+  found = 0;
+  for (ii = 0; ii < MAXAFT; ii++) {
+    if (coord_in_triangle(in, aft_tmgk[ii])) {
+      out->x = aft_tmgk[ii].a*in.x + aft_tmgk[ii].b*in.y + aft_tmgk[ii].c;
+      out->y = aft_tmgk[ii].d*in.x + aft_tmgk[ii].e*in.y + aft_tmgk[ii].f;
+      found = 1; break;
+    }
+  }
+
+  out->H = H;  // default: copied height
+
+  return found;
+} /* gkxy2tmxy_aft */
 
 
 // ----------------------------------------------------------------------------

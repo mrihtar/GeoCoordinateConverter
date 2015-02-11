@@ -20,8 +20,6 @@
 #ifndef _GEO_H_DEFINED
 #define _GEO_H_DEFINED
 
-#include "common.h"
-
 typedef struct dms {
   double deg, min, sec;
 } DMS;
@@ -77,6 +75,11 @@ typedef struct geocen { // geocentric cartesian coordinates
   double Z;
 } GEOCEN;
 
+typedef struct aft { // affine transformation table
+  GEOUTM src[3], dst[3];
+  double a, b, c, d, e, f;
+} AFT;
+
 // Forward declarations
 void dms2deg(DMS dms, double *deg);
 void dms2rad(DMS dms, double *rad);
@@ -93,6 +96,12 @@ void params_init();
 
 double geoid_height(double fi, double la, int gid);
 
+int point_in_bounding_box(double x1, double y1, double x2, double y2, double x3, double y3, double x, double y);
+double side(double x1, double y1, double x2, double y2, double x, double y);
+int point_in_triangle(double x1, double y1, double x2, double y2, double x3, double y3, double x, double y);
+double dist_to_segm(double x1, double y1, double x2, double y2, double x, double y);
+int coord_in_triangle(GEOUTM in, AFT aft);
+
 void xy2fila_ellips(GEOUTM in, GEOGRA *out, int oid);
 void fila_ellips2xy(GEOGRA in, GEOUTM *out, int oid);
 int xy2fila_ellips_loop(GEOUTM in, GEOGRA *out, int oid);
@@ -104,6 +113,8 @@ void gkxy2fila_wgs(GEOUTM in, GEOGRA *out);
 void fila_wgs2gkxy(GEOGRA in, GEOUTM *out);
 void gkxy2tmxy(GEOUTM in, GEOUTM *out);
 void tmxy2gkxy(GEOUTM in, GEOUTM *out);
+int gkxy2tmxy_aft(GEOUTM in, GEOUTM *out);
+int tmxy2gkxy_aft(GEOUTM in, GEOUTM *out);
 void tmxy2fila_wgs(GEOUTM in, GEOGRA *out);
 void fila_wgs2tmxy(GEOGRA in, GEOUTM *out);
 

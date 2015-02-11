@@ -69,6 +69,34 @@ long long int xllround(double d)
 
 
 // ----------------------------------------------------------------------------
+// xfmin
+// Return the lesser of two doubles
+// (fmin is missing from Microsoft C)
+// ----------------------------------------------------------------------------
+double xfmin(double d1, double d2)
+{
+  if (d1 < d2)
+    return d1;
+  else
+    return d2;
+} /* xfmin */
+
+
+// ----------------------------------------------------------------------------
+// xfmax
+// Return the larger of two doubles
+// (fmax is missing from Microsoft C)
+// ----------------------------------------------------------------------------
+double xfmax(double d1, double d2)
+{
+  if (d1 > d2)
+    return d1;
+  else
+    return d2;
+} /* xfmax */
+
+
+// ----------------------------------------------------------------------------
 // xstrncpy
 // Copy string s2 into string s1 until s1 is full (n = size of s1)
 // s1 needs size + 1 char for terminating null.

@@ -8,7 +8,7 @@ DEBUG = -O2
 
 all: ctt.exe triangle.exe
 
-ctt.exe: ctt.c ../util.c ../common.h
+ctt.exe: ctt.c ../util.c ../common.h ../geo.h
 	$(CC) $(CFLAGS) $(DEBUG) -I.. ctt.c ../util.c -o ctt.exe -lm
 
 triangle.exe: triangle.c triangle.h

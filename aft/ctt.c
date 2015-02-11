@@ -18,25 +18,16 @@
 // ctt.c: Program for pre-calculating affine transformation tables
 //
 #include "common.h"
+#include "geo.h"
 
 #define SW_VERSION T("2.04")
 #define SW_BUILD   T("Feb 11, 2015")
-
-typedef struct coords {
-  double x;
-  double y;
-} COORDS;
 
 typedef struct triang {
   int t1, t2, t3;
 } TRIANG;
 
-typedef struct aft {
-  COORDS src[3], dst[3];
-  double a, b, c, d, e, f;
-} AFT;
-
-COORDS *gk, *tm;
+GEOUTM *gk, *tm;
 TRIANG *tri;
 AFT *aft;
 
@@ -309,11 +300,11 @@ usage:      usage(prog, 0);
         fprintf(stderr, T("%s: strange number of nodes in header\n"), gknodename);
         break;
       }
-      gk = malloc(gksize*sizeof(COORDS));
+      gk = malloc(gksize*sizeof(GEOUTM));
       if (gk == NULL) {
         fprintf(stderr, T("malloc(gk): %s\n"), xstrerror()); exit(3);
       }
-      memset(gk, 0, gksize*sizeof(COORDS));
+      memset(gk, 0, gksize*sizeof(GEOUTM));
       if (debug)
         fprintf(stderr, T("%s: %d nodes\n"), gknodename, gksize);
       continue;
@@ -358,11 +349,11 @@ usage:      usage(prog, 0);
       if (tmsize != gksize) {
         fprintf(stderr, T("%s: number of nodes differ from GK\n"), tmnodename);
       }
-      tm = malloc(tmsize*sizeof(COORDS));
+      tm = malloc(tmsize*sizeof(GEOUTM));
       if (tm == NULL) {
         fprintf(stderr, T("malloc(tm): %s\n"), xstrerror()); exit(3);
       }
-      memset(tm, 0, tmsize*sizeof(COORDS));
+      memset(tm, 0, tmsize*sizeof(GEOUTM));
       if (debug)
         fprintf(stderr, T("%s: %d nodes\n"), tmnodename, tmsize);
       continue;
@@ -404,11 +395,11 @@ usage:      usage(prog, 0);
         fprintf(stderr, T("%s: strange number of triangles in header\n"), elename);
         break;
       }
-      tri = malloc(trisize*sizeof(COORDS));
+      tri = malloc(trisize*sizeof(GEOUTM));
       if (tri == NULL) {
         fprintf(stderr, T("malloc(tri): %s\n"), xstrerror()); exit(3);
       }
-      memset(tri, 0, trisize*sizeof(COORDS));
+      memset(tri, 0, trisize*sizeof(GEOUTM));
       if (debug)
         fprintf(stderr, T("%s: %d triangles\n"), elename, trisize);
       continue;
@@ -446,7 +437,6 @@ usage:      usage(prog, 0);
   print_header(out, outname);
   fprintf(out, T("// %s: Affine transformation table from GK to TM for Slovenia\n"), outname);
   fprintf(out, T("//\n"));
-  fprintf(out, T("#include \"common.h\"\n\n"));
   fprintf(out, T("AFT aft_gktm[%d] = {\n"), trisize);
   if (ferror(out)) {
     fprintf(stderr, T("%s: %s\n"), outname, xstrerror()); exit(2);
@@ -505,7 +495,6 @@ usage:      usage(prog, 0);
   print_header(out, outname);
   fprintf(out, T("// %s: Affine transformation table from TM to GK for Slovenia\n"), outname);
   fprintf(out, T("//\n"));
-  fprintf(out, T("#include \"common.h\"\n\n"));
   fprintf(out, T("AFT aft_tmgk[%d] = {\n"), trisize);
   if (ferror(out)) {
     fprintf(stderr, T("%s: %s\n"), outname, xstrerror()); exit(2);

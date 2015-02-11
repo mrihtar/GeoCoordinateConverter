@@ -31,8 +31,8 @@
 #include "common.h"
 #include "geo.h"
 
-#define SW_VERSION T("6.03")
-#define SW_BUILD   T("Jan 11, 2015")
+#define SW_VERSION T("7.01")
+#define SW_BUILD   T("Feb 11, 2015")
 
 // global variables
 TCHAR *prog;  // program name
@@ -122,9 +122,19 @@ void reftest()
   tmxy2gkxy(d96ref, &xy);
   printf(T("--> x: %.3f, y: %.3f, H: %.3f\n"), xy.x, xy.y, xy.H);
 
+  printf(T("---------- Conversion D96/TM --> D48/GK (affine trans.)\n"));
+  printf(T("<-- x: %.3f, y: %.3f, H: %.3f\n"), d96ref.x, d96ref.y, d96ref.H);
+  tmxy2gkxy_aft(d96ref, &xy);
+  printf(T("--> x: %.3f, y: %.3f, H: %.3f\n"), xy.x, xy.y, xy.H);
+
   printf(T("---------- Conversion D48/GK --> D96/TM (result)\n"));
   printf(T("<-- x: %.3f, y: %.3f, H: %.3f\n"), d48ref.x, d48ref.y, d48ref.H);
   gkxy2tmxy(d48ref, &xy);
+  printf(T("--> x: %.3f, y: %.3f, H: %.3f\n"), xy.x, xy.y, xy.H);
+
+  printf(T("---------- Conversion D48/GK --> D96/TM (affine trans.)\n"));
+  printf(T("<-- x: %.3f, y: %.3f, H: %.3f\n"), d48ref.x, d48ref.y, d48ref.H);
+  gkxy2tmxy_aft(d48ref, &xy);
   printf(T("--> x: %.3f, y: %.3f, H: %.3f\n"), xy.x, xy.y, xy.H);
 
 #if 1
@@ -389,6 +399,8 @@ void usage(TCHAR *prog, int ver_only)
   fprintf(stderr, T("                    4: fila (etrs89) --> xy   (d48gk),  hg\n"));
   fprintf(stderr, T("                    5: xy   (d48gk)  --> xy   (d96tm),  hg(hc)\n"));
   fprintf(stderr, T("                    6: xy   (d96tm)  --> xy   (d48gk),  ht(hc)\n"));
+  fprintf(stderr, T("                    7: xy   (d48gk)  --> xy   (d96tm),  hc, affine trans.\n"));
+  fprintf(stderr, T("                    8: xy   (d96tm)  --> xy   (d48gk),  hc, affine trans.\n"));
   fprintf(stderr, T("  -r                reverse parsing order of xy/fila\n"));
   fprintf(stderr, T("                    (warning displayed if y < 200000)\n"));
   fprintf(stderr, T("  <inpname>         parse and convert input data from <inpname>\n"));
@@ -485,7 +497,7 @@ int tmain(int argc, TCHAR *argv[])
         if (strlen(argv[ii]) == 0) goto usage;
         errno = 0; value = strtol(argv[ii], &s, 10);
         if (errno || *s) goto usage;
-        if (value < 1 || value > 6) goto usage;
+        if (value < 1 || value > 8) goto usage;
         tr = value;
         continue;
       }
@@ -650,7 +662,7 @@ usage:      usage(prog, 0);
           continue;
         }
       }
-      else { // tr == 1,3,5,6 // d96tm/d48gk
+      else { // tr == 1,3,5,6,7,8 // d96tm/d48gk
         n = sscanf(s, T("%10240s %lf %lf %lf"), col1, &x, &y, &H);
         if (n != 4) {
           n = sscanf(s, T("%lf %lf %lf"), &x, &y, &H);
@@ -726,6 +738,18 @@ usage:      usage(prog, 0);
       else if (tr == 6) { // xy (d96tm) --> xy (d48gk)
         xy.x = x; xy.y = y; xy.H = H;
         tmxy2gkxy(xy, &gkxy);
+        fprintf(out, T("%s%.3f %.3f %.3f\n"), col1, gkxy.x, gkxy.y, gkxy.H);
+      }
+
+      else if (tr == 7) { // xy (d48gk) --> xy (d96tm), affine trans.
+        xy.x = x; xy.y = y; xy.H = H;
+        gkxy2tmxy_aft(xy, &tmxy);
+        fprintf(out, T("%s%.3f %.3f %.3f\n"), col1, tmxy.x, tmxy.y, tmxy.H);
+      }
+
+      else if (tr == 8) { // xy (d96tm) --> xy (d48gk), affine trans.
+        xy.x = x; xy.y = y; xy.H = H;
+        tmxy2gkxy_aft(xy, &gkxy);
         fprintf(out, T("%s%.3f %.3f %.3f\n"), col1, gkxy.x, gkxy.y, gkxy.H);
       }
     } // while !eof
