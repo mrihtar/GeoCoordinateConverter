@@ -4,8 +4,8 @@ BEGIN {
   if (FNR == 1) next;
   sub("[[:space:]]*$", "");
   col1[n] = $1;
-  y[n] = $2;
-  x[n] = $3;
+  y[n] = $4;
+  x[n] = $5;
   n++;
 } END {
   print n, "2 0 0";
