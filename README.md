@@ -26,8 +26,7 @@ Detailed description of coordinate conversion routines and their API
 List of literature used (with links to documents) is in file [literature.md].
 
 Precompiled version of **gk-slo for Windows** (32-bit, compiled with MinGW)
-can be downloaded from  
-[gk-slo-7.01.zip].
+can be downloaded from [gk-slo-7.01.zip].
 
 
 ### Conventions
@@ -48,6 +47,8 @@ Ng = geoid height
   Absolute geoid model for Slovenia from GURS (Slo2000)
 - **[geoid_egm.h]**  
   Absolute geoid model for Slovenia from [EGM2008]
+- **[aft_gktm.h]**, **[aft_tmgk.h]**  
+  Pre-calculated affine transformation tables for Slovenia
 - **[geo.h]**  
   Include file for using coordinate conversion routines
 - **[geo.c]**  
@@ -90,6 +91,8 @@ $ gk-slo [&lt;options&gt;] [&lt;inpname&gt; ...]
                     4: fila (etrs89) --&gt; xy   (d48gk),  hg
                     5: xy   (d48gk)  --&gt; xy   (d96tm),  hg(hc)
                     6: xy   (d96tm)  --&gt; xy   (d48gk),  ht(hc)
+                    7: xy   (d48gk)  --> xy   (d96tm),  hc, affine trans.
+                    8: xy   (d96tm)  --> xy   (d48gk),  hc, affine trans.
   -r                reverse parsing order of xy/fila
                     (warning displayed if y &lt; 200000)
   &lt;inpname&gt;         parse and convert input data from &lt;inpname&gt;
@@ -246,6 +249,8 @@ VTH0722.XYZ.out
 [util.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/util.c
 [geoid_slo.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geoid_slo.h
 [geoid_egm.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geoid_egm.h
+[aft_gktm.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/aft_gktm.h
+[aft_tmgk.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/aft_tmgk.h
 [geo.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo.h
 [geo.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo.c
 [gk-slo.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/gk-slo.c

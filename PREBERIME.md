@@ -27,8 +27,7 @@ Spisek uporabljene literature (s povezavami do dokumentov) je v datoteki
 [literature.md].
 
 Prevedeno verzijo **gk-slo za Windows** (32-bitna, prevedena z MinGW)
-lahko dobite na  
-[gk-slo-7.01.zip].
+lahko dobite na [gk-slo-7.01.zip].
 
 
 ### Oznake
@@ -49,6 +48,8 @@ Ng = geoidna višina
   Absolutni model geoida za Slovenijo iz GURS (Slo2000)
 - **[geoid_egm.h]**  
   Absolutni model geoida za Slovenijo iz [EGM2008]
+- **[aft_gktm.h]**, **[aft_tmgk.h]**  
+  Vnaprej izračunane tabele za trikotniško transformacijo za Slovenijo
 - **[geo.h]**  
   Datoteka z definicijami za podprograme za konverzijo koordinat
 - **[geo.c]**  
@@ -91,6 +92,8 @@ $ gk-slo [&lt;opcije&gt;] [&lt;vhodime&gt; ...]
                     4: fila (etrs89) --&gt; xy   (d48gk),  hg
                     5: xy   (d48gk)  --&gt; xy   (d96tm),  hg(hc)
                     6: xy   (d96tm)  --&gt; xy   (d48gk),  ht(hc)
+                    7: xy   (d48gk)  --> xy   (d96tm),  hc, afina trans.
+                    8: xy   (d96tm)  --> xy   (d48gk),  hc, afina trans.
   -r                obrni vrstni red branja xy/fila
                     (opozorilo se izpiše če je y &lt; 200000)
   &lt;vhodime&gt;         preberi in konvertiraj vhodne podatke iz datoteke &lt;vhodime&gt;
@@ -249,6 +252,8 @@ VTH0722.XYZ.out
 [util.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/util.c
 [geoid_slo.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geoid_slo.h
 [geoid_egm.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geoid_egm.h
+[aft_gktm.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/aft_gktm.h
+[aft_tmgk.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/aft_tmgk.h
 [geo.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo.h
 [geo.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo.c
 [gk-slo.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/gk-slo.c
