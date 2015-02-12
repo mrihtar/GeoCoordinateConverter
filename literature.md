@@ -105,7 +105,7 @@
     novim državnim koordinatnim sistemom Slovenije_**, [Link33]
 [Link33]: http://www.transformacije.si/media/Berk_Komadina_2010_GISS_10.pdf
 
-34. GIS 2009: **_Razvoj DGS 2009 - Prehod na nov koordinatni sistem_**, Končno poročilo, [Link34]
+34. GIS, 2009: **_Razvoj DGS 2009 - Prehod na nov koordinatni sistem_**, Končno poročilo, [Link34]
 [Link34]: http://e-prostor.gov.si/fileadmin/projekti/DGS/2009/Razvoj_DGS_2009_koncno_porocilo.pdf
 
 35. Civicioglu, 2012: **_Transforming geocentric cartesian coordinates to geodetic

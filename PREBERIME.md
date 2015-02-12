@@ -60,14 +60,17 @@ Ng = geoidna višina
 
 ### Kako prevesti program
 #### Unix
-```$ cc -O2 -Wall gk-slo.c util.c geo.c -o gk-slo -lm -lrt``` ali  
+```$ cc -O2 -Wall -msse2 -mfpmath=sse gk-slo.c util.c geo.c -o gk-slo -lm -lrt``` ali  
 ```$ make -f Makefile.unix```
 #### MinGW na Windows
-```$ gcc -O2 -Wall gk-slo.c util.c geo.c -o gk-slo.exe``` ali  
+```$ gcc -O2 -Wall -msse2 -mfpmath=sse gk-slo.c util.c geo.c -o gk-slo.exe``` ali  
 ```$ make -f Makefile.mingw```
 #### Microsoft C
 ```$ cl /O2 /Wall gk-slo.c util.c geo.c``` ali  
 ```$ make -f Makefile.msc```
+
+Opciji ```-msse2 -mfpmath=sse``` sta potrebni, ker drugače dobimo različne
+rezultate na različnih sistemih (za podrobnejšo razlago glej [StackOverflow]).
 
 
 ### Uporaba
@@ -257,3 +260,4 @@ VTH0722.XYZ.out
 [geo.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo.h
 [geo.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo.c
 [gk-slo.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/gk-slo.c
+[StackOverflow]: http://stackoverflow.com/questions/13571073/how-to-ensure-same-float-numbers-on-different-systems

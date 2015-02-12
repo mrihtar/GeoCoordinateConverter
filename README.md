@@ -59,14 +59,18 @@ Ng = geoid height
 
 ### How to compile
 #### Unix
-```$ cc -O2 -Wall gk-slo.c util.c geo.c -o gk-slo -lm -lrt``` or  
+```$ cc -O2 -Wall -msse2 -mfpmath=sse gk-slo.c util.c geo.c -o gk-slo -lm -lrt``` or  
 ```$ make -f Makefile.unix```
 #### MinGW on Windows
-```$ gcc -O2 -Wall gk-slo.c util.c geo.c -o gk-slo.exe``` or  
+```$ gcc -O2 -Wall -msse2 -mfpmath=sse gk-slo.c util.c geo.c -o gk-slo.exe``` or  
 ```$ make -f Makefile.mingw```
 #### Microsoft C
 ```$ cl /O2 /Wall gk-slo.c util.c geo.c``` or  
 ```$ make -f Makefile.msc```
+
+Options ```-msse2 -mfpmath=sse``` are needed because otherwise we'll get
+different results on different systems (for more explanation see
+[StackOverflow]).
 
 
 ### Usage
@@ -254,3 +258,4 @@ VTH0722.XYZ.out
 [geo.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo.h
 [geo.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo.c
 [gk-slo.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/gk-slo.c
+[StackOverflow]: http://stackoverflow.com/questions/13571073/how-to-ensure-same-float-numbers-on-different-systems
