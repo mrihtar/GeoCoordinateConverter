@@ -64,9 +64,9 @@
 - **coord_in_triangle**  
   Checks whether specified *x,y* coordinates (GK or TM) lie within or on
   borders of specified triangle (from AFT array). Algorithm first checks if
-  the point is withing triangle bounding box, then performs the normal check
-  and at the end an additional check, if the point lies on triangle borders
-  (within ε distance).
+  the point is contained in a triangle bounding box, then performs the normal
+  check and at the end an additional check, if the point lies on triangle
+  borders (within ε distance).
 
 - **xy2fila_ellips**  
   Transforms *x,y,H* coordinates (GK or TM) to *fi,la,h* on specified
