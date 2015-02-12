@@ -4,10 +4,16 @@ Za slovensko verzijo te datoteke glej [PREBERIME.md].
 **gk-slo** is a converter between geographic cartesian coordinates
 (Gauss-Krueger/D48, Transverse Mercator/D96) and geodetic coordinates
 (latitude/longitude on ETRS89/WGS84) for Slovenia. It can be used
-as a replacement for the official conversion program [SiTra] &#40;with Helmert
-parameters for the whole Slovenia, no regional parameters&#41;. For calculating
-heights with the help of geoid model two absolute geoid models for Slovenia are
-available: Slo2000 and [EGM2008].
+as a replacement for the official conversion program [SiTra] &#40;with
+Helmert parameters for the whole Slovenia, no regional parameters&#41;
+or more precise when used with the built-in affine/triangle-based
+transformation using the reference [virtual tie points].
+
+<img src="images/Slovenia-tie-points.gif" width="400px">
+<img src="images/Slovenia-triangles.gif" height="266px">
+
+For calculating heights with the help of geoid model two absolute
+geoid models for Slovenia are available: Slo2000 and [EGM2008].
 
 It's written in C language and can be compiled and used on all major
 operating systems. Coordinate conversion routines can be easily adapted
@@ -21,7 +27,7 @@ List of literature used (with links to documents) is in file [literature.md].
 
 Precompiled version of **gk-slo for Windows** (32-bit, compiled with MinGW)
 can be downloaded from  
-[gk-slo-6.03.zip].
+[gk-slo-7.01.zip].
 
 
 ### Conventions
@@ -231,10 +237,11 @@ VTH0722.XYZ.out
 [PREBERIME.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/PREBERIME.md
 [SiTra]: http://sitra.sitranet.si
 [SiTraNet]: http://sitranet.si
+[virtual tie points]: http://www.e-prostor.gov.si/si/zbirke_prostorskih_podatkov/drzavni_koordinatni_sistem/horizontalni_drzavni_koordinatni_sistem_d96tm/d96tm/transformacijski_parametri/
 [EGM2008]: http://earth-info.nga.mil/GandG/wgs84/gravitymod/egm2008/egm08_wgs84.html
 [geo_api.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo_api.md
 [literature.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/literature.md
-[gk-slo-6.03.zip]: https://app.box.com/s/vyj1mlghsuevcy921zhs
+[gk-slo-7.01.zip]: https://app.box.com/s/vyj1mlghsuevcy921zhs
 [common.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/common.h
 [util.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/util.c
 [geoid_slo.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geoid_slo.h

@@ -5,9 +5,15 @@ For English version of this file see [README.md].
 (Gauss-Krueger/D48, Transverzalni Merkator/D96) in geodetskimi koordinatami
 (širina/dolžina na ETRS89/WGS84) za Slovenijo. Lahko se ga uporabi kot
 nadomestilo za uradni program za konverzijo [SiTra] &#40;s Helmertovimi
-parametri za vso Slovenijo, brez regionalnih parametrov&#41;. Pri računanju
-višin s pomočjo modela geoida sta na razpolago dva absolutna modela geoida
-za Slovenijo: Slo2000 in [EGM2008].
+parametri za vso Slovenijo, brez regionalnih parametrov&#41; ali natančnejši,
+če se uporabi vgrajena afina/trikotniška transformacija z referenčnimi
+[virtualnimi veznimi točkami].
+
+<img src="images/Slovenia-tie-points.gif" width="400px">
+<img src="images/Slovenia-triangles.gif" height="266px">
+
+Pri računanju višin s pomočjo modela geoida sta na razpolago dva absolutna
+modela geoida za Slovenijo: Slo2000 in [EGM2008].
 
 Napisan je v jeziku C in se ga da prevesti in uporabljati na vseh pomembnejših
 operacijskih sistemih. Podprogrami za konverzijo koordinat se lahko enostavno
@@ -22,7 +28,7 @@ Spisek uporabljene literature (s povezavami do dokumentov) je v datoteki
 
 Prevedeno verzijo **gk-slo za Windows** (32-bitna, prevedena z MinGW)
 lahko dobite na  
-[gk-slo-6.03.zip].
+[gk-slo-7.01.zip].
 
 
 ### Oznake
@@ -234,10 +240,11 @@ VTH0722.XYZ.out
 [README.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/README.md
 [SiTra]: http://sitra.sitranet.si
 [SiTraNet]: http://sitranet.si
+[virtualnimi veznimi točkami]: http://www.e-prostor.gov.si/si/zbirke_prostorskih_podatkov/drzavni_koordinatni_sistem/horizontalni_drzavni_koordinatni_sistem_d96tm/d96tm/transformacijski_parametri/
 [EGM2008]: http://earth-info.nga.mil/GandG/wgs84/gravitymod/egm2008/egm08_wgs84.html
 [geo_api.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo_api.md
 [literature.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/literature.md
-[gk-slo-6.03.zip]: https://app.box.com/s/vyj1mlghsuevcy921zhs
+[gk-slo-7.01.zip]: https://app.box.com/s/vyj1mlghsuevcy921zhs
 [common.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/common.h
 [util.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/util.c
 [geoid_slo.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geoid_slo.h

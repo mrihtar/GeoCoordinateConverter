@@ -24,6 +24,11 @@
 - **GEOCEN**  
   Structure holding geocentric cartesian coordinates (X, Y, Z).
 
+- **AFT**  
+  Structure holding affine transformation data (source and destination
+  triangle coordinates and pre-calculated parameters for direct affine
+  transformation for this triangle).
+
 #### Global variables:
 - **gid_wgs**  
   Selected geoid model on WGS84 (Slo2000 or [EGM2008]; via cmd-line or
@@ -50,11 +55,18 @@
   Calculates geoid height from *fi,la* and given geoid *id* using bilinear
   interpolation. Both included geoid models (Slo2000 and [EGM2008]) cover
   only the area between:
-  - N 45°15' &ndash; 47°00' in 1.0' steps (105 cells)
-  - E 13°15' &ndash; 16°45' in 1.5' steps (140 cells)
+  - N 45Â°15' &ndash; 47Â°00' in 1.0' steps (105 cells)
+  - E 13Â°15' &ndash; 16Â°45' in 1.5' steps (140 cells)
 
   Missing values in Slo2000 geoid model (on Slovenia borders) are filled with
   the same value as current value.
+
+- **coord_in_triangle**  
+  Checks whether specified *x,y* coordinates (GK or TM) lie within or on
+  borders of specified triangle (from AFT array). Algorithm first checks if
+  the point is withing triangle bounding box, then performs the normal check
+  and at the end an additional check, if the point lies on triangle borders
+  (within Îµ distance).
 
 - **xy2fila_ellips**  
   Transforms *x,y,H* coordinates (GK or TM) to *fi,la,h* on specified
@@ -131,6 +143,16 @@
 
   In the end the correct height is calculated according to selected type of
   output height (transformed, copied or geoid height).
+
+- **gkxy2tmxy_aft**  
+  Transforms Gauss-Krueger *x,y,H* coordinates on Bessel 1841 to Transverse
+  Mercator *n,e,H* on WGS84 using affine/triangle-based transformation
+  with 899 reference virtual tie points (already built-in).
+
+- **tmxy2gkxy_aft**  
+  Transforms Transverse Mercator *n,e,H* coordinates on WGS84 to Gauss-Krueger
+  *x,y,H* on Bessel 1841 using affine/triangle-based transformation
+  with 899 reference virtual tie points (already built-in).
 
 - **tmxy2fila_wgs**  
   Transforms Transverse Mercator *n,e,H* coordinates on WGS84 to *fi,la,h* on
