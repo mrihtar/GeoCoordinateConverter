@@ -53,12 +53,12 @@ natančne Delaunayeve triangulacije.
 - pridobi referenčne [virtualne vezne točke] &#40;že priložene&#41;:  
   ⇒ datoteka ```virtualne_vezne_tocke_v3.0.txt```
 - ekstraktaj GK in TM koordinate iz datoteke z uporabo ```awk```:  
-  ⇒ datoteke ```vvt-gk.node``` and ```vvt-tm.node```
+  ⇒ datoteki ```vvt-gk.node``` and ```vvt-tm.node```
 - uporabi program [triangle] za kreiranje trikotnikov:  
-  ⇒ datoteke ```vvt-gk.1.ele``` and ```vvt-tm.1.ele```  
+  ⇒ datoteki ```vvt-gk.1.ele``` and ```vvt-tm.1.ele```  
   Ti dve datoteki bi morali biti enaki razen vrstnega reda trikotnikov.
 - uporabi priložen program ```ctt``` za kreiranje tabel, ki se bodo vključile v program:  
-  ⇒ datoteke ```aft_gktm.h``` and ```aft_tmgk.h```  
+  ⇒ datoteki ```aft_gktm.h``` and ```aft_tmgk.h```  
   ```ctt``` rešuje zgoraj omenjen sistem linearnih enačb za vsak trikotnik.
 
 Vse to se lahko avtomatizira z uporabo priloženih skript ```cvvt.sh``` (za Unix)

@@ -4,10 +4,10 @@ Za slovensko verzijo te datoteke glej [PREBERIME.md].
 ### Theory
 Affine transformation only works with cartesian coordinates (GK x,y ⇔ TM x,y).
 You need minimum 3 control points (for example a triangle), each with 4 coordinates
-```(Xs, Ys, Xt, Yt)``` where ```Xs,Ys``` are coordinates in the source system
+```(Xs, Ys, Xt, Yt)```, where ```Xs,Ys``` are coordinates in the source system
 and ```Xt,Yt``` coordinates in the target system.
 
-For each new point ```Xi,Yi``` the transformation is calculated via the
+For each new point ```Xi,Yi``` transformation is calculated via the
 following equation:
 <pre>
 Xo = a&lowast;Xi + b&lowast;Yi + c

@@ -7,7 +7,7 @@ For English version of this file see [README.md].
 nadomestilo za uradni program za konverzijo [SiTra] &#40;s Helmertovimi
 parametri za vso Slovenijo, brez regionalnih parametrov&#41; ali natančnejši,
 če se uporabi vgrajena afina/trikotniška transformacija z referenčnimi
-[virtualnimi veznimi točkami].
+[virtualnimi veznimi točkami] &#40;za natančen opis glej [AFT.md]&#41;.
 
 <img src="images/Slovenia-tie-points.gif" width="400px">
 <img src="images/Slovenia-triangles.gif" height="266px">
@@ -247,6 +247,7 @@ VTH0722.XYZ.out
 [SiTra]: http://sitra.sitranet.si
 [SiTraNet]: http://sitranet.si
 [virtualnimi veznimi točkami]: http://www.e-prostor.gov.si/si/zbirke_prostorskih_podatkov/drzavni_koordinatni_sistem/horizontalni_drzavni_koordinatni_sistem_d96tm/d96tm/transformacijski_parametri/
+[AFT.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/aft/PREBERIME.md
 [EGM2008]: http://earth-info.nga.mil/GandG/wgs84/gravitymod/egm2008/egm08_wgs84.html
 [geo_api.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo_api.md
 [literature.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/literature.md
