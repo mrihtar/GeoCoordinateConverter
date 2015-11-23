@@ -117,5 +117,7 @@ int gkxy2tmxy_aft(GEOUTM in, GEOUTM *out);
 int tmxy2gkxy_aft(GEOUTM in, GEOUTM *out);
 void tmxy2fila_wgs(GEOUTM in, GEOGRA *out);
 void fila_wgs2tmxy(GEOGRA in, GEOUTM *out);
+void gkxy2fila_wgs_aft(GEOUTM in, GEOGRA *out);
+void fila_wgs2gkxy_aft(GEOGRA in, GEOUTM *out);
 
 #endif //_GEO_H_DEFINED

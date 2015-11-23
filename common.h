@@ -63,6 +63,7 @@
 
 #ifdef _WIN32
 #define sleep Sleep
+#ifdef _WCHAR
 // simple wchar redefinitions (UNICODE support)
 #define T(x) L##x
 #define TCHAR wchar_t
@@ -88,6 +89,18 @@
 #define fgets fgetws
 #define fgetc fgetwc
 #define tstat _wstat
+#else
+#define T(x) x
+#define TCHAR char
+#define TSIZE 0xFF
+#define tmain main
+#define DIRSEP T('\\')
+#define DIRSEP_S T("\\")
+#define snprintf _snprintf
+#define strcasecmp _stricmp
+#define strncasecmp _strnicmp
+#define tstat _stat
+#endif
 
 #else //not _WIN32
 #define T(x) x

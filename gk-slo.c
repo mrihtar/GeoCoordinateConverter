@@ -15,24 +15,13 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program; if not, see http://www.gnu.org/licenses/
 //
-// gk-slo.c: Main cmd-line program for converting coordinates
-//
-// Compile on Unix:
-//   gcc: gcc -O2 -Wall gk-slo.c util.c geo.c -o gk-slo -lm -lrt
-// Compile on Windows:
-//   MinGW: gcc -O2 -Wall gk-slo.c util.c geo.c -o gk-slo.exe
-//   MS C:  cl /O2 /Wall gk-slo.c util.c geo.c
-// Compile for profiler (gprof/AQTime):
-//   gcc: gcc -g2 -gstabs+ -Wall gk-slo.c util.c geo.c -o gk-slo.exe -pg
-//       (run gk-slo.exe --> creates file gmon.out)
-//        gprof gk-slo.exe gmon.out > gprof.txt
-//   MS C: cl /Zi /DEBUG /Wall gk-slo.c util.c geo.c
+// gk-slo.c: Main cmd-line program for converting coordinates from XYZ files
 //
 #include "common.h"
 #include "geo.h"
 
-#define SW_VERSION T("7.01")
-#define SW_BUILD   T("Feb 11, 2015")
+#define SW_VERSION T("8.00")
+#define SW_BUILD   T("Nov 22, 2015")
 
 // global variables
 TCHAR *prog;  // program name
@@ -347,7 +336,8 @@ void gendata_fila()
 // ----------------------------------------------------------------------------
 TCHAR *fnfind(TCHAR *fname, TCHAR *newname)
 {
-  TCHAR *s, name[MAXS+1], ext[MAXS+1];
+  TCHAR name[MAXS+1], ext[MAXS+1];
+//TCHAR *s;
   struct _stat fst;
   int ii;
 
@@ -393,14 +383,16 @@ void usage(TCHAR *prog, int ver_only)
   fprintf(stderr, T("                    default: Slo2000\n"));
   fprintf(stderr, T("  -dms              display fila in DMS format after height\n"));
   fprintf(stderr, T("  -t <n>            select transformation:\n"));
-  fprintf(stderr, T("                    1: xy   (d96tm)  --> fila (etrs89), hg?, default\n"));
-  fprintf(stderr, T("                    2: fila (etrs89) --> xy   (d96tm),  hg\n"));
-  fprintf(stderr, T("                    3: xy   (d48gk)  --> fila (etrs89), ht\n"));
-  fprintf(stderr, T("                    4: fila (etrs89) --> xy   (d48gk),  hg\n"));
-  fprintf(stderr, T("                    5: xy   (d48gk)  --> xy   (d96tm),  hg(hc)\n"));
-  fprintf(stderr, T("                    6: xy   (d96tm)  --> xy   (d48gk),  ht(hc)\n"));
-  fprintf(stderr, T("                    7: xy   (d48gk)  --> xy   (d96tm),  hc, affine trans.\n"));
-  fprintf(stderr, T("                    8: xy   (d96tm)  --> xy   (d48gk),  hc, affine trans.\n"));
+  fprintf(stderr, T("                     1: xy   (d96tm)  --> fila (etrs89), hg?, default\n"));
+  fprintf(stderr, T("                     2: fila (etrs89) --> xy   (d96tm),  hg\n"));
+  fprintf(stderr, T("                     3: xy   (d48gk)  --> fila (etrs89), ht\n"));
+  fprintf(stderr, T("                     4: fila (etrs89) --> xy   (d48gk),  hg\n"));
+  fprintf(stderr, T("                     5: xy   (d48gk)  --> xy   (d96tm),  hg(hc)\n"));
+  fprintf(stderr, T("                     6: xy   (d96tm)  --> xy   (d48gk),  ht(hc)\n"));
+  fprintf(stderr, T("                     7: xy   (d48gk)  --> xy   (d96tm),  hc, affine trans.\n"));
+  fprintf(stderr, T("                     8: xy   (d96tm)  --> xy   (d48gk),  hc, affine trans.\n"));
+  fprintf(stderr, T("                     9: xy   (d48gk)  --> fila (etrs89), ht, affine trans.\n"));
+  fprintf(stderr, T("                    10: fila (etrs89) --> xy   (d48gk),  hg, affine trans.\n"));
   fprintf(stderr, T("  -r                reverse parsing order of xy/fila\n"));
   fprintf(stderr, T("                    (warning displayed if y < 200000)\n"));
   fprintf(stderr, T("  <inpname>         parse and convert input data from <inpname>\n"));
@@ -419,7 +411,7 @@ void usage(TCHAR *prog, int ver_only)
 // ----------------------------------------------------------------------------
 // main (mingw32 unicode wrapper)
 // ----------------------------------------------------------------------------
-#ifdef __MINGW32__
+#if defined(__MINGW32__) && defined(_WCHAR)
 extern int _CRT_glob;
 extern
 #ifdef __cplusplus
@@ -443,7 +435,7 @@ int main() {
 // ----------------------------------------------------------------------------
 int tmain(int argc, TCHAR *argv[])
 {
-  int ii, ac, opt, sts;
+  int ii, ac, opt;
   TCHAR *s, *av[MAXC];
   TCHAR geoid[MAXS+1];
   int value, test, gd, tr, rev, warn, ddms;
@@ -452,10 +444,9 @@ int tmain(int argc, TCHAR *argv[])
   FILE *inp, *out;
   TCHAR line[MAXS+1], col1[MAXS+1];
   int ln, n;
-  double fi, la, h, x, y, H;
+  double fi, la, h, x, y, H, tmp;
   GEOGRA fl; GEOUTM xy, gkxy, tmxy;
   DMS lat, lon;
-  double dlat, dlon, tmp;
   struct timespec start, stop;
   double tdif;
 
@@ -497,7 +488,7 @@ int tmain(int argc, TCHAR *argv[])
         if (strlen(argv[ii]) == 0) goto usage;
         errno = 0; value = strtol(argv[ii], &s, 10);
         if (errno || *s) goto usage;
-        if (value < 1 || value > 8) goto usage;
+        if (value < 1 || value > 10) goto usage;
         tr = value;
         continue;
       }
@@ -643,7 +634,7 @@ usage:      usage(prog, 0);
 
       // Parse line
       s = xstrtrim(line);
-      if (tr == 2 || tr == 4) { // etrs89
+      if (tr == 2 || tr == 4 || tr == 10) { // etrs89
         n = sscanf(s, T("%10240s %lf %lf %lf"), col1, &fi, &la, &h);
         if (n != 4) {
           n = sscanf(s, T("%lf %lf %lf"), &fi, &la, &h);
@@ -661,8 +652,11 @@ usage:      usage(prog, 0);
           fprintf(stderr, T("%s: line %d: %-.75s\n"), inpname, ln, line);
           continue;
         }
+        if (la > 17.0) {
+          if (warn) { fprintf(stderr, T("%s: possibly reversed fi/la\n"), inpname); warn = 0; }
+        }
       }
-      else { // tr == 1,3,5,6,7,8 // d96tm/d48gk
+      else { // tr == 1,3,5,6,7,8,9 // d96tm/d48gk
         n = sscanf(s, T("%10240s %lf %lf %lf"), col1, &x, &y, &H);
         if (n != 4) {
           n = sscanf(s, T("%lf %lf %lf"), &x, &y, &H);
@@ -680,9 +674,9 @@ usage:      usage(prog, 0);
           fprintf(stderr, T("%s: line %d: %-.75s\n"), inpname, ln, line);
           continue;
         }
-        if (y < 200000.0) { 
+        if (y < 200000.0) {
           y += 500000.0;
-          if (warn) { fprintf(stderr, T("%s: possibly reversed xy\n"), inpname); warn = 0; }
+          if (warn) { fprintf(stderr, T("%s: possibly reversed x/y\n"), inpname); warn = 0; }
         }
       }
 
@@ -751,6 +745,24 @@ usage:      usage(prog, 0);
         xy.x = x; xy.y = y; xy.H = H;
         tmxy2gkxy_aft(xy, &gkxy);
         fprintf(out, T("%s%.3f %.3f %.3f\n"), col1, gkxy.x, gkxy.y, gkxy.H);
+      }
+
+      else if (tr == 9) { // xy (d48gk) --> fila (etrs89), affine trans.
+        xy.x = x; xy.y = y; xy.H = H;
+        gkxy2fila_wgs_aft(xy, &fl);
+        fprintf(out, T("%s%.10f %.10f %.3f"), col1, fl.fi, fl.la, fl.h);
+        if (ddms) {
+          deg2dms(fl.fi, &lat); deg2dms(fl.la, &lon);
+          fprintf(out, T(" %.0f %2.0f %8.5f %.0f %2.0f %8.5f\n"),
+            lat.deg, lat.min, lat.sec, lon.deg, lon.min, lon.sec);
+        }
+        else fprintf(out, T("\n"));
+      }
+
+      else if (tr == 10) { // fila (etrs89) --> xy (d48gk), affine trans.
+        fl.fi = fi; fl.la = la; fl.h = h;
+        fila_wgs2gkxy_aft(fl, &xy);
+        fprintf(out, T("%s%.3f %.3f %.3f\n"), col1, xy.x, xy.y, xy.H);
       }
     } // while !eof
 

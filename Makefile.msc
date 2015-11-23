@@ -1,26 +1,58 @@
+# For Microsoft nmake
 SHELL = %SystemRoot%/System32/cmd.exe
-CC = cl
+CC = cl /nologo
+LD = link /nologo
 RM = del /q
+CP = copy /y
 
+#DEBUG = /O2
+DEBUG = /Zi /DEBUG
 CFLAGS = /Wall
-DEBUG = /O2
-#DEBUG = /Zi /DEBUG
+IPATH = /I. /Ishapelib
+#LDFLAGS = /INCREMENTAL:no
+LDFLAGS = /INCREMENTAL:no /DEBUG
+LPATH = 
+LIBS = 
 
-all: gk-slo.exe
+TGTS = gk-slo.exe gk-shp.exe
+WOBJS = wgk-slo.obj wutil.obj wgeo.obj
+OBJS = gk-shp.obj util.obj geo.obj
+INCL = common.h geo.h geoid_slo.h geoid_egm.h aft_gktm.h aft_tmgk.h
+SHPOBJS = shapelib\shpopen.obj shapelib\dbfopen.obj shapelib\safileio.obj shapelib\shptree.obj
+SHPINCL = shapelib\shapefil.h
 
-gk-slo.exe: gk-slo.c util.c geo.c common.h geo.h geoid_slo.h geoid_egm.h
-#	$(CC) $(CFLAGS) /Zi /DEBUG /Wall gk-slo.c util.c geo.c
-	$(CC) $(CFLAGS) $(DEBUG) gk-slo.c util.c geo.c
+all: $(TGTS)
 
-test: gk-slo.exe
+gk-slo.exe: $(WOBJS)
+	$(LD) /OUT:$@ $(WOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
+
+gk-shp.exe: $(OBJS) $(SHPOBJS)
+	$(LD) /OUT:$@ $(OBJS) $(SHPOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
+
+$(OBJS): $(INCL)
+$(WOBJS): $(INCL)
+$(SHPOBJS): $(SHPINCL)
+
+test: $(TGTS)
 	gk-slo.exe -x > gk-slo.tmp
 	fc /l gk-slo.tmp refout-slo.txt
 	gk-slo.exe -x -g egm > gk-slo.tmp
 	fc /l gk-slo.tmp refout-egm.txt
 	@$(RM) gk-slo.tmp > NUL
 
-install: gk-slo.exe
-	@echo Copy gk-slo.exe to a directory of your choice
+install: $(TGTS)
+	@echo Copy gk-slo.exe and gk-shp.exe to a directory of your choice
 
 clean:
-	$(RM) gk-slo.o* util.o* geo.o* gk-slo.exe
+	-$(RM) $(OBJS) $(WOBJS) $(SHPOBJS)
+cleanall: clean
+	-$(RM) $(TGTS)
+
+wgk-slo.obj: gk-slo.c
+	$(CC) $(DEBUG) /c $(CFLAGS) -D_WCHAR $(IPATH) gk-slo.c /Fo$@
+wutil.obj: util.c
+	$(CC) $(DEBUG) /c $(CFLAGS) -D_WCHAR $(IPATH) util.c /Fo$@
+wgeo.obj: geo.c
+	$(CC) $(DEBUG) /c $(CFLAGS) -D_WCHAR $(IPATH) geo.c /Fo$@
+.c.obj:
+	$(CC) $(DEBUG) /c $(CFLAGS) $(IPATH) $< /Fo$@

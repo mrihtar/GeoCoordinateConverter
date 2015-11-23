@@ -1,26 +1,60 @@
+# For GNU make
 SHELL = %SystemRoot%/System32/cmd.exe
 CC = gcc
+LD = gcc
+AR = ar
+RANLIB = ranlib
 RM = del /q
+CP = copy /y
 
+#DEBUG = -O2
+DEBUG = -g
 CFLAGS = -Wall -msse2 -mfpmath=sse
-DEBUG = -O2
-#DEBUG = -g
+IPATH = -I. -Ishapelib
+#LDFLAGS = -s
+LDFLAGS = 
+LPATH = 
+LIBS = 
 
-all: gk-slo.exe
+TGTS = gk-slo.exe gk-shp.exe
+WOBJS = wgk-slo.o wutil.o wgeo.o
+OBJS = gk-shp.o util.o geo.o
+INCL = common.h geo.h geoid_slo.h geoid_egm.h aft_gktm.h aft_tmgk.h
+SHPOBJS = shapelib\shpopen.o shapelib\dbfopen.o shapelib\safileio.o shapelib\shptree.o
+SHPINCL = shapelib\shapefil.h
 
-gk-slo.exe: gk-slo.c util.c geo.c common.h geo.h geoid_slo.h geoid_egm.h
-#	$(CC) $(CFLAGS) -g2 -gstabs+ gk-slo.c util.c geo.c -o gk-slo.exe -pg
-	$(CC) $(CFLAGS) $(DEBUG) gk-slo.c util.c geo.c -o gk-slo.exe
+all: $(TGTS)
 
-test: gk-slo.exe
+gk-slo.exe: $(WOBJS)
+	$(LD) -o $@ $(WOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
+
+gk-shp.exe: $(OBJS) $(SHPOBJS)
+	$(LD) -o $@ $(OBJS) $(SHPOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
+
+$(OBJS): $(INCL)
+$(WOBJS): $(INCL)
+$(SHPOBJS): $(SHPINCL)
+
+test: $(TGTS)
 	gk-slo.exe -x > gk-slo.tmp
 	fc /l gk-slo.tmp refout-slo.txt
 	gk-slo.exe -x -g egm > gk-slo.tmp
 	fc /l gk-slo.tmp refout-egm.txt
 	@$(RM) gk-slo.tmp > NUL
 
-install: gk-slo.exe
-	@echo Copy gk-slo.exe to a directory of your choice
+install: $(TGTS)
+	@echo Copy gk-slo.exe and gk-shp.exe to a directory of your choice
 
 clean:
-	$(RM) gk-slo.o* util.o* geo.o* gk-slo.exe
+	-$(RM) $(OBJS) $(WOBJS) $(SHPOBJS)
+cleanall: clean
+	-$(RM) $(TGTS)
+
+wgk-slo.o: gk-slo.c
+	$(CC) $(DEBUG) -c $(CFLAGS) -D_WCHAR $(IPATH) gk-slo.c -o $@
+wutil.o: util.c
+	$(CC) $(DEBUG) -c $(CFLAGS) -D_WCHAR $(IPATH) util.c -o $@
+wgeo.o: geo.c
+	$(CC) $(DEBUG) -c $(CFLAGS) -D_WCHAR $(IPATH) geo.c -o $@
+.c.o:
+	$(CC) $(DEBUG) -c $(CFLAGS) $(IPATH) $< -o $@

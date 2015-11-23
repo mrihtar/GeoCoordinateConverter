@@ -1182,7 +1182,7 @@ void gkxy2tmxy(GEOUTM in, GEOUTM *out)
   GEOGRA fl, flb;
   GEOCEN xyzb, xyzw;
   DMS lat, lon;
-  double Ng, H, ht;
+  double H, ht;
 
   H = in.H; // in.H = 0.0;
 
@@ -1225,7 +1225,7 @@ void tmxy2gkxy(GEOUTM in, GEOUTM *out)
   GEOGRA fl, flb;
   GEOCEN xyzb, xyzw;
   DMS lat, lon;
-  double Ng, hg, H;
+  double hg, H;
 
   H = in.H; // in.H = 0.0;
 
@@ -1315,7 +1315,7 @@ int tmxy2gkxy_aft(GEOUTM in, GEOUTM *out)
   out->H = H;  // default: copied height
 
   return found;
-} /* gkxy2tmxy_aft */
+} /* tmxy2gkxy_aft */
 
 
 // ----------------------------------------------------------------------------
@@ -1356,3 +1356,33 @@ void fila_wgs2tmxy(GEOGRA in, GEOUTM *out)
   if (hsel == 1) out->H = h;       // copied height
   // no transformed height possible
 } /* fila_wgs2tmxy */
+
+
+// ----------------------------------------------------------------------------
+// gkxy2fila_wgs_aft
+// ----------------------------------------------------------------------------
+// Transform from GK x,y,H on Bessel 1841 to fi,la,h on WGS 84
+// using pre-calculated affine transformation table
+// ----------------------------------------------------------------------------
+void gkxy2fila_wgs_aft(GEOUTM in, GEOGRA *out)
+{
+  GEOUTM tmxy;
+
+  gkxy2tmxy_aft(in, &tmxy);
+  tmxy2fila_wgs(tmxy, out);
+} /* gkxy2fila_wgs_aft */
+
+
+// ----------------------------------------------------------------------------
+// fila_wgs2gkxy_aft
+// ----------------------------------------------------------------------------
+// Transform from fi,la,h on WGS 84 to GK x,y,H on Bessel 1841
+// using pre-calculated affine transformation table
+// ----------------------------------------------------------------------------
+void fila_wgs2gkxy_aft(GEOGRA in, GEOUTM *out)
+{
+  GEOUTM tmxy;
+
+  fila_wgs2tmxy(in, &tmxy);
+  tmxy2gkxy_aft(tmxy, out);
+} /* fila_wgs2gkxy_aft */

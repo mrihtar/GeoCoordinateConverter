@@ -1,25 +1,59 @@
-#CC = gcc
+# For GNU make
+CC = cc
+LD = cc
+AR = ar
+RANLIB = ranlib
 RM = rm -f
+CP = cp
 
+#DEBUG = -O2
+DEBUG = -g
 CFLAGS = -Wall -msse2 -mfpmath=sse
-DEBUG = -O2
-#DEBUG = -g
+IPATH = -I. -Ishapelib
+#LDFLAGS = -s
+LDFLAGS = 
+LPATH = 
+LIBS = -lm -lrt
 
-all: gk-slo
+TGTS = gk-slo gk-shp
+WOBJS = wgk-slo.o wutil.o wgeo.o
+OBJS = gk-shp.o util.o geo.o
+INCL = common.h geo.h geoid_slo.h geoid_egm.h aft_gktm.h aft_tmgk.h
+SHPOBJS = shapelib/shpopen.o shapelib/dbfopen.o shapelib/safileio.o shapelib/shptree.o
+SHPINCL = shapelib/shapefil.h
 
-gk-slo: gk-slo.c util.c geo.c common.h geo.h geoid_slo.h geoid_egm.h
-#	$(CC) $(CFLAGS) -g2 -gstabs+ gk-slo.c util.c geo.c -o gk-slo -pg -lm -lrt
-	$(CC) $(CFLAGS) $(DEBUG) gk-slo.c util.c geo.c -o gk-slo -lm -lrt
+all: $(TGTS)
 
-test: gk-slo
+gk-slo: $(WOBJS)
+	$(LD) -o $@ $(WOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
+
+gk-shp: $(OBJS) $(SHPOBJS)
+	$(LD) -o $@ $(OBJS) $(SHPOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
+
+$(OBJS): $(INCL)
+$(WOBJS): $(INCL)
+$(SHPOBJS): $(SHPINCL)
+
+test: $(TGTS)
 	./gk-slo -x > gk-slo.tmp
 	diff gk-slo.tmp refout-slo.txt
 	./gk-slo -x -g egm > gk-slo.tmp
 	diff gk-slo.tmp refout-egm.txt
 	@$(RM) gk-slo.tmp
 
-install: gk-slo
-	@echo Copy gk-slo to a directory of your choice
+install: $(TGTS)
+	@echo Copy gk-slo and gk-shp to a directory of your choice
 
 clean:
-	$(RM) gk-slo.o* util.o* geo.o* gk-slo
+	-$(RM) $(OBJS) $(WOBJS) $(SHPOBJS)
+cleanall: clean
+	-$(RM) $(TGTS)
+
+wgk-slo.o: gk-slo.c
+	$(CC) $(DEBUG) -c $(CFLAGS) -D_WCHAR $(IPATH) gk-slo.c -o $@
+wutil.o: util.c
+	$(CC) $(DEBUG) -c $(CFLAGS) -D_WCHAR $(IPATH) util.c -o $@
+wgeo.o: geo.c
+	$(CC) $(DEBUG) -c $(CFLAGS) -D_WCHAR $(IPATH) geo.c -o $@
+.c.o:
+	$(CC) $(DEBUG) -c $(CFLAGS) $(IPATH) $< -o $@
