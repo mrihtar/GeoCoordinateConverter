@@ -185,6 +185,7 @@ int tmain(int argc, TCHAR *argv[])
   TCHAR *pszPartType, *pszPlus;
   TCHAR *iTuple, *oTuple;
   FILE *out; TCHAR *proj;
+  int nPercentBefore, nPercent;
 
   // Get program name
   if ((prog = strrchr(argv[0], DIRSEP)) == NULL) prog = argv[0];
@@ -358,8 +359,7 @@ usage:      usage(prog, 0);
   }
 
   // process entitites (shapes) in input shapefile
-  int nPercentBefore = -1;
-  warn = 1;
+  warn = 1; nPercentBefore = -1;
   for (nEntity = 0; nEntity < nEntities; nEntity++) {
     psShape = SHPReadObject(iSHP, nEntity);
     if (psShape == NULL) {
@@ -368,7 +368,7 @@ usage:      usage(prog, 0);
       break;
     }
 
-    int nPercent = (long)nEntity*10000/nEntities;
+    nPercent = (long long int)nEntity*10000/nEntities;
     if (debug > 2) {
       fprintf(stderr, T("Shape: %d (%s), Vertices: %d, Parts: %d\n"),
               nEntity, SHPTypeName(psShape->nSHPType),
@@ -386,8 +386,9 @@ usage:      usage(prog, 0);
             psShape->dfXMax, psShape->dfYMax, psShape->dfZMax);
       }
     }
-    else if (debug == 2 && (nPercent > nPercentBefore || nEntity == nEntities))
+    else if (debug == 2 && nPercent > nPercentBefore)
       fprintf(stderr, T("Shape: %d (%.2f%%)\r"), nEntity, (double)nPercent/100.0);
+    nPercentBefore = nPercent;
 
     if (psShape->nParts > 0 && psShape->panPartStart[0] != 0)
       fprintf(stderr, T("%s: panPartStart[0] = %d, not zero as expected\n"),
@@ -488,8 +489,6 @@ usage:      usage(prog, 0);
       memcpy(oTuple, iTuple, iDBF->nRecordLength);
       DBFWriteTuple(oDBF, oDBF->nRecords, oTuple);
     }
-
-    nPercentBefore = nPercent;
   } // for each Entity
 
   clock_gettime(CLOCK_REALTIME, &stop);
