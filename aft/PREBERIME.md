@@ -9,8 +9,8 @@ izvornem sistemu in ```Xt,Yt``` koordinati v ciljnem sistemu.
 
 Za vsako novo točko ```Xi,Yi``` se transformacija izračuna po naslednji enačbi:
 <pre>
-Xo = a&lowast;Xi + b&lowast;Yi + c
-Yo = d&lowast;Xi + e&lowast;Yi + f
+Xo = a&#8270;Xi + b&#8270;Yi + c
+Yo = d&#8270;Xi + e&#8270;Yi + f
 </pre>
 kjer imajo parametri ```a..f``` naslednji pomen:
 <pre>
@@ -52,11 +52,8 @@ natančne Delaunayeve triangulacije.
 #### Natančen opis procesa
 - pridobi referenčne [virtualne vezne točke] &#40;že priložene&#41;:  
   ⇒ datoteka ```virtualne_vezne_tocke_v3.0.txt```
-- ekstraktaj GK in TM koordinate iz datoteke z uporabo ```awk```:  
-  ⇒ datoteki ```vvt-gk.node``` and ```vvt-tm.node```
-- uporabi program [triangle] za kreiranje trikotnikov:  
-  ⇒ datoteki ```vvt-gk.1.ele``` and ```vvt-tm.1.ele```  
-  Ti dve datoteki bi morali biti enaki razen vrstnega reda trikotnikov.
+- ekstraktaj GK in TM koordinate iz referenčne datoteke
+- uporabi program [triangle] za kreiranje trikotnikov
 - uporabi priložen program ```ctt``` za kreiranje tabel, ki se bodo vključile v program:  
   ⇒ datoteki ```aft_gktm.h``` and ```aft_tmgk.h```  
   ```ctt``` rešuje zgoraj omenjen sistem linearnih enačb za vsak trikotnik.

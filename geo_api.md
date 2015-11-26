@@ -149,10 +149,14 @@
   Mercator *n,e,H* on WGS84 using affine/triangle-based transformation
   with 899 reference virtual tie points (already built-in).
 
+  Input height is copied to the output height.
+
 - **tmxy2gkxy_aft**  
   Transforms Transverse Mercator *n,e,H* coordinates on WGS84 to Gauss-Krueger
   *x,y,H* on Bessel 1841 using affine/triangle-based transformation
   with 899 reference virtual tie points (already built-in).
+
+  Input height is copied to the output height.
 
 - **tmxy2fila_wgs**  
   Transforms Transverse Mercator *n,e,H* coordinates on WGS84 to *fi,la,h* on
@@ -169,6 +173,25 @@
 
   In the end the correct height is calculated according to selected type of
   output height (only copied or geoid height possible).
+
+- **gkxy2fila_wgs_aft**  
+  Transforms Gauss-Krueger *x,y,H* coordinates on Bessel 1841 to *fi,la,h* on
+  WGS84 using affine/triangle-based transformation:
+  - converts GK *x,y,H* on Bessel 1841 to TM *n,e,H* on WGS84 using gkxy2tmxy_aft()
+  - converts TM *n,e,H* on WGS84 to *fi,la,h* on WGS84 using tmxy2fila_wgs()
+
+  Correct height is calculated in tmxy2fila_wgs() according to selected type of
+  output height (only copied or geoid height possible).
+
+- **fila_wgs2gkxy_aft**  
+  Transforms *fi,la,h* coordinates on WGS84 to Gauss-Krueger *x,y,H* on Bessel
+  1841 using affine/triangle-based transformation:
+  - converts *fi,la,h* on WGS84 to to TM *n,e,H* on WGS84 using fila_wgs2tmxy()
+  - converts TM *n,e,H* on WGS84 to GK *x,y,H* on Bessel 1841 using tmxy2gkxy_aft()
+
+  Correct height is calculated in fila_wgs2tmxy() according to selected type of
+  output height (only copied or geoid height possible).
+
 
 #### Additional routines:
 - **xy2fila_ellips_loop**  
@@ -190,6 +213,15 @@
 
 These two routines are included for curiosity only.
 
+#### Supporting libraries:
+- **shapelib v1.3.0**  
+  The [Shapefile C Library] provides routines needed for reading and writing
+  ESRI Shapefiles (.shp) and the associated attribute files (.dbf):
+
+  - SHPOpen, DBFOpen, SHPGetInfo, SHPCreate, DBFCloneEmpty, SHPComputeExtents,
+    SHPWriteObject, DBFWriteTuple, ...
 
 [geo.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo.c
 [EGM2008]: http://earth-info.nga.mil/GandG/wgs84/gravitymod/egm2008/egm08_wgs84.html
+[Shapefile C Library]: http://shapelib.maptools.org
+

@@ -10,8 +10,8 @@ and ```Xt,Yt``` coordinates in the target system.
 For each new point ```Xi,Yi``` transformation is calculated via the
 following equation:
 <pre>
-Xo = a&lowast;Xi + b&lowast;Yi + c
-Yo = d&lowast;Xi + e&lowast;Yi + f
+Xo = a&#8270;Xi + b&#8270;Yi + c
+Yo = d&#8270;Xi + e&#8270;Yi + f
 </pre>
 where parameters ```a..f``` have the following meaning:
 <pre>
@@ -53,11 +53,8 @@ exact Delaunay triangulations.
 #### Exact description of process
 - get the reference [virtual tie points] &#40;already supplied&#41;:  
   ⇒ file ```virtualne_vezne_tocke_v3.0.txt```
-- extract GK and TM coordinates from the file using ```awk```:  
-  ⇒ files ```vvt-gk.node``` and ```vvt-tm.node```
-- use [triangle] program to create triangles:  
-  ⇒ files ```vvt-gk.1.ele``` and ```vvt-tm.1.ele```  
-  These should be the same except for the order of triangles.
+- extract GK and TM coordinates from the reference file
+- use [triangle] program to create triangles  
 - use the supplied program ```ctt``` to create tables to be included in a program:  
   ⇒ files ```aft_gktm.h``` and ```aft_tmgk.h```  
   ```ctt``` solves the above mentioned system of linear equations for each

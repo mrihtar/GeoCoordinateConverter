@@ -1,4 +1,4 @@
-## [GeoCoordinateConverter]
+## Geo Coordinate Converter http://geocoordinateconverter.tk
 For English version of this file see [README.md].
 
 **gk-slo** je konverter med geografskimi kartezičnimi koordinatami
@@ -7,10 +7,20 @@ For English version of this file see [README.md].
 nadomestilo za uradni program za konverzijo [SiTra] &#40;s Helmertovimi
 parametri za vso Slovenijo, brez regionalnih parametrov&#41; ali natančnejši,
 če se uporabi vgrajena afina/trikotniška transformacija z referenčnimi
-[virtualnimi veznimi točkami] &#40;za natančen opis glej [AFT.md]&#41;.
+[virtualnimi veznimi točkami v3.0] &#40;za natančen opis glej [AFT.md]&#41;.
 
-<img src="images/Slovenia-tie-points.gif" width="400px">
-<img src="images/Slovenia-triangles.gif" height="266px">
+<img src="images/GCC-Cover-Image.gif" width="660px">
+
+Program lahko bere datoteke v formatu [SiTraNet] &#40;ASCII XYZ) ali
+[ESRI shapefile] &#40;ArcGIS .shp format, uporabi **gk-shp**).
+
+Na razpolago so naslednje transformacije (v obe smeri):
+
+1. xy (D96/TM) **&#8660;** &phi;&lambda; (ETRS89)
+2. xy (D48/GK) **&#8660;** xy (D96/TM) &nbsp;&nbsp;&nbsp;&nbsp;Helmertova transformacija
+3. xy (D48/GK) **&#8660;** &phi;&lambda; (ETRS89) &nbsp;&nbsp;&nbsp;Helmertova transformacija
+4. xy (D48/GK) **&#8660;** xy (D96/TM) &nbsp;&nbsp;&nbsp;&nbsp;Afina transformacija
+5. xy (D48/GK) **&#8660;** &phi;&lambda; (ETRS89) &nbsp;&nbsp;&nbsp;Afina transformacija
 
 Pri računanju višin s pomočjo modela geoida sta na razpolago dva absolutna
 modela geoida za Slovenijo: Slo2000 in [EGM2008].
@@ -26,8 +36,8 @@ Natančnejši opis podprogramov za konverzijo koordinat in njihov API
 Spisek uporabljene literature (s povezavami do dokumentov) je v datoteki
 [literature.md].
 
-Prevedeno verzijo **gk-slo za Windows** (32-bitna, prevedena z MinGW)
-lahko dobite na [gk-slo-7.01.zip].
+Prevedeno verzijo **gk-slo/gk-shp za Windows** (32-bitna, prevedena z MinGW)
+lahko dobite na [gk-slo-8.00.zip].
 
 
 ### Oznake
@@ -55,18 +65,32 @@ Ng = geoidna višina
 - **[geo.c]**  
   Zbirka podprogramov za konverzijo koordinat
 - **[gk-slo.c]**  
-  Glavni program za konverzijo koordinat za uporabo iz ukazne vrstice
+  Glavni program za konverzijo koordinat iz XYZ datotek
+- **[gk-shp.c]**  
+  Glavni program za konverzijo koordinat iz shapefile datotek
+- **[shapelib]**  
+  Datoteke iz [Shapefile C Library], potrebne za branje in pisanje ESRI
+  Shapefile datotek
 
 
 ### Kako prevesti program
 #### Unix
-```$ cc -O2 -Wall -msse2 -mfpmath=sse gk-slo.c util.c geo.c -o gk-slo -lm -lrt``` ali  
+```$ cc -O2 -Wall -msse2 -mfpmath=sse gk-slo.c util.c geo.c -o gk-slo -lm -lrt```  
+```$ cc -O2 -Wall -msse2 -mfpmath=sse -Ishapelib gk-shp.c util.c geo.c \ ```  
+&nbsp;&nbsp;&nbsp;```shapelib\shpopen.c shapelib\dbfopen.c shapelib\safileio.c shapelib\shptree.c -o gk-shp -lm -rt```  
+ali  
 ```$ make -f Makefile.unix```
 #### MinGW na Windows
-```$ gcc -O2 -Wall -msse2 -mfpmath=sse gk-slo.c util.c geo.c -o gk-slo.exe``` ali  
+```$ gcc -O2 -Wall -msse2 -mfpmath=sse -D_WCHAR gk-slo.c util.c geo.c -o gk-slo.exe```  
+```$ gcc -O2 -Wall -msse2 -mfpmath=sse -Ishapelib gk-shp.c util.c geo.c \ ```  
+&nbsp;&nbsp;&nbsp;```shapelib\shpopen.c shapelib\dbfopen.c shapelib\safileio.c shapelib\shptree.c -o gk-shp.exe```  
+ali  
 ```$ make -f Makefile.mingw```
 #### Microsoft C
-```$ cl /O2 /Wall gk-slo.c util.c geo.c``` ali  
+```$ cl /O2 /Wall -D_WCHAR gk-slo.c util.c geo.c```  
+```$ cl /O2 /Wall /Ishapelib gk-shp.c util.c geo.c \ ```  
+&nbsp;&nbsp;&nbsp;```shapelib\shpopen.c shapelib\dbfopen.c shapelib\safileio.c shapelib\shptree.c```  
+ali  
 ```$ make -f Makefile.msc```
 
 Opciji ```-msse2 -mfpmath=sse``` sta potrebni, ker drugače dobimo različne
@@ -77,11 +101,6 @@ rezultate na različnih sistemih (za podrobnejšo razlago glej [StackOverflow]).
 <pre>
 $ gk-slo [&lt;opcije&gt;] [&lt;vhodime&gt; ...]
   -d                omogoči debug izpis
-  -x                izpiši referenčni test in končaj
-  -gd &lt;n&gt;           zgeneriraj podatke (znotraj Slovenije) in končaj
-                    1: zgeneriraj xy   (d96tm)  podatke
-                    2: zgeneriraj fila (etrs89) podatke
-                    3: zgeneriraj xy   (d48gk)  podatke
   -ht               izračunaj izhodno višino s 7-param. Helmertovo trans.
   -hc               kopiraj vhodno višino nespremenjeno na izhod
   -hg               izračunaj izhodno višino s pomočjo modela geoida (privzeto)
@@ -89,26 +108,58 @@ $ gk-slo [&lt;opcije&gt;] [&lt;vhodime&gt; ...]
                     privzeto: Slo2000
   -dms              prikaži fila v SMS formatu za višino
   -t &lt;n&gt;            izberi transformacijo:
-                    1: xy   (d96tm)  --&gt; fila (etrs89), hg?, privzeto
-                    2: fila (etrs89) --&gt; xy   (d96tm),  hg
-                    3: xy   (d48gk)  --&gt; fila (etrs89), ht
-                    4: fila (etrs89) --&gt; xy   (d48gk),  hg
-                    5: xy   (d48gk)  --&gt; xy   (d96tm),  hg(hc)
-                    6: xy   (d96tm)  --&gt; xy   (d48gk),  ht(hc)
-                    7: xy   (d48gk)  --> xy   (d96tm),  hc, afina trans.
-                    8: xy   (d96tm)  --> xy   (d48gk),  hc, afina trans.
+                     1: xy   (d96tm)  --&gt; fila (etrs89), hg?, privzeto
+                     2: fila (etrs89) --&gt; xy   (d96tm),  hg
+                     3: xy   (d48gk)  --&gt; fila (etrs89), ht
+                     4: fila (etrs89) --&gt; xy   (d48gk),  hg
+                     5: xy   (d48gk)  --&gt; xy   (d96tm),  hg(hc)
+                     6: xy   (d96tm)  --&gt; xy   (d48gk),  ht(hc)
+                     7: xy   (d48gk)  --&gt; xy   (d96tm),  hc, affine trans.
+                     8: xy   (d96tm)  --&gt; xy   (d48gk),  hc, affine trans.
+                     9: xy   (d48gk)  --&gt; fila (etrs89), hg, affine trans.
+                    10: fila (etrs89) --&gt; xy   (d48gk),  hg, affine trans.
   -r                obrni vrstni red branja xy/fila
-                    (opozorilo se izpiše če je y &lt; 200000)
+                    (opozorilo se izpiše če je y &lt; 200000 ali la &gt; 17.0)
   &lt;vhodime&gt;         preberi in konvertiraj vhodne podatke iz datoteke &lt;vhodime&gt;
                     &lt;vhodime&gt; "-" pomeni stdin, prej uporabi "--"
   -o -|=|&lt;izhodime&gt; zapiši izhodne podatke na:
                     -: stdout (privzeto)
                     =: prilepi ".out" k imenu vsake datoteke &lt;vhodime&gt; in
                        zapiši izhodne podatke na te ločene datoteke
-                    &lt;izhodime&gt;: zapiši vse izhodne podatke na 1 datoteko &lt;izhodime&gt;
+                    &lt;izhodime&gt;: zapiši vse izhodne podatke na eno datoteko &lt;izhodime&gt;
 
 Tipični format vhodnih podatkov (SiTra):
 [&lt;oznaka&gt;]  &lt;fi|x&gt;  &lt;la|y&gt;  &lt;h|H&gt;
+</pre>
+
+Nov program **gk-shp**, ki lahko bere [ESRI shapefile] &#40;ArcGIS .shp format),
+ima podobno sintakso:
+<pre>
+$ gk-shp [&lt;options&gt;] &lt;vhodime&gt; &lt;izhodime&gt;
+  -d                omogoči podrobnejši izpis
+  -ht               izračunaj izhodno višino s 7-param. Helmertovo trans.
+  -hc               kopiraj vhodno višino nespremenjeno na izhod
+  -hg               izračunaj izhodno višino s pomočjo modela geoida (privzeto)
+  -g slo|egm        izberi model geoida (Slo2000 ali EGM2008)
+                    privzeto: Slo2000
+  -t &lt;n&gt;            izberi transformacijo:
+                     1: xy   (d96tm)  --&gt; fila (etrs89), hg?, privzeto
+                     2: fila (etrs89) --&gt; xy   (d96tm),  hg
+                     3: xy   (d48gk)  --&gt; fila (etrs89), ht
+                     4: fila (etrs89) --&gt; xy   (d48gk),  hg
+                     5: xy   (d48gk)  --&gt; xy   (d96tm),  hg(hc)
+                     6: xy   (d96tm)  --&gt; xy   (d48gk),  ht(hc)
+                     7: xy   (d48gk)  --&gt; xy   (d96tm),  hc, afina trans.
+                     8: xy   (d96tm)  --&gt; xy   (d48gk),  hc, afina trans.
+                     9: xy   (d48gk)  --&gt; fila (etrs89), hg, afina trans.
+                    10: fila (etrs89) --&gt; xy   (d48gk),  hg, afina trans.
+  -r                obrni vrstni red branja xy/fila
+                    (opozorilo se izpiše če je y &lt; 200000 oz. la &gt; 17.0)
+  &lt;vhodime&gt;         preberi in konvertiraj vhodne podatke iz datoteke &lt;vhodime&gt;
+  &lt;izhodime&gt;        zapiši izhodne podatke na datoteko &lt;izhodime&gt;
+
+Input data format:
+ESRI Shapefile (ArcGIS)
 </pre>
 
 
@@ -123,12 +174,12 @@ Konvertiraj v nov koordinatni sistem (Transverzalni Merkator/D96); višine se
 kopirajo, ne preračunavajo:
 <pre>
 $ gk-slo -t 5 -hc VTG2225.XYZ
-VTG2225.XYZ: possibly reversed xy
+VTG2225.XYZ: possibly reversed x/y
 0000001 509487.490 575640.546 343.300
 0000002 509492.490 575640.546 342.800
 0000003 509497.490 575640.546 342.300
 </pre>
-Če dobiš opozorilo "**possibly reversed xy**", uporabi opcijo "**-r**"
+Če dobiš opozorilo "**possibly reversed x/y**", uporabi opcijo "**-r**"
 da dobiš pravilno konverzijo:
 <pre>
 $ gk-slo -t 5 -hc -r VTG2225.XYZ
@@ -242,16 +293,39 @@ VTH0722.XYZ.out
 ...
 </pre>
 
-[GeoCoordinateConverter]: http://geocoordinateconverter.tk/indeks.html
+
+#### Example 5 (ESRI shapefiles)
+Vhodna datoteka file RABA_20151031.shp ([GERK], v formatu [ESRI shapefile],
+Gauss-Krueger/D48), konvertiraj v ETRS89/WGS84 koordinate z uporabo afine
+transformacije (s podrobnejšim izpisom):
+<pre>
+$ gk-shp -t 9 -dd RABA_20151031.shp raba_conv.shp
+Processing RABA_20151031
+Shapefile type: Polygon, number of shapes: 1601832
+Shape: 678 (0.04%) ...
+</pre>
+Rezultat konverzije je skupek datotek kot jih določa format [ESRI shapefile]:
+<pre>
+raba_conv.cpg
+raba_conv.dbf
+raba_conv.prj
+raba_conv.shp
+raba_conv.shx
+</pre>
+V datoteki raba_conv.prj je shranjena izhodna projekcija (WGS84), kar omogoča
+lažje odpiranje v GIS programih.
+
+[Geo Coordinate Converter]: http://geocoordinateconverter.tk/indeks.html
 [README.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/README.md
 [SiTra]: http://sitra.sitranet.si
 [SiTraNet]: http://sitranet.si
-[virtualnimi veznimi točkami]: http://www.e-prostor.gov.si/si/zbirke_prostorskih_podatkov/drzavni_koordinatni_sistem/horizontalni_drzavni_koordinatni_sistem_d96tm/d96tm/transformacijski_parametri/
+[virtualnimi veznimi točkami v3.0]: http://www.e-prostor.gov.si/si/zbirke_prostorskih_podatkov/drzavni_koordinatni_sistem/horizontalni_drzavni_koordinatni_sistem_d96tm/d96tm/transformacijski_parametri/
 [AFT.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/aft/PREBERIME.md
+[ESRI shapefile]: https://en.wikipedia.org/wiki/Shapefile
 [EGM2008]: http://earth-info.nga.mil/GandG/wgs84/gravitymod/egm2008/egm08_wgs84.html
 [geo_api.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo_api.md
 [literature.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/literature.md
-[gk-slo-7.01.zip]: https://app.box.com/s/vyj1mlghsuevcy921zhs
+[gk-slo-8.00.zip]: https://app.box.com/s/wqsc06i49i8phwsd2g7rci6qhy6qwix1
 [common.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/common.h
 [util.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/util.c
 [geoid_slo.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geoid_slo.h
@@ -261,4 +335,8 @@ VTH0722.XYZ.out
 [geo.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo.h
 [geo.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo.c
 [gk-slo.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/gk-slo.c
+[gk-shp.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/gk-shp.c
+[shapelib]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/shapelib/
+[Shapefile C Library]: http://shapelib.maptools.org
 [StackOverflow]: http://stackoverflow.com/questions/13571073/how-to-ensure-same-float-numbers-on-different-systems
+[GERK]: http://rkg.gov.si/GERK/

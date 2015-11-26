@@ -1,4 +1,4 @@
-## [GeoCoordinateConverter]
+## Geo Coordinate Converter http://geocoordinateconverter.tk
 Za slovensko verzijo te datoteke glej [PREBERIME.md].
 
 **gk-slo** is a converter between geographic cartesian coordinates
@@ -7,11 +7,21 @@ Za slovensko verzijo te datoteke glej [PREBERIME.md].
 as a replacement for the official conversion program [SiTra] &#40;with
 Helmert parameters for the whole Slovenia, no regional parameters&#41;
 or more precise when used with the built-in affine/triangle-based
-transformation using the reference [virtual tie points] &#40;for
+transformation using the reference [virtual tie points v3.0] &#40;for
 detailed description see [AFT.md]&#41;.
 
-<img src="images/Slovenia-tie-points.gif" width="400px">
-<img src="images/Slovenia-triangles.gif" height="266px">
+<img src="images/GCC-Cover-Image.gif" width="660px">
+
+Program can read files in [SiTraNet] format (ASCII XYZ) or [ESRI shapefile] 
+&#40;ArcGIS .shp format, use **gk-shp**).
+
+The following transformations are available (in both directions):
+
+1. xy (D96/TM) **&#8660;** &phi;&lambda; (ETRS89)
+2. xy (D48/GK) **&#8660;** xy (D96/TM) &nbsp;&nbsp;&nbsp;&nbsp;Helmert transformation
+3. xy (D48/GK) **&#8660;** &phi;&lambda; (ETRS89) &nbsp;&nbsp;&nbsp;Helmert transformation
+4. xy (D48/GK) **&#8660;** xy (D96/TM) &nbsp;&nbsp;&nbsp;&nbsp;Affine transformation
+5. xy (D48/GK) **&#8660;** &phi;&lambda; (ETRS89) &nbsp;&nbsp;&nbsp;Affine transformation
 
 For calculating heights with the help of geoid model two absolute
 geoid models for Slovenia are available: Slo2000 and [EGM2008].
@@ -26,8 +36,8 @@ Detailed description of coordinate conversion routines and their API
 
 List of literature used (with links to documents) is in file [literature.md].
 
-Precompiled version of **gk-slo for Windows** (32-bit, compiled with MinGW)
-can be downloaded from [gk-slo-7.01.zip].
+Precompiled version of **gk-slo/gk-shp for Windows** (32-bit, compiled with
+MinGW) can be downloaded from [gk-slo-8.00.zip].
 
 
 ### Conventions
@@ -55,18 +65,32 @@ Ng = geoid height
 - **[geo.c]**  
   Collection of coordinate conversion routines
 - **[gk-slo.c]**  
-  Main cmd-line program for converting coordinates
+  Main cmd-line program for converting coordinates from XYZ files
+- **[gk-shp.c]**  
+  Main cmd-line program for converting coordinates from shapefiles
+- **[shapelib]**  
+  Files from [Shapefile C Library] needed for reading and writing ESRI
+  Shapefiles
 
 
 ### How to compile
 #### Unix
-```$ cc -O2 -Wall -msse2 -mfpmath=sse gk-slo.c util.c geo.c -o gk-slo -lm -lrt``` or  
+```$ cc -O2 -Wall -msse2 -mfpmath=sse gk-slo.c util.c geo.c -o gk-slo -lm -lrt```  
+```$ cc -O2 -Wall -msse2 -mfpmath=sse -Ishapelib gk-shp.c util.c geo.c \ ```  
+&nbsp;&nbsp;&nbsp;```shapelib\shpopen.c shapelib\dbfopen.c shapelib\safileio.c shapelib\shptree.c -o gk-shp -lm -rt```  
+or  
 ```$ make -f Makefile.unix```
 #### MinGW on Windows
-```$ gcc -O2 -Wall -msse2 -mfpmath=sse gk-slo.c util.c geo.c -o gk-slo.exe``` or  
+```$ gcc -O2 -Wall -msse2 -mfpmath=sse -D_WCHAR gk-slo.c util.c geo.c -o gk-slo.exe```  
+```$ gcc -O2 -Wall -msse2 -mfpmath=sse -Ishapelib gk-shp.c util.c geo.c \ ```  
+&nbsp;&nbsp;&nbsp;```shapelib\shpopen.c shapelib\dbfopen.c shapelib\safileio.c shapelib\shptree.c -o gk-shp.exe```  
+or  
 ```$ make -f Makefile.mingw```
 #### Microsoft C
-```$ cl /O2 /Wall gk-slo.c util.c geo.c``` or  
+```$ cl /O2 /Wall -D_WCHAR gk-slo.c util.c geo.c```  
+```$ cl /O2 /Wall /Ishapelib gk-shp.c util.c geo.c \ ```  
+&nbsp;&nbsp;&nbsp;```shapelib\shpopen.c shapelib\dbfopen.c shapelib\safileio.c shapelib\shptree.c```  
+or  
 ```$ make -f Makefile.msc```
 
 Options ```-msse2 -mfpmath=sse``` are needed because otherwise we'll get
@@ -78,11 +102,6 @@ different results on different systems (for more explanation see
 <pre>
 $ gk-slo [&lt;options&gt;] [&lt;inpname&gt; ...]
   -d                enable debug output
-  -x                print reference test and exit
-  -gd &lt;n&gt;           generate data (inside Slovenia) and exit
-                    1: generate xy   (d96tm)  data
-                    2: generate fila (etrs89) data
-                    3: generate xy   (d48gk)  data
   -ht               calculate output height with 7-params Helmert trans.
   -hc               copy input height unchanged to output
   -hg               calculate output height from geoid model (default)
@@ -90,16 +109,18 @@ $ gk-slo [&lt;options&gt;] [&lt;inpname&gt; ...]
                     default: Slo2000
   -dms              display fila in DMS format after height
   -t &lt;n&gt;            select transformation:
-                    1: xy   (d96tm)  --&gt; fila (etrs89), hg?, default
-                    2: fila (etrs89) --&gt; xy   (d96tm),  hg
-                    3: xy   (d48gk)  --&gt; fila (etrs89), ht
-                    4: fila (etrs89) --&gt; xy   (d48gk),  hg
-                    5: xy   (d48gk)  --&gt; xy   (d96tm),  hg(hc)
-                    6: xy   (d96tm)  --&gt; xy   (d48gk),  ht(hc)
-                    7: xy   (d48gk)  --> xy   (d96tm),  hc, affine trans.
-                    8: xy   (d96tm)  --> xy   (d48gk),  hc, affine trans.
+                     1: xy   (d96tm)  --&gt; fila (etrs89), hg?, default
+                     2: fila (etrs89) --&gt; xy   (d96tm),  hg
+                     3: xy   (d48gk)  --&gt; fila (etrs89), ht
+                     4: fila (etrs89) --&gt; xy   (d48gk),  hg
+                     5: xy   (d48gk)  --&gt; xy   (d96tm),  hg(hc)
+                     6: xy   (d96tm)  --&gt; xy   (d48gk),  ht(hc)
+                     7: xy   (d48gk)  --&gt; xy   (d96tm),  hc, affine trans.
+                     8: xy   (d96tm)  --&gt; xy   (d48gk),  hc, affine trans.
+                     9: xy   (d48gk)  --&gt; fila (etrs89), hg, affine trans.
+                    10: fila (etrs89) --&gt; xy   (d48gk),  hg, affine trans.
   -r                reverse parsing order of xy/fila
-                    (warning displayed if y &lt; 200000)
+                    (warning is displayed if y &lt; 200000 or la &gt; 17.0)
   &lt;inpname&gt;         parse and convert input data from &lt;inpname&gt;
                     &lt;inpname&gt; "-" means stdin, use "--" before
   -o -|=|&lt;outname&gt;  write output data to:
@@ -110,6 +131,37 @@ $ gk-slo [&lt;options&gt;] [&lt;inpname&gt; ...]
 
 Typical input data format (SiTra):
 [&lt;label&gt;]  &lt;fi|x&gt;  &lt;la|y&gt;  &lt;h|H&gt;
+</pre>
+
+A new program **gk-shp**, able to read [ESRI shapefiles] (ArcGIS .shp format),
+has similar syntax:
+<pre>
+$ gk-shp [&lt;options&gt;] &lt;inpname&gt; &lt;outname&gt;
+  -d                enable debug output
+  -ht               calculate output height with 7-params Helmert trans.
+  -hc               copy input height unchanged to output
+  -hg               calculate output height from geoid model (default)
+  -g slo|egm        select geoid model (Slo2000 or EGM2008)
+                    default: Slo2000
+  -dms              display fila in DMS format after height
+  -t &lt;n&gt;            select transformation:
+                     1: xy   (d96tm)  --&gt; fila (etrs89), hg?, default
+                     2: fila (etrs89) --&gt; xy   (d96tm),  hg
+                     3: xy   (d48gk)  --&gt; fila (etrs89), ht
+                     4: fila (etrs89) --&gt; xy   (d48gk),  hg
+                     5: xy   (d48gk)  --&gt; xy   (d96tm),  hg(hc)
+                     6: xy   (d96tm)  --&gt; xy   (d48gk),  ht(hc)
+                     7: xy   (d48gk)  --&gt; xy   (d96tm),  hc, affine trans.
+                     8: xy   (d96tm)  --&gt; xy   (d48gk),  hc, affine trans.
+                     9: xy   (d48gk)  --&gt; fila (etrs89), hg, affine trans.
+                    10: fila (etrs89) --&gt; xy   (d48gk),  hg, affine trans.
+  -r                reverse parsing order of xy/fila
+                    (warning is displayed if y &lt; 200000 or la &gt; 17.0)
+  &lt;inpname&gt;         parse and convert input data from &lt;inpname&gt;
+  &lt;outname&gt;         write output data to &lt;outname&gt;
+
+Input data format:
+ESRI Shapefile (ArcGIS)
 </pre>
 
 
@@ -124,12 +176,12 @@ Convert to new coordinate system (Transverse Mercator/D96); heights should
 be copied, not calculated:
 <pre>
 $ gk-slo -t 5 -hc VTG2225.XYZ
-VTG2225.XYZ: possibly reversed xy
+VTG2225.XYZ: possibly reversed x/y
 0000001 509487.490 575640.546 343.300
 0000002 509492.490 575640.546 342.800
 0000003 509497.490 575640.546 342.300
 </pre>
-If you see the warning "**possibly reversed xy**", use the option "**-r**"
+If you see the warning "**possibly reversed x/y**", use the option "**-r**"
 to get the correct conversion:
 <pre>
 $ gk-slo -t 5 -hc -r VTG2225.XYZ
@@ -241,16 +293,39 @@ VTH0722.XYZ.out
 ...
 </pre>
 
-[GeoCoordinateConverter]: http://geocoordinateconverter.tk
+
+#### Example 5 (ESRI shapefiles)
+Input file RABA_20151031.shp ([GERK], in [ESRI shapefile] format,
+Gauss-Krueger/D48), convert to ETRS89/WGS84 coordinates using affine
+transformation (with debug info):
+<pre>
+$ gk-shp -t 9 -dd RABA_20151031.shp raba_conv.shp
+Processing RABA_20151031
+Shapefile type: Polygon, number of shapes: 1601832
+Shape: 678 (0.04%) ...
+</pre>
+Result of conversion is a set of files according to [ESRI shapefile] format:
+<pre>
+raba_conv.cpg
+raba_conv.dbf
+raba_conv.prj
+raba_conv.shp
+raba_conv.shx
+</pre>
+In file raba_conv.prj an output projection (WGS84) is stored, so converted
+files can be easily opened by GIS programs.
+
+[Geo Coordinate Converter]: http://geocoordinateconverter.tk
 [PREBERIME.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/PREBERIME.md
 [SiTra]: http://sitra.sitranet.si
 [SiTraNet]: http://sitranet.si
-[virtual tie points]: http://www.e-prostor.gov.si/si/zbirke_prostorskih_podatkov/drzavni_koordinatni_sistem/horizontalni_drzavni_koordinatni_sistem_d96tm/d96tm/transformacijski_parametri/
+[virtual tie points v3.0]: http://www.e-prostor.gov.si/si/zbirke_prostorskih_podatkov/drzavni_koordinatni_sistem/horizontalni_drzavni_koordinatni_sistem_d96tm/d96tm/transformacijski_parametri/
 [AFT.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/aft/README.md
+[ESRI shapefile]: https://en.wikipedia.org/wiki/Shapefile
 [EGM2008]: http://earth-info.nga.mil/GandG/wgs84/gravitymod/egm2008/egm08_wgs84.html
 [geo_api.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo_api.md
 [literature.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/literature.md
-[gk-slo-7.01.zip]: https://app.box.com/s/vyj1mlghsuevcy921zhs
+[gk-slo-8.00.zip]: https://app.box.com/s/wqsc06i49i8phwsd2g7rci6qhy6qwix1
 [common.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/common.h
 [util.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/util.c
 [geoid_slo.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geoid_slo.h
@@ -260,4 +335,8 @@ VTH0722.XYZ.out
 [geo.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo.h
 [geo.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo.c
 [gk-slo.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/gk-slo.c
+[gk-shp.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/gk-shp.c
+[shapelib]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/shapelib/
+[Shapefile C Library]: http://shapelib.maptools.org
 [StackOverflow]: http://stackoverflow.com/questions/13571073/how-to-ensure-same-float-numbers-on-different-systems
+[GERK]: http://rkg.gov.si/GERK/
