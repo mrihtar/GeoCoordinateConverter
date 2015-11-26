@@ -391,10 +391,10 @@ void usage(TCHAR *prog, int ver_only)
   fprintf(stderr, T("                     6: xy   (d96tm)  --> xy   (d48gk),  ht(hc)\n"));
   fprintf(stderr, T("                     7: xy   (d48gk)  --> xy   (d96tm),  hc, affine trans.\n"));
   fprintf(stderr, T("                     8: xy   (d96tm)  --> xy   (d48gk),  hc, affine trans.\n"));
-  fprintf(stderr, T("                     9: xy   (d48gk)  --> fila (etrs89), ht, affine trans.\n"));
+  fprintf(stderr, T("                     9: xy   (d48gk)  --> fila (etrs89), hg, affine trans.\n"));
   fprintf(stderr, T("                    10: fila (etrs89) --> xy   (d48gk),  hg, affine trans.\n"));
   fprintf(stderr, T("  -r                reverse parsing order of xy/fila\n"));
-  fprintf(stderr, T("                    (warning displayed if y < 200000)\n"));
+  fprintf(stderr, T("                    (warning is displayed if y < 200000 or la > 17.0)\n"));
   fprintf(stderr, T("  <inpname>         parse and convert input data from <inpname>\n"));
   fprintf(stderr, T("                    <inpname> \"-\" means stdin, use \"--\" before\n"));
   fprintf(stderr, T("  -o -|=|<outname>  write output data to:\n"));
