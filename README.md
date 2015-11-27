@@ -91,7 +91,7 @@ or
 ```$ cl /O2 /Wall /Ishapelib gk-shp.c util.c geo.c \ ```  
 &nbsp;&nbsp;&nbsp;```shapelib\shpopen.c shapelib\dbfopen.c shapelib\safileio.c shapelib\shptree.c```  
 or  
-```$ make -f Makefile.msc```
+```$ nmake -f Makefile.msc```
 
 Options ```-msse2 -mfpmath=sse``` are needed because otherwise we'll get
 different results on different systems (for more explanation see
@@ -300,7 +300,7 @@ Gauss-Krueger/D48), convert to ETRS89/WGS84 coordinates using affine
 transformation (with debug info):
 <pre>
 $ gk-shp -t 9 -dd RABA_20151031.shp raba_conv.shp
-Processing RABA_20151031
+Processing RABA_20151031.shp
 Shapefile type: Polygon, number of shapes: 1601832
 Shape: 678 (0.04%) ...
 </pre>
