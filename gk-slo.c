@@ -20,8 +20,8 @@
 #include "common.h"
 #include "geo.h"
 
-#define SW_VERSION T("8.00")
-#define SW_BUILD   T("Nov 22, 2015")
+#define SW_VERSION T("8.01")
+#define SW_BUILD   T("Nov 28, 2015")
 
 // global variables
 TCHAR *prog;  // program name
@@ -124,6 +124,19 @@ void reftest()
   printf(T("---------- Conversion D48/GK --> D96/TM (affine trans.)\n"));
   printf(T("<-- x: %.3f, y: %.3f, H: %.3f\n"), d48ref.x, d48ref.y, d48ref.H);
   gkxy2tmxy_aft(d48ref, &xy);
+  printf(T("--> x: %.3f, y: %.3f, H: %.3f\n"), xy.x, xy.y, xy.H);
+
+  printf(T("---------- Conversion D48/GK --> WGS84 (affine trans.)\n"));
+  printf(T("<-- x: %.3f, y: %.3f, H: %.3f\n"), d48ref.x, d48ref.y, d48ref.H);
+  gkxy2fila_wgs_aft(d48ref, &fl);
+  deg2dms(fl.fi, &lat); deg2dms(fl.la, &lon);
+  printf(T("--> fi: %.10f,   la: %.10f,  h: %.3f\n"), fl.fi, fl.la, fl.h);
+  printf(T("   lat: %2.0f %2.0f %8.5f, lon: %2.0f %2.0f %8.5f, h: %.3f\n"),
+         lat.deg, lat.min, lat.sec, lon.deg, lon.min, lon.sec, fl.h);
+
+  printf(T("---------- Conversion WGS84 --> D48/GK (affine trans.)\n"));
+  printf(T("<-- fi: %.10f, la: %.10f, h: %.3f\n"), flref.fi, flref.la, flref.h);
+  fila_wgs2gkxy_aft(flref, &xy);
   printf(T("--> x: %.3f, y: %.3f, H: %.3f\n"), xy.x, xy.y, xy.H);
 
 #if 1
@@ -403,8 +416,9 @@ void usage(TCHAR *prog, int ver_only)
   fprintf(stderr, T("                       write output to these separate files\n"));
   fprintf(stderr, T("                    <outname>: write all output to 1 file <outname>\n"));
   fprintf(stderr, T("\n"));
-  fprintf(stderr, T("Typical input data format (SiTra):\n"));
-  fprintf(stderr, T("[<label>]  <fi|x>  <la|y>  <h|H>\n"));
+  fprintf(stderr, T("Typical input data format (SiTra .xyz or LIDAR .asc):\n"));
+  fprintf(stderr, T("[<label> ]<fi|x> <la|y> <h|H>\n"));
+  fprintf(stderr, T("[<label>;]<fi|x>;<la|y>;<h|H>\n"));
 } /* usage */
 
 
@@ -635,6 +649,7 @@ usage:      usage(prog, 0);
       // Parse line
       s = xstrtrim(line);
       if (tr == 2 || tr == 4 || tr == 10) { // etrs89
+        // try with blank (SiTra)
         n = sscanf(s, T("%10240s %lf %lf %lf"), col1, &fi, &la, &h);
         if (n != 4) {
           n = sscanf(s, T("%lf %lf %lf"), &fi, &la, &h);
@@ -643,8 +658,18 @@ usage:      usage(prog, 0);
         }
         else xstrncat(col1, T(" "), MAXS);
         if (n != 4 && n != 3) {
-          fprintf(stderr, T("%s: line %d: %-.75s\n"), inpname, ln, line);
-          continue;
+          // try again with semicolon (LIDAR)
+          n = sscanf(s, T("%10240[^;];%lf;%lf;%lf"), col1, &fi, &la, &h);
+          if (n != 4) {
+            n = sscanf(s, T("%lf;%lf;%lf"), &fi, &la, &h);
+            if (n != 3) n = 5;
+            else col1[0] = T('\0');
+          }
+          else xstrncat(col1, T(" "), MAXS);
+          if (n != 4 && n != 3) {
+            fprintf(stderr, T("%s: line %d: %-.75s\n"), inpname, ln, line);
+            continue;
+          }
         }
 
         if (rev) { tmp = fi; fi = la; la = tmp; }
@@ -657,6 +682,7 @@ usage:      usage(prog, 0);
         }
       }
       else { // tr == 1,3,5,6,7,8,9 // d96tm/d48gk
+        // try with blank (SiTra)
         n = sscanf(s, T("%10240s %lf %lf %lf"), col1, &x, &y, &H);
         if (n != 4) {
           n = sscanf(s, T("%lf %lf %lf"), &x, &y, &H);
@@ -665,8 +691,18 @@ usage:      usage(prog, 0);
         }
         else xstrncat(col1, T(" "), MAXS);
         if (n != 4 && n != 3) {
-          fprintf(stderr, T("%s: line %d: %-.75s\n"), inpname, ln, line);
-          continue;
+          // try again with semicolon (LIDAR)
+          n = sscanf(s, T("%10240[^;];%lf;%lf;%lf"), col1, &x, &y, &H);
+          if (n != 4) {
+            n = sscanf(s, T("%lf;%lf;%lf"), &x, &y, &H);
+            if (n != 3) n = 5;
+            else col1[0] = T('\0');
+          }
+          else xstrncat(col1, T(" "), MAXS);
+          if (n != 4 && n != 3) {
+            fprintf(stderr, T("%s: line %d: %-.75s\n"), inpname, ln, line);
+            continue;
+          }
         }
 
         if (rev) { tmp = x; x = y; y = tmp; }
