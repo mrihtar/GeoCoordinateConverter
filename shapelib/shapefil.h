@@ -143,6 +143,8 @@
 #define _WIN32_WINNT 0x0501  // Windows XP & Windows Server 2003 or greater
 #ifndef __MINGW32__
 #pragma warning (disable:4996)  // disable POSIX warnings
+#pragma warning (disable:4711)  // disable inline expansion warnings
+#pragma warning (disable:4127)  // disable cond. expr. is constant warnings
 #pragma warning (disable:4820)  // disable padding warnings
 #pragma warning (disable:4668)  // disable not defined macro warnings
 #pragma warning (disable:4255)  // disable no function prototype warnings
