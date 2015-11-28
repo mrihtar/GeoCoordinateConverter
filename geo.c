@@ -1268,13 +1268,14 @@ void tmxy2gkxy(GEOUTM in, GEOUTM *out)
 int gkxy2tmxy_aft(GEOUTM in, GEOUTM *out)
 {
   double H;
-  int ii, found;
+  int ii, jj, found;
 
   H = in.H;
 
   out->x = 0.0; out->y = 0.0;
 
   found = 0;
+  // check if point is in last found triangle
   if (last_tri >= 0) {
     ii = last_tri;
     if (coord_in_triangle(in, aft_gktm[ii])) {
@@ -1284,13 +1285,29 @@ int gkxy2tmxy_aft(GEOUTM in, GEOUTM *out)
     }
     else last_tri = -1;
   }
-  for (ii = 0; ii < MAXAFT && !found; ii++) {
-    if (coord_in_triangle(in, aft_gktm[ii])) {
-      out->x = aft_gktm[ii].a*in.x + aft_gktm[ii].b*in.y + aft_gktm[ii].c;
-      out->y = aft_gktm[ii].d*in.x + aft_gktm[ii].e*in.y + aft_gktm[ii].f;
-      last_tri = ii;
-      found = 1;
+
+  // if not found, search from the middle of the table in both directions
+  ii = MAXAFT / 2; jj = ii - 1;
+  for ( ; !found; ) {
+    if (ii < MAXAFT) {
+      if (coord_in_triangle(in, aft_gktm[ii])) {
+        out->x = aft_gktm[ii].a*in.x + aft_gktm[ii].b*in.y + aft_gktm[ii].c;
+        out->y = aft_gktm[ii].d*in.x + aft_gktm[ii].e*in.y + aft_gktm[ii].f;
+        last_tri = ii;
+        found = 1; break;
+      }
+      ii++;
     }
+    if (jj >= 0) {
+      if (coord_in_triangle(in, aft_gktm[jj])) {
+        out->x = aft_gktm[jj].a*in.x + aft_gktm[jj].b*in.y + aft_gktm[jj].c;
+        out->y = aft_gktm[jj].d*in.x + aft_gktm[jj].e*in.y + aft_gktm[jj].f;
+        last_tri = jj;
+        found = 1; break;
+      }
+      jj--;
+    }
+    if (ii >= MAXAFT && jj < 0) break;
   }
 
   out->H = H;  // default: copied height
@@ -1308,13 +1325,14 @@ int gkxy2tmxy_aft(GEOUTM in, GEOUTM *out)
 int tmxy2gkxy_aft(GEOUTM in, GEOUTM *out)
 {
   double H;
-  int ii, found;
+  int ii, jj, found;
 
   H = in.H;
 
   out->x = 0.0; out->y = 0.0;
 
   found = 0;
+  // check if point is in last found triangle
   if (last_tri >= 0) {
     ii = last_tri;
     if (coord_in_triangle(in, aft_tmgk[ii])) {
@@ -1324,13 +1342,29 @@ int tmxy2gkxy_aft(GEOUTM in, GEOUTM *out)
     }
     else last_tri = -1;
   }
-  for (ii = 0; ii < MAXAFT && !found; ii++) {
-    if (coord_in_triangle(in, aft_tmgk[ii])) {
-      out->x = aft_tmgk[ii].a*in.x + aft_tmgk[ii].b*in.y + aft_tmgk[ii].c;
-      out->y = aft_tmgk[ii].d*in.x + aft_tmgk[ii].e*in.y + aft_tmgk[ii].f;
-      last_tri = ii;
-      found = 1;
+
+  // if not found, search from the middle of the table in both directions
+  ii = MAXAFT / 2; jj = ii - 1;
+  for ( ; !found; ) {
+    if (ii < MAXAFT) {
+      if (coord_in_triangle(in, aft_tmgk[ii])) {
+        out->x = aft_tmgk[ii].a*in.x + aft_tmgk[ii].b*in.y + aft_tmgk[ii].c;
+        out->y = aft_tmgk[ii].d*in.x + aft_tmgk[ii].e*in.y + aft_tmgk[ii].f;
+        last_tri = ii;
+        found = 1; break;
+      }
+      ii++;
     }
+    if (jj >= 0) {
+      if (coord_in_triangle(in, aft_tmgk[jj])) {
+        out->x = aft_tmgk[jj].a*in.x + aft_tmgk[jj].b*in.y + aft_tmgk[jj].c;
+        out->y = aft_tmgk[jj].d*in.x + aft_tmgk[jj].e*in.y + aft_tmgk[jj].f;
+        last_tri = jj;
+        found = 1; break;
+      }
+      jj--;
+    }
+    if (ii >= MAXAFT && jj < 0) break;
   }
 
   out->H = H;  // default: copied height
