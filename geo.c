@@ -98,6 +98,7 @@ GKLM gkzones[] = {
 #include "aft_gktm.h"
 //AFT aft_tmgk[MAXAFT];  // Affine transformation table from TM to GK for Slovenia
 #include "aft_tmgk.h"
+double last_tri = -1; // last found triangle
 
 // Distance to triangle segment
 #define EPSILON  0.001
@@ -1274,11 +1275,21 @@ int gkxy2tmxy_aft(GEOUTM in, GEOUTM *out)
   out->x = 0.0; out->y = 0.0;
 
   found = 0;
-  for (ii = 0; ii < MAXAFT; ii++) {
+  if (last_tri >= 0) {
+    ii = last_tri;
     if (coord_in_triangle(in, aft_gktm[ii])) {
       out->x = aft_gktm[ii].a*in.x + aft_gktm[ii].b*in.y + aft_gktm[ii].c;
       out->y = aft_gktm[ii].d*in.x + aft_gktm[ii].e*in.y + aft_gktm[ii].f;
-      found = 1; break;
+      found = 1;
+    }
+    else last_tri = -1;
+  }
+  for (ii = 0; ii < MAXAFT && !found; ii++) {
+    if (coord_in_triangle(in, aft_gktm[ii])) {
+      out->x = aft_gktm[ii].a*in.x + aft_gktm[ii].b*in.y + aft_gktm[ii].c;
+      out->y = aft_gktm[ii].d*in.x + aft_gktm[ii].e*in.y + aft_gktm[ii].f;
+      last_tri = ii;
+      found = 1;
     }
   }
 
@@ -1304,11 +1315,21 @@ int tmxy2gkxy_aft(GEOUTM in, GEOUTM *out)
   out->x = 0.0; out->y = 0.0;
 
   found = 0;
-  for (ii = 0; ii < MAXAFT; ii++) {
+  if (last_tri >= 0) {
+    ii = last_tri;
     if (coord_in_triangle(in, aft_tmgk[ii])) {
       out->x = aft_tmgk[ii].a*in.x + aft_tmgk[ii].b*in.y + aft_tmgk[ii].c;
       out->y = aft_tmgk[ii].d*in.x + aft_tmgk[ii].e*in.y + aft_tmgk[ii].f;
-      found = 1; break;
+      found = 1;
+    }
+    else last_tri = -1;
+  }
+  for (ii = 0; ii < MAXAFT && !found; ii++) {
+    if (coord_in_triangle(in, aft_tmgk[ii])) {
+      out->x = aft_tmgk[ii].a*in.x + aft_tmgk[ii].b*in.y + aft_tmgk[ii].c;
+      out->y = aft_tmgk[ii].d*in.x + aft_tmgk[ii].e*in.y + aft_tmgk[ii].f;
+      last_tri = ii;
+      found = 1;
     }
   }
 

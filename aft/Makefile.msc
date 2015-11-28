@@ -1,19 +1,44 @@
+# For Microsoft nmake
 SHELL = %SystemRoot%/System32/cmd.exe
-CC = cl
+CC = cl /nologo
+LD = link /nologo
 RM = del /q
+CP = copy /y
 
+#DEBUG = /O2
+DEBUG = /Zi /DEBUG
 CFLAGS = /Wall
-DEBUG = /O2
-#DEBUG = /Zi /DEBUG
+IPATH = /I..
+#LDFLAGS = /INCREMENTAL:no
+LDFLAGS = /INCREMENTAL:no /DEBUG
+LPATH = 
+LIBS = 
 
-all: ctt.exe triangle.exe
+TGTS = ctt.exe triangle.exe
+WOBJS = wctt.obj ..\wutil.obj
+INCL = ..\common.h ..\geo.h
+TRIOBJS = triangle.obj
+TRIINCL = triangle.h
 
-ctt.exe: ctt.c ../util.c ../common.h ../geo.h
-	$(CC) $(CFLAGS) $(DEBUG) /I.. ctt.c ../util.c
+all: $(TGTS)
 
-triangle.exe: triangle.c triangle.h
-	$(CC) $(CFLAGS) $(DEBUG) /DNO_TIMER triangle.c
+ctt.exe: $(WOBJS)
+	$(LD) /OUT:$@ $(WOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
+
+triangle.exe: $(TRIOBJS)
+	$(LD) /OUT:$@ $(TRIOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
+
+$(WOBJS): $(INCL)
+$(TRIOBJS): $(TRIINCL)
 
 clean:
-	$(RM) ctt.o* util.o* ctt.exe
-	$(RM) triangle.o* triangle.exe
+	-$(RM) $(WOBJS) $(TRIOBJS)
+cleanall: clean
+	-$(RM) $(TGTS)
+
+wctt.obj: ctt.c
+	$(CC) $(DEBUG) /c $(CFLAGS) -D_WCHAR $(IPATH) ctt.c /Fo$@
+..\wutil.obj: ..\util.c
+	$(CC) $(DEBUG) /c $(CFLAGS) -D_WCHAR $(IPATH) ..\util.c /Fo$@
+.c.obj:
+	$(CC) $(DEBUG) /c $(CFLAGS) $(IPATH) $< /Fo$@

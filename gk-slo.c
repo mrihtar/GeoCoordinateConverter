@@ -20,7 +20,7 @@
 #include "common.h"
 #include "geo.h"
 
-#define SW_VERSION T("8.01")
+#define SW_VERSION T("8.02")
 #define SW_BUILD   T("Nov 28, 2015")
 
 // global variables

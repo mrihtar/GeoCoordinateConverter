@@ -10,7 +10,7 @@ CP = copy /y
 #DEBUG = -O2
 DEBUG = -g
 CFLAGS = -Wall -msse2 -mfpmath=sse
-IPATH = -I. -Ishapelib
+IPATH = -Ishapelib
 #LDFLAGS = -s
 LDFLAGS = 
 LPATH = 

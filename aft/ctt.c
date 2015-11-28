@@ -20,8 +20,8 @@
 #include "common.h"
 #include "geo.h"
 
-#define SW_VERSION T("2.04")
-#define SW_BUILD   T("Feb 11, 2015")
+#define SW_VERSION T("2.05")
+#define SW_BUILD   T("Nov 28, 2015")
 
 typedef struct triang {
   int t1, t2, t3;
@@ -129,6 +129,50 @@ int solve(AFT *aft)
 
 
 // ----------------------------------------------------------------------------
+// centroid
+// ----------------------------------------------------------------------------
+void centroid_xy(AFT *aft)
+{
+  double cx, cy;
+
+  // src centroid
+  cx = (aft->src[0].x + aft->src[1].x + aft->src[2].x) / 3.0;
+  cy = (aft->src[0].y + aft->src[1].y + aft->src[2].y) / 3.0;
+
+  aft->cxy = cx * cy;
+} /* centroid_xy */
+
+
+// ----------------------------------------------------------------------------
+// quick_sort
+// ----------------------------------------------------------------------------
+void quick_sort(AFT *aft, int n)
+{
+  int ii, jj;
+  double pv;
+  AFT tmp;
+
+  if (n < 2) return;
+
+  pv = aft[n / 2].cxy;
+  for (ii = 0, jj = n - 1; ; ii++, jj--) {
+    while (aft[ii].cxy < pv) ii++;
+
+    while (pv < aft[jj].cxy) jj--;
+
+    if (ii >= jj) break;
+
+    tmp = aft[ii];
+    aft[ii] = aft[jj];
+    aft[jj] = tmp;
+  }
+
+  quick_sort(aft, ii);
+  quick_sort(aft + ii, n - ii);
+} /* quick_sort */
+
+
+// ----------------------------------------------------------------------------
 // print_header
 // ----------------------------------------------------------------------------
 void print_header(FILE *out, TCHAR *outname)
@@ -176,7 +220,7 @@ void usage(TCHAR *prog, int ver_only)
 // ----------------------------------------------------------------------------
 // main (mingw32 unicode wrapper)
 // ----------------------------------------------------------------------------
-#ifdef __MINGW32__
+#if defined(__MINGW32__) && defined(_WCHAR)
 extern int _CRT_glob;
 extern
 #ifdef __cplusplus
@@ -429,21 +473,9 @@ usage:      usage(prog, 0);
     fprintf(stderr, T("malloc(aft): %s\n"), xstrerror()); exit(3);
   }
 
-  xstrncpy(outname, T("aft_gktm.h"), MAXS);
-  out = fopen(outname, T("w"));
-  if (out == NULL) {
-    fprintf(stderr, T("%s: %s\n"), outname, xstrerror()); exit(2);
-  }
-  print_header(out, outname);
-  fprintf(out, T("// %s: Affine transformation table from GK to TM for Slovenia\n"), outname);
-  fprintf(out, T("//\n"));
-  fprintf(out, T("AFT aft_gktm[%d] = {\n"), trisize);
-  if (ferror(out)) {
-    fprintf(stderr, T("%s: %s\n"), outname, xstrerror()); exit(2);
-  }
-
+  // prepare GK-->TM AFT table
   memset(aft, 0, trisize*sizeof(AFT));
-  for (ii = 0; ii < trisize; ) {
+  for (ii = 0; ii < trisize; ii++) {
     t1 = tri[ii].t1;
     t2 = tri[ii].t2;
     t3 = tri[ii].t3;
@@ -458,6 +490,24 @@ usage:      usage(prog, 0);
 
     solve(&aft[ii]);
 
+    centroid_xy(&aft[ii]);
+  }
+  quick_sort(aft, trisize); // sort by src centroid x*y
+
+  // write out GK-->TM AFT table
+  xstrncpy(outname, T("aft_gktm.h"), MAXS);
+  out = fopen(outname, T("w"));
+  if (out == NULL) {
+    fprintf(stderr, T("%s: %s\n"), outname, xstrerror()); exit(2);
+  }
+  print_header(out, outname);
+  fprintf(out, T("// %s: Affine transformation table from GK to TM for Slovenia\n"), outname);
+  fprintf(out, T("//\n"));
+  fprintf(out, T("AFT aft_gktm[%d] = {\n"), trisize);
+  if (ferror(out)) {
+    fprintf(stderr, T("%s: %s\n"), outname, xstrerror()); exit(2);
+  }
+  for (ii = 0; ii < trisize; ) {
     fprintf(out, T("{"));
     fprintf(out, T("{{%.3f,%.3f},{%.3f,%.3f},{%.3f,%.3f}},"),
       aft[ii].src[0].x, aft[ii].src[0].y,
@@ -467,7 +517,8 @@ usage:      usage(prog, 0);
       aft[ii].dst[0].x, aft[ii].dst[0].y,
       aft[ii].dst[1].x, aft[ii].dst[1].y,
       aft[ii].dst[2].x, aft[ii].dst[2].y);
-    fprintf(out, T("%.14f,%.14f,%.14f,%.14f,%.14f,%.14f"),
+    fprintf(out, T("%.1f,%.14f,%.14f,%.14f,%.14f,%.14f,%.14f"),
+      aft[ii].cxy,
       aft[ii].a, aft[ii].b, aft[ii].c,
       aft[ii].d, aft[ii].e, aft[ii].f);
 
@@ -487,21 +538,9 @@ usage:      usage(prog, 0);
   if (debug)
     fprintf(stderr, T("Created %s\n"), outname);
 
-  xstrncpy(outname, T("aft_tmgk.h"), MAXS);
-  out = fopen(outname, T("w"));
-  if (out == NULL) {
-    fprintf(stderr, T("%s: %s\n"), outname, xstrerror()); exit(2);
-  }
-  print_header(out, outname);
-  fprintf(out, T("// %s: Affine transformation table from TM to GK for Slovenia\n"), outname);
-  fprintf(out, T("//\n"));
-  fprintf(out, T("AFT aft_tmgk[%d] = {\n"), trisize);
-  if (ferror(out)) {
-    fprintf(stderr, T("%s: %s\n"), outname, xstrerror()); exit(2);
-  }
-
+  // prepare TM-->GK AFT table
   memset(aft, 0, trisize*sizeof(AFT));
-  for (ii = 0; ii < trisize; ) {
+  for (ii = 0; ii < trisize; ii++) {
     t1 = tri[ii].t1;
     t2 = tri[ii].t2;
     t3 = tri[ii].t3;
@@ -516,6 +555,24 @@ usage:      usage(prog, 0);
 
     solve(&aft[ii]);
 
+    centroid_xy(&aft[ii]);
+  }
+  quick_sort(aft, trisize); // sort by src centroid x*y
+
+  // write out TM-->GK AFT table
+  xstrncpy(outname, T("aft_tmgk.h"), MAXS);
+  out = fopen(outname, T("w"));
+  if (out == NULL) {
+    fprintf(stderr, T("%s: %s\n"), outname, xstrerror()); exit(2);
+  }
+  print_header(out, outname);
+  fprintf(out, T("// %s: Affine transformation table from TM to GK for Slovenia\n"), outname);
+  fprintf(out, T("//\n"));
+  fprintf(out, T("AFT aft_tmgk[%d] = {\n"), trisize);
+  if (ferror(out)) {
+    fprintf(stderr, T("%s: %s\n"), outname, xstrerror()); exit(2);
+  }
+  for (ii = 0; ii < trisize; ) {
     fprintf(out, T("{"));
     fprintf(out, T("{{%.3f,%.3f},{%.3f,%.3f},{%.3f,%.3f}},"),
       aft[ii].src[0].x, aft[ii].src[0].y,
@@ -525,7 +582,8 @@ usage:      usage(prog, 0);
       aft[ii].dst[0].x, aft[ii].dst[0].y,
       aft[ii].dst[1].x, aft[ii].dst[1].y,
       aft[ii].dst[2].x, aft[ii].dst[2].y);
-    fprintf(out, T("%.14f,%.14f,%.14f,%.14f,%.14f,%.14f"),
+    fprintf(out, T("%.1f,%.14f,%.14f,%.14f,%.14f,%.14f,%.14f"),
+      aft[ii].cxy,
       aft[ii].a, aft[ii].b, aft[ii].c,
       aft[ii].d, aft[ii].e, aft[ii].f);
 

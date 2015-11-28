@@ -1,22 +1,49 @@
-#CC = gcc
+# For GNU make
+CC = cc
+LD = cc
+AR = ar
+RANLIB = ranlib
 RM = rm -f
+CP = cp
 
+#DEBUG = -O2
+DEBUG = -g
 CFLAGS = -Wall -msse2 -mfpmath=sse
-DEBUG = -O2
-#DEBUG = -g
+IPATH = -I..
+#LDFLAGS = -s
+LDFLAGS = 
+LPATH = 
+LIBS = -lm
 
-all: ctt triangle showme
+TGTS = ctt triangle showme
+WOBJS = wctt.o ../wutil.o
+INCL = ../common.h ../geo.h
+TRIOBJS = triangle.o
+TRIINCL = triangle.h
+SHWOBJS = showme.o
 
-ctt: ctt.c ../util.c ../common.h ../geo.h
-	$(CC) $(CFLAGS) $(DEBUG) -I.. ctt.c ../util.c -o ctt -lm
+all: $(TGTS)
 
-triangle: triangle.c triangle.h
-	$(CC) $(CFLAGS) $(DEBUG) triangle.c -o triangle -lm
+ctt: $(WOBJS)
+	$(LD) -o $@ $(WOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
 
-showme: showme.c
-	$(CC) $(CFLAGS) $(DEBUG) showme.c -o showme -lX11
+triangle: $(TRIOBJS)
+	$(LD) -o $@ $(TRIOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
+
+showme: $(SHWOBJS)
+	$(LD) -o $@ $(SHWOBJS) $(LDFLAGS) $(LPATH) $(LIBS) -lX11
+
+$(WOBJS): $(INCL)
+$(TRIOBJS): $(TRIINCL)
 
 clean:
-	$(RM) ctt.o* util.o* ctt
-	$(RM) triangle.o* triangle
-	$(RM) showme.o* showme
+	-$(RM) $(WOBJS) $(TRIOBJS) $(SHWOBJS)
+cleanall: clean
+	-$(RM) $(TGTS)
+
+wctt.o: ctt.c
+	$(CC) $(DEBUG) -c $(CFLAGS) -D_WCHAR $(IPATH) ctt.c -o $@
+../wutil.o: ../util.c
+	$(CC) $(DEBUG) -c $(CFLAGS) -D_WCHAR $(IPATH) ../util.c -o $@
+.c.o:
+	$(CC) $(DEBUG) -c $(CFLAGS) $(IPATH) $< -o $@

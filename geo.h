@@ -76,8 +76,9 @@ typedef struct geocen { // geocentric cartesian coordinates
 } GEOCEN;
 
 typedef struct aft { // affine transformation table
-  GEOUTM src[3], dst[3];
-  double a, b, c, d, e, f;
+  GEOUTM src[3], dst[3];    // triangle points
+  double cxy;              // src centroid x*y
+  double a, b, c, d, e, f; // AFT parameters
 } AFT;
 
 // Forward declarations
