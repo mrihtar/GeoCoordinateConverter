@@ -37,7 +37,7 @@ Spisek uporabljene literature (s povezavami do dokumentov) je v datoteki
 [literature.md].
 
 Prevedeno verzijo **gk-slo/gk-shp za Windows** (32-bitna, prevedena z MinGW)
-lahko dobite na [gk-slo-8.00.zip].
+lahko dobite na [gk-slo-8.02.zip].
 
 
 ### Oznake
@@ -325,7 +325,7 @@ lažje odpiranje v GIS programih.
 [EGM2008]: http://earth-info.nga.mil/GandG/wgs84/gravitymod/egm2008/egm08_wgs84.html
 [geo_api.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo_api.md
 [literature.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/literature.md
-[gk-slo-8.00.zip]: https://app.box.com/s/wqsc06i49i8phwsd2g7rci6qhy6qwix1
+[gk-slo-8.02.zip]: https://app.box.com/s/0blewuzbumx9q2iau6j2hal26dkg4ky9
 [common.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/common.h
 [util.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/util.c
 [geoid_slo.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geoid_slo.h

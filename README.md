@@ -37,7 +37,7 @@ Detailed description of coordinate conversion routines and their API
 List of literature used (with links to documents) is in file [literature.md].
 
 Precompiled version of **gk-slo/gk-shp for Windows** (32-bit, compiled with
-MinGW) can be downloaded from [gk-slo-8.00.zip].
+MinGW) can be downloaded from [gk-slo-8.02.zip].
 
 
 ### Conventions
@@ -325,7 +325,7 @@ files can be easily opened by GIS programs.
 [EGM2008]: http://earth-info.nga.mil/GandG/wgs84/gravitymod/egm2008/egm08_wgs84.html
 [geo_api.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo_api.md
 [literature.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/literature.md
-[gk-slo-8.00.zip]: https://app.box.com/s/wqsc06i49i8phwsd2g7rci6qhy6qwix1
+[gk-slo-8.02.zip]: https://app.box.com/s/0blewuzbumx9q2iau6j2hal26dkg4ky9
 [common.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/common.h
 [util.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/util.c
 [geoid_slo.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geoid_slo.h
