@@ -11,8 +11,9 @@ parametri za vso Slovenijo, brez regionalnih parametrov&#41; ali natančnejši,
 
 <img src="images/GCC-Cover-Image.gif" width="660px">
 
-Program lahko bere datoteke v formatu [SiTraNet] &#40;ASCII XYZ) ali
-[ESRI shapefile] &#40;ArcGIS .shp format, uporabi **gk-shp**).
+Program lahko bere datoteke v formatu [SiTraNet] &#40;ASCII XYZ), [LIDAR]
+&#40;ASCII XYZ s podpičjem, .asc) ali [ESRI shapefile] &#40;ArcGIS .shp
+format, uporabi **gk-shp**).
 
 Na razpolago so naslednje transformacije (v obe smeri):
 
@@ -128,8 +129,9 @@ $ gk-slo [&lt;opcije&gt;] [&lt;vhodime&gt; ...]
                        zapiši izhodne podatke na te ločene datoteke
                     &lt;izhodime&gt;: zapiši vse izhodne podatke na eno datoteko &lt;izhodime&gt;
 
-Tipični format vhodnih podatkov (SiTra):
-[&lt;oznaka&gt;]  &lt;fi|x&gt;  &lt;la|y&gt;  &lt;h|H&gt;
+Tipični format vhodnih podatkov (SiTra .xyz ali LIDAR .asc):
+[&lt;oznaka&gt; ]&lt;fi|x&gt; &lt;la|y&gt; &lt;h|H&gt;
+[&lt;oznaka&gt;;]&lt;fi|x&gt;;&lt;la|y&gt;;&lt;h|H&gt;
 </pre>
 
 Nov program **gk-shp**, ki lahko bere [ESRI shapefile] &#40;ArcGIS .shp format),
@@ -158,7 +160,7 @@ $ gk-shp [&lt;options&gt;] &lt;vhodime&gt; &lt;izhodime&gt;
   &lt;vhodime&gt;         preberi in konvertiraj vhodne podatke iz datoteke &lt;vhodime&gt;
   &lt;izhodime&gt;        zapiši izhodne podatke na datoteko &lt;izhodime&gt;
 
-Input data format:
+Format vhodnih podatkov:
 ESRI Shapefile (ArcGIS)
 </pre>
 
@@ -319,6 +321,7 @@ lažje odpiranje v GIS programih.
 [README.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/README.md
 [SiTra]: http://sitra.sitranet.si
 [SiTraNet]: http://sitranet.si
+[LIDAR]: http://evode.arso.gov.si/indexd022.html?q=node/12
 [virtualnimi veznimi točkami v3.0]: http://www.e-prostor.gov.si/si/zbirke_prostorskih_podatkov/drzavni_koordinatni_sistem/horizontalni_drzavni_koordinatni_sistem_d96tm/d96tm/transformacijski_parametri/
 [AFT.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/aft/PREBERIME.md
 [ESRI shapefile]: https://en.wikipedia.org/wiki/Shapefile

@@ -12,8 +12,9 @@ detailed description see [AFT.md]&#41;.
 
 <img src="images/GCC-Cover-Image.gif" width="660px">
 
-Program can read files in [SiTraNet] format (ASCII XYZ) or [ESRI shapefile] 
-&#40;ArcGIS .shp format, use **gk-shp**).
+Program can read files in [SiTraNet] format (ASCII XYZ), [LIDAR] &#40;ASCII
+XYZ with semicolon, .asc) or [ESRI shapefile] &#40;ArcGIS .shp format, use
+**gk-shp**).
 
 The following transformations are available (in both directions):
 
@@ -129,8 +130,9 @@ $ gk-slo [&lt;options&gt;] [&lt;inpname&gt; ...]
                        write output to these separate files
                     &lt;outname&gt;: write all output to 1 file &lt;outname&gt;
 
-Typical input data format (SiTra):
-[&lt;label&gt;]  &lt;fi|x&gt;  &lt;la|y&gt;  &lt;h|H&gt;
+Typical input data format (SiTra .xyz or LIDAR .asc):
+[&lt;label&gt; ]&lt;fi|x&gt; &lt;la|y&gt; &lt;h|H&gt;
+[&lt;label&gt;;]&lt;fi|x&gt;;&lt;la|y&gt;;&lt;h|H&gt;
 </pre>
 
 A new program **gk-shp**, able to read [ESRI shapefiles] (ArcGIS .shp format),
@@ -319,6 +321,7 @@ files can be easily opened by GIS programs.
 [PREBERIME.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/PREBERIME.md
 [SiTra]: http://sitra.sitranet.si
 [SiTraNet]: http://sitranet.si
+[LIDAR]: http://evode.arso.gov.si/indexd022.html?q=node/12
 [virtual tie points v3.0]: http://www.e-prostor.gov.si/si/zbirke_prostorskih_podatkov/drzavni_koordinatni_sistem/horizontalni_drzavni_koordinatni_sistem_d96tm/d96tm/transformacijski_parametri/
 [AFT.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/aft/README.md
 [ESRI shapefile]: https://en.wikipedia.org/wiki/Shapefile
