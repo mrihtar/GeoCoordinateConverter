@@ -1,39 +1,55 @@
 # For GNU make
 SHELL = %SystemRoot%/System32/cmd.exe
 CC = gcc
-LD = gcc
+CXX = g++
+LD = ld
 AR = ar
 RANLIB = ranlib
+RC = windres
 RM = del /q
 CP = copy /y
 
 #DEBUG = -O2
 DEBUG = -g
 CFLAGS = -Wall -msse2 -mfpmath=sse
-IPATH = -Ishapelib
+CXXFLAGS = -Wall -msse2 -mfpmath=sse -mwindows
+IPATH = -Ishapelib -Ifltk
 #LDFLAGS = -s
 LDFLAGS = 
 LPATH = 
 LIBS = 
+#XLDFLAGS = -mwindows -s
+XLDFLAGS = -mwindows
+XLPATH = -Lfltk\lib
+XLIBS = -lfltk_images -lfltk_png -lfltk_z -lfltk_jpeg -lfltk -lpthread -lole32 -luuid -lcomctl32
 
-TGTS = gk-slo.exe gk-shp.exe
-WOBJS = wgk-slo.o wutil.o wgeo.o
-OBJS = gk-shp.o util.o geo.o
+TGTS = gk-slo.exe gk-shp.exe xgk-slo.exe
+WOBJS = wgk-slo.o wconv.o wutil.o wgeo.o
+SOBJS = gk-shp.o util.o geo.o
 INCL = common.h geo.h geoid_slo.h geoid_egm.h aft_gktm.h aft_tmgk.h
 SHPOBJS = shapelib\shpopen.o shapelib\dbfopen.o shapelib\safileio.o shapelib\shptree.o
 SHPINCL = shapelib\shapefil.h
+XOBJS = xgk-slo.o conv.o util.o geo.o
+XINCL = 
+
+.SUFFIXES: .cxx
 
 all: $(TGTS)
 
 gk-slo.exe: $(WOBJS)
-	$(LD) -o $@ $(WOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
+	$(CC) -o $@ $^ $(LDFLAGS) $(LPATH) $(LIBS)
 
-gk-shp.exe: $(OBJS) $(SHPOBJS)
-	$(LD) -o $@ $(OBJS) $(SHPOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
+gk-shp.exe: $(SOBJS) $(SHPOBJS)
+	$(CC) -o $@ $^ $(LDFLAGS) $(LPATH) $(LIBS)
 
-$(OBJS): $(INCL)
+xgk-slo.exe: $(XOBJS) xgk-slo.rc
+	$(RC) $(basename $@).rc $(basename $@).res.o
+	$(CXX) -o $@ $(XOBJS) $(basename $@).res.o $(XLDFLAGS) $(XLPATH) $(XLIBS)
+
 $(WOBJS): $(INCL)
+$(SOBJS): $(INCL)
 $(SHPOBJS): $(SHPINCL)
+$(XOBJS): $(XINCL)
 
 test: $(TGTS)
 	gk-slo.exe -x > gk-slo.tmp
@@ -43,18 +59,22 @@ test: $(TGTS)
 	@$(RM) gk-slo.tmp > NUL
 
 install: $(TGTS)
-	@echo Copy gk-slo.exe and gk-shp.exe to a directory of your choice
+	@echo Copy gk-slo.exe, gk-shp.exe and xgk-slo.exe to a directory of your choice
 
 clean:
-	-$(RM) $(OBJS) $(WOBJS) $(SHPOBJS)
+	-$(RM) $(WOBJS) $(SOBJS) $(SHPOBJS) $(XOBJS) *.res.o
 cleanall: clean
 	-$(RM) $(TGTS)
 
 wgk-slo.o: gk-slo.c
 	$(CC) $(DEBUG) -c $(CFLAGS) -D_WCHAR $(IPATH) gk-slo.c -o $@
+wconv.o: conv.c
+	$(CC) $(DEBUG) -c $(CFLAGS) -D_WCHAR $(IPATH) conv.c -o $@
 wutil.o: util.c
 	$(CC) $(DEBUG) -c $(CFLAGS) -D_WCHAR $(IPATH) util.c -o $@
 wgeo.o: geo.c
 	$(CC) $(DEBUG) -c $(CFLAGS) -D_WCHAR $(IPATH) geo.c -o $@
 .c.o:
 	$(CC) $(DEBUG) -c $(CFLAGS) $(IPATH) $< -o $@
+.cxx.o:
+	$(CXX) $(DEBUG) -c $(CXXFLAGS) $(IPATH) $< -o $@
