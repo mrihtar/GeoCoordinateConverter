@@ -1,0 +1,64 @@
+// Microsoft Visual C++ resource script
+// Copyright (C) 2016 Matjaz Rihtar
+
+//////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+// LANG_ENGLISH, SUBLANG_ENGLISH_US
+LANGUAGE 0x09, 0x01
+#pragma code_page(1252)  // Multilingual
+
+//////////////////////////////////////////////////////////////////////////////
+// Icon
+IDI_ICON1 ICON DISCARDABLE "globe.ico"
+
+//////////////////////////////////////////////////////////////////////////////
+// Version
+
+1 VERSIONINFO
+  FILEVERSION 1,14,0,0
+  PRODUCTVERSION 1,14,0,0
+  FILEFLAGSMASK 0x17L  // all bits are valid
+// DEBUG: 0x01L, PRERELEASE: 0x02L, PRIVATEBUILD: 0x08L, SPECIALBUILD: 0x20L
+#ifdef _DEBUG
+  FILEFLAGS 0x01L
+#else
+  FILEFLAGS 0x00L
+#endif
+// WINDOWS32: 0x00000004L, NT: 0x00040000L, NT_WINDOWS32: 0x00040004L
+  FILEOS 0x00000004L
+// APP: 0x01L, DLL: 0x02L
+  FILETYPE 0x01L
+  FILESUBTYPE 0x00L
+  BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+      BLOCK "040904b0"  // U.S.English, Unicode
+      BEGIN
+        VALUE "FileDescription", "GUI for Geo Coordinate Converter"
+        VALUE "LegalCopyright", "Copyright © 2014-2016 Matjaz Rihtar"
+        VALUE "Comments", "Converter between GK/TM and ETRS89 coordinates for Slovenia"
+        VALUE "CompanyName", "Matjaz Rihtar"
+        VALUE "FileVersion", "1.14"
+//*     VALUE "Language", "English (United States)"
+#ifdef _WIN64
+        VALUE "InternalName", "xgk-slo64"
+        VALUE "OriginalFilename", "xgk-slo64.exe"
+#else
+        VALUE "InternalName", "xgk-slo"
+        VALUE "OriginalFilename", "xgk-slo.exe"
+#endif
+        VALUE "ProductName", "GK"
+        VALUE "ProductVersion", "1.14"
+//      VALUE "PrivateBuild", "Private build"
+//      VALUE "SpecialBuild", "Special build"
+      END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+      VALUE "Translation", 0x409, 1200  // U.S.English, Unicode
+    END
+  END
+
+// English (U.S.) resources
+//////////////////////////////////////////////////////////////////////////////

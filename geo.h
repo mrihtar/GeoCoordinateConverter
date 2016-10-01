@@ -1,5 +1,5 @@
 // GK - Converter between Gauss-Krueger/TM and WGS84 coordinates for Slovenia
-// Copyright (c) 2014-2015 Matjaz Rihtar <matjaz@eunet.si>
+// Copyright (c) 2014-2016 Matjaz Rihtar <matjaz@eunet.si>
 // All rights reserved.
 //
 // This program is free software: you can redistribute it and/or modify
@@ -81,6 +81,10 @@ typedef struct aft { // affine transformation table
   double a, b, c, d, e, f; // AFT parameters
 } AFT;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Forward declarations
 void dms2deg(DMS dms, double *deg);
 void dms2rad(DMS dms, double *rad);
@@ -120,5 +124,9 @@ void tmxy2fila_wgs(GEOUTM in, GEOGRA *out);
 void fila_wgs2tmxy(GEOGRA in, GEOUTM *out);
 void gkxy2fila_wgs_aft(GEOUTM in, GEOGRA *out);
 void fila_wgs2gkxy_aft(GEOGRA in, GEOUTM *out);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //_GEO_H_DEFINED

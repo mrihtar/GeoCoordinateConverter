@@ -1,5 +1,5 @@
 // GK - Converter between Gauss-Krueger/TM and WGS84 coordinates for Slovenia
-// Copyright (c) 2014-2015 Matjaz Rihtar <matjaz@eunet.si>
+// Copyright (c) 2014-2016 Matjaz Rihtar <matjaz@eunet.si>
 // All rights reserved.
 //
 // This program is free software: you can redistribute it and/or modify
@@ -110,7 +110,7 @@ TCHAR *fefind(TCHAR *fname, TCHAR *ext, TCHAR *newname)
 // ----------------------------------------------------------------------------
 void usage(TCHAR *prog, int ver_only)
 {
-  fprintf(stderr, T("%s %s  Copyright (c) 2014-2015 Matjaz Rihtar  (%s)\n"),
+  fprintf(stderr, T("%s %s  Copyright (c) 2014-2016 Matjaz Rihtar  (%s)\n"),
           prog, SW_VERSION, SW_BUILD);
   if (ver_only) return;
   fprintf(stderr, T("Usage: %s [<options>] <inpname> <outname>\n"), prog);

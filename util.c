@@ -1,5 +1,5 @@
 // GK - Converter between Gauss-Krueger/TM and WGS84 coordinates for Slovenia
-// Copyright (c) 2014-2015 Matjaz Rihtar <matjaz@eunet.si>
+// Copyright (c) 2014-2016 Matjaz Rihtar <matjaz@eunet.si>
 // All rights reserved.
 //
 // This program is free software: you can redistribute it and/or modify
@@ -19,9 +19,9 @@
 //
 #include "common.h"
 
-// xlog (large) variables (can't be created on stack)
-TCHAR msg[MAXL+1];
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // ----------------------------------------------------------------------------
 // xtrunc
@@ -254,20 +254,23 @@ TCHAR *xstrerror(void)
 
 
 // ----------------------------------------------------------------------------
-// xlog
+// xprintf
 // Writes an entry in previously opened log file, prepended by time of entry.
 // ----------------------------------------------------------------------------
-int xlog(FILE *log, TCHAR *fmt, ...)
+int xprintf(FILE *log, TCHAR *fmt, ...)
 {
   va_list ap;
   time_t now;
   struct tm *tmnow;
   TCHAR stime[MAXS+1];
+  TCHAR *msg;
 
   now = time(NULL);
   tmnow = localtime(&now);
 //strftime(stime, MAXS, T("%y-%m-%d %H:%M:%S"), tmnow);
   strftime(stime, MAXS, T("%H:%M:%S"), tmnow);
+
+  msg = (TCHAR *)calloc(MAXL+1, sizeof(TCHAR));
 
   va_start(ap, fmt);
   vsnprintf(msg, MAXL, fmt, ap);
@@ -276,8 +279,9 @@ int xlog(FILE *log, TCHAR *fmt, ...)
   fprintf(log, T("%s %s"), stime, msg);
 //fflush(NULL);
 
+  free(msg);
   return 0;
-} /* xlog */
+} /* xprintf */
 
 
 #ifdef _WIN32
@@ -358,4 +362,8 @@ int clock_gettime(int clk_id, struct timespec *tv)
 
   return 0;
 } /* clock_gettime */
+#endif
+
+#ifdef __cplusplus
+}
 #endif

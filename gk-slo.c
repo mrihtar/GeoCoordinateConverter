@@ -1,5 +1,5 @@
 // GK - Converter between Gauss-Krueger/TM and WGS84 coordinates for Slovenia
-// Copyright (c) 2014-2015 Matjaz Rihtar <matjaz@eunet.si>
+// Copyright (c) 2014-2016 Matjaz Rihtar <matjaz@eunet.si>
 // All rights reserved.
 //
 // This program is free software: you can redistribute it and/or modify
@@ -20,15 +20,27 @@
 #include "common.h"
 #include "geo.h"
 
-#define SW_VERSION T("8.02")
-#define SW_BUILD   T("Nov 28, 2015")
+#define SW_VERSION T("9.00")
+#define SW_BUILD   T("Sep 26, 2016")
 
 // global variables
-TCHAR *prog;  // program name
+TCHAR *prog; // program name
 int debug;
+int tr;      // transformation
+int rev;     // reverse xy/fila
+int ddms;    // display DMS
+extern int gid_wgs; // selected geoid on WGS 84 (in geo.c, via cmd line)
+extern int hsel;    // output height calculation (in geo.c, via cmd line)
 
-extern int gid_wgs; // selected geoid on WGS 84 (via cmd line)
-extern int hsel;    // selected output height (via cmd line)
+#ifdef __cplusplus
+extern "C" {
+#endif
+// External function prototypes
+int convert_file(TCHAR *url, int outf, FILE *out, TCHAR *msg);
+#ifdef __cplusplus
+}
+#endif
+
 
 // ----------------------------------------------------------------------------
 // reftest
@@ -345,41 +357,11 @@ void gendata_fila()
 
 
 // ----------------------------------------------------------------------------
-// fnfind
-// ----------------------------------------------------------------------------
-TCHAR *fnfind(TCHAR *fname, TCHAR *newname)
-{
-  TCHAR name[MAXS+1], ext[MAXS+1];
-//TCHAR *s;
-  struct _stat fst;
-  int ii;
-
-  xstrncpy(name, fname, MAXS);
-//if ((s = strrchr(name, T('.'))) != NULL) *s = T('\0');
-
-  xstrncpy(newname, name, MAXS);
-  xstrncat(newname, T(".out"), MAXS);
-  for (ii = 0; ii <= 15; ii++) { // append 1..15 to output file name
-    if (tstat(newname, &fst) < 0) break; // file not found
-    snprintf(ext, MAXS, T(".out.%d"), ii+1);
-    xstrncpy(newname, name, MAXS);
-    xstrncat(newname, ext, MAXS);
-  }
-  if (ii > 15) {
-    xstrncpy(newname, name, MAXS);
-    xstrncat(newname, T(".out"), MAXS);
-    return NULL;
-  }
-  return newname;
-} /* fnfind */
-
-
-// ----------------------------------------------------------------------------
 // usage
 // ----------------------------------------------------------------------------
 void usage(TCHAR *prog, int ver_only)
 {
-  fprintf(stderr, T("%s %s  Copyright (c) 2014-2015 Matjaz Rihtar  (%s)\n"),
+  fprintf(stderr, T("%s %s  Copyright (c) 2014-2016 Matjaz Rihtar  (%s)\n"),
           prog, SW_VERSION, SW_BUILD);
   if (ver_only) return;
   fprintf(stderr, T("Usage: %s [<options>] [<inpname> ...]\n"), prog);
@@ -452,17 +434,11 @@ int tmain(int argc, TCHAR *argv[])
   int ii, ac, opt;
   TCHAR *s, *av[MAXC];
   TCHAR geoid[MAXS+1];
-  int value, test, gd, tr, rev, warn, ddms;
-  TCHAR inpname[MAXS+1], outname[MAXS+1];
+  int value, test, gd;
+  TCHAR outname[MAXS+1];
   int inpf, outf;
-  FILE *inp, *out;
-  TCHAR line[MAXS+1], col1[MAXS+1];
-  int ln, n;
-  double fi, la, h, x, y, H, tmp;
-  GEOGRA fl; GEOUTM xy, gkxy, tmxy;
-  DMS lat, lon;
-  struct timespec start, stop;
-  double tdif;
+  FILE *out;
+  TCHAR *msg;
 
   // Get program name
   if ((prog = strrchr(argv[0], DIRSEP)) == NULL) prog = argv[0];
@@ -482,7 +458,7 @@ int tmain(int argc, TCHAR *argv[])
   inpf = 1;    // stdin
   outf = 1;    // stdout
   outname[0] = T('\0');
-  hsel = -1;   // no default height processing (use internal recommendations)
+  hsel = -1;   // default height processing (use internal recommendations)
 
   // Parse command line
   ac = 0; opt = 1;
@@ -569,12 +545,14 @@ usage:      usage(prog, 0);
     } // if opt
     av[ac] = (TCHAR *)malloc(MAXS+1);
     if (av[ac] == NULL) {
-      fprintf(stderr, T("malloc(av): %s"), xstrerror()); exit(3);
+      fprintf(stderr, T("malloc(av): %s"), xstrerror());
+      exit(3);
     }
     xstrncpy(av[ac++], argv[ii], MAXS);
   } // for each argc
   av[ac] = NULL;
 
+  // geo.c initialization
   ellipsoid_init();
   params_init();
 
@@ -595,223 +573,21 @@ usage:      usage(prog, 0);
   if (outf == 3) { // specified file
     out = fopen(outname, T("w"));
     if (out == NULL) {
-      fprintf(stderr, T("%s: %s\n"), outname, xstrerror()); exit(2);
+      fprintf(stderr, T("%s: %s\n"), outname, xstrerror());
+      exit(2);
     }
   }
 
+  msg = (TCHAR *)calloc(MAXL+1, sizeof(TCHAR));
+
   for (ii = 0; ii < ac; ii++) {
-    // Open (next) input file
-    if (strcmp(av[ii], T("-")) == 0) {
-      xstrncpy(inpname, T("<stdin>"), MAXS);
-      inp = stdin; inpf = 1;
-    }
-    else {
-      xstrncpy(inpname, av[ii], MAXS);
-      inp = fopen(inpname, T("r")); inpf = 3;
-    }
-    if (inp == NULL) {
-      fprintf(stderr, T("%s: %s\n"), inpname, xstrerror());
-      continue;
-    }
-
-    // Open (next) output file
-    if (outf == 2) { // separate files
-      if (fnfind(av[ii], outname) == NULL) {
-        fprintf(stderr, T("%s: file already exists\n"), outname);
-        if (inpf == 3) fclose(inp);
-        continue;
-      }
-      out = fopen(outname, T("w"));
-      if (out == NULL) {
-        fprintf(stderr, T("%s: %s\n"), outname, xstrerror());
-        if (inpf == 3) fclose(inp);
-        continue;
-      }
-    }
-
-    if (debug) fprintf(stderr, T("Processing %s\n"), inpname);
-    clock_gettime(CLOCK_REALTIME, &start);
-
-    ln = 0; warn = 1;
-    for ( ; ; ) {
-      // Read (next) line
-      s = fgets(line, MAXS, inp);
-      if (ferror(inp)) {
-        fprintf(stderr, T("%s: %s\n"), inpname, xstrerror());
-        break;
-      }
-      if (feof(inp)) break;
-      ln++;
-
-      fi = 0.0; la = 0.0; h = 0.0; // to keep compiler happy
-      x = 0.0; y = 0.0; H = 0.0;
-
-      // Parse line
-      s = xstrtrim(line);
-      if (tr == 2 || tr == 4 || tr == 10) { // etrs89
-        // try with blank (SiTra)
-        n = sscanf(s, T("%10240s %lf %lf %lf"), col1, &fi, &la, &h);
-        if (n != 4) {
-          n = sscanf(s, T("%lf %lf %lf"), &fi, &la, &h);
-          if (n != 3) n = 5;
-          else col1[0] = T('\0');
-        }
-        else xstrncat(col1, T(" "), MAXS);
-        if (n != 4 && n != 3) {
-          // try again with semicolon (LIDAR)
-          n = sscanf(s, T("%10240[^;];%lf;%lf;%lf"), col1, &fi, &la, &h);
-          if (n != 4) {
-            n = sscanf(s, T("%lf;%lf;%lf"), &fi, &la, &h);
-            if (n != 3) n = 5;
-            else col1[0] = T('\0');
-          }
-          else xstrncat(col1, T(" "), MAXS);
-          if (n != 4 && n != 3) {
-            fprintf(stderr, T("%s: line %d: %-.75s\n"), inpname, ln, line);
-            continue;
-          }
-        }
-
-        if (rev) { tmp = fi; fi = la; la = tmp; }
-        if (fi == 0.0 || la == 0.0) {
-          fprintf(stderr, T("%s: line %d: %-.75s\n"), inpname, ln, line);
-          continue;
-        }
-        if (la > 17.0) {
-          if (warn) { fprintf(stderr, T("%s: possibly reversed fi/la\n"), inpname); warn = 0; }
-        }
-      }
-      else { // tr == 1,3,5,6,7,8,9 // d96tm/d48gk
-        // try with blank (SiTra)
-        n = sscanf(s, T("%10240s %lf %lf %lf"), col1, &x, &y, &H);
-        if (n != 4) {
-          n = sscanf(s, T("%lf %lf %lf"), &x, &y, &H);
-          if (n != 3) n = 5;
-          else col1[0] = T('\0');
-        }
-        else xstrncat(col1, T(" "), MAXS);
-        if (n != 4 && n != 3) {
-          // try again with semicolon (LIDAR)
-          n = sscanf(s, T("%10240[^;];%lf;%lf;%lf"), col1, &x, &y, &H);
-          if (n != 4) {
-            n = sscanf(s, T("%lf;%lf;%lf"), &x, &y, &H);
-            if (n != 3) n = 5;
-            else col1[0] = T('\0');
-          }
-          else xstrncat(col1, T(" "), MAXS);
-          if (n != 4 && n != 3) {
-            fprintf(stderr, T("%s: line %d: %-.75s\n"), inpname, ln, line);
-            continue;
-          }
-        }
-
-        if (rev) { tmp = x; x = y; y = tmp; }
-        if (x == 0.0 || y == 0.0) {
-          fprintf(stderr, T("%s: line %d: %-.75s\n"), inpname, ln, line);
-          continue;
-        }
-        if (y < 200000.0) {
-          y += 500000.0;
-          if (warn) { fprintf(stderr, T("%s: possibly reversed x/y\n"), inpname); warn = 0; }
-        }
-      }
-
-      // Convert coordinates
-      if (tr == 1) { // xy (d96tm) --> fila (etrs89)
-        xy.x = x; xy.y = y; xy.H = H;
-        tmxy2fila_wgs(xy, &fl);
-        fprintf(out, T("%s%.10f %.10f %.3f"), col1, fl.fi, fl.la, fl.h);
-        if (ddms) {
-          deg2dms(fl.fi, &lat); deg2dms(fl.la, &lon);
-          fprintf(out, T(" %.0f %2.0f %8.5f %.0f %2.0f %8.5f\n"),
-            lat.deg, lat.min, lat.sec, lon.deg, lon.min, lon.sec);
-        }
-        else fprintf(out, T("\n"));
-      }
-
-      else if (tr == 2) { // fila (etrs89) --> xy (d96tm)
-        fl.fi = fi; fl.la = la; fl.h = h;
-        fila_wgs2tmxy(fl, &xy);
-        fprintf(out, T("%s%.3f %.3f %.3f\n"), col1, xy.x, xy.y, xy.H);
-      }
-
-      else if (tr == 3) { // xy (d48gk) --> fila (etrs89)
-        // SiTra: h,H/H(tr), gk-slo: hsel = ht ==> OK
-        // SiTra: h=0,H=0/H(tr)=h-N, gk-slo: hsel = ht ==> OK (isti input!)
-        // SiTra: h=0,H=0/H(tr)=h-N, gk-slo: hsel = hg ==> 40-70cm razlike
-        xy.x = x; xy.y = y; xy.H = H;
-        gkxy2fila_wgs(xy, &fl);
-        fprintf(out, T("%s%.10f %.10f %.3f"), col1, fl.fi, fl.la, fl.h);
-        if (ddms) {
-          deg2dms(fl.fi, &lat); deg2dms(fl.la, &lon);
-          fprintf(out, T(" %.0f %2.0f %8.5f %.0f %2.0f %8.5f\n"),
-            lat.deg, lat.min, lat.sec, lon.deg, lon.min, lon.sec);
-        }
-        else fprintf(out, T("\n"));
-      }
-
-      else if (tr == 4) { // fila (etrs89) --> xy (d48gk)
-        // SiTra: h,H/H(tr), gk-slo: hsel = ht ==> OK
-        // SiTra: h=0,H=0/H(tr)=h-N, gk-slo: hsel = hg ==> OK
-        // SiTra: h=0,H=0/H(tr)=h-N, gk-slo: hsel = ht ==> 40-70cm razlike
-        fl.fi = fi; fl.la = la; fl.h = h;
-        fila_wgs2gkxy(fl, &xy);
-        fprintf(out, T("%s%.3f %.3f %.3f\n"), col1, xy.x, xy.y, xy.H);
-      }
-
-      else if (tr == 5) { // xy (d48gk) --> xy (d96tm)
-        xy.x = x; xy.y = y; xy.H = H;
-        gkxy2tmxy(xy, &tmxy);
-        fprintf(out, T("%s%.3f %.3f %.3f\n"), col1, tmxy.x, tmxy.y, tmxy.H);
-      }
-
-      else if (tr == 6) { // xy (d96tm) --> xy (d48gk)
-        xy.x = x; xy.y = y; xy.H = H;
-        tmxy2gkxy(xy, &gkxy);
-        fprintf(out, T("%s%.3f %.3f %.3f\n"), col1, gkxy.x, gkxy.y, gkxy.H);
-      }
-
-      else if (tr == 7) { // xy (d48gk) --> xy (d96tm), affine trans.
-        xy.x = x; xy.y = y; xy.H = H;
-        gkxy2tmxy_aft(xy, &tmxy);
-        fprintf(out, T("%s%.3f %.3f %.3f\n"), col1, tmxy.x, tmxy.y, tmxy.H);
-      }
-
-      else if (tr == 8) { // xy (d96tm) --> xy (d48gk), affine trans.
-        xy.x = x; xy.y = y; xy.H = H;
-        tmxy2gkxy_aft(xy, &gkxy);
-        fprintf(out, T("%s%.3f %.3f %.3f\n"), col1, gkxy.x, gkxy.y, gkxy.H);
-      }
-
-      else if (tr == 9) { // xy (d48gk) --> fila (etrs89), affine trans.
-        xy.x = x; xy.y = y; xy.H = H;
-        gkxy2fila_wgs_aft(xy, &fl);
-        fprintf(out, T("%s%.10f %.10f %.3f"), col1, fl.fi, fl.la, fl.h);
-        if (ddms) {
-          deg2dms(fl.fi, &lat); deg2dms(fl.la, &lon);
-          fprintf(out, T(" %.0f %2.0f %8.5f %.0f %2.0f %8.5f\n"),
-            lat.deg, lat.min, lat.sec, lon.deg, lon.min, lon.sec);
-        }
-        else fprintf(out, T("\n"));
-      }
-
-      else if (tr == 10) { // fila (etrs89) --> xy (d48gk), affine trans.
-        fl.fi = fi; fl.la = la; fl.h = h;
-        fila_wgs2gkxy_aft(fl, &xy);
-        fprintf(out, T("%s%.3f %.3f %.3f\n"), col1, xy.x, xy.y, xy.H);
-      }
-    } // while !eof
-
-    clock_gettime(CLOCK_REALTIME, &stop);
-    tdif = (stop.tv_sec - start.tv_sec)
-           + (double)(stop.tv_nsec - start.tv_nsec)/NANOSEC;
-    if (debug) fprintf(stderr, T("Processing time: %f\n"), tdif);
-
-    if (inpf == 3) fclose(inp);
-    if (outf == 2) fclose(out);
+    convert_file(av[ii], outf, out, msg);
+    if (strlen(msg) > 0)
+      fprintf(stderr, T("%s"), msg); // must use %s here!
   } // for ac
 
   if (outf == 3) fclose(out);
 
+  free(msg);
   return 0;
 } /* main */

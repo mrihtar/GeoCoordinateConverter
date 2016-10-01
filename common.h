@@ -1,5 +1,5 @@
 // GK - Converter between Gauss-Krueger/TM and WGS84 coordinates for Slovenia
-// Copyright (c) 2014-2015 Matjaz Rihtar <matjaz@eunet.si>
+// Copyright (c) 2014-2016 Matjaz Rihtar <matjaz@eunet.si>
 // All rights reserved.
 //
 // This program is free software: you can redistribute it and/or modify
@@ -22,6 +22,7 @@
 #define _COMMON_H_DEFINED
 
 #ifdef _WIN32
+#undef _WIN32_WINNT
 #define _WIN32_WINNT 0x0501  // Windows XP & Windows Server 2003 or greater
 #ifndef __MINGW32__
 #pragma warning (disable:4996)  // disable POSIX warnings
@@ -113,7 +114,7 @@
 #define tstat stat
 #endif
 
-#define MAXS 10240      // max string size
+#define MAXS 10240      // max string size (check conv.c for hard-coded value!)
 #define MAXC 5000       // max number of cmd line params
 #define MAXB 131072     // max buffer size (also socket buffer size)
 #define MAXL (MAXB+128) // max log file entry size
@@ -122,14 +123,20 @@
 #define CLOCK_REALTIME  0
 #define CLOCK_MONOTONIC 1
 
+#ifndef HAVE_STRUCT_TIMESPEC // defined in pthread.h, if included
 struct timespec {
   time_t tv_sec;
 //long   tv_usec; // microseconds
   long   tv_nsec; // nanoseconds
 };
 #endif
+#endif
 #define MICROSEC 1000000L
 #define NANOSEC  1000000000L
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // Forward declarations
 double xtrunc(double d);
@@ -144,5 +151,9 @@ TCHAR *xstrsep(TCHAR **strp, const TCHAR *delim);
 TCHAR *xstrstr(TCHAR *s1, size_t n1, const TCHAR *s2, size_t n2);
 TCHAR *xstrerror(void);
 int clock_gettime(int clk_id, struct timespec *tv);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //_COMMON_H_DEFINED

@@ -1,5 +1,5 @@
 // GK - Converter between Gauss-Krueger/TM and WGS84 coordinates for Slovenia
-// Copyright (c) 2014-2015 Matjaz Rihtar <matjaz@eunet.si>
+// Copyright (c) 2014-2016 Matjaz Rihtar <matjaz@eunet.si>
 // All rights reserved.
 //
 // This program is free software: you can redistribute it and/or modify
@@ -110,6 +110,9 @@ PROJ tm;
 // Parameters for Helmert transformation
 HELMERT7 slo7, slo7inv;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // ----------------------------------------------------------------------------
 // dms2deg
@@ -333,7 +336,7 @@ void h7_precalc(HELMERT7 *h7)
   R3[1][0] = 0;        R3[1][1] = cosAlfa;  R3[1][2] = sinAlfa;
   R3[2][0] = 0;        R3[2][1] = -sinAlfa; R3[2][2] = cosAlfa;
 
-  h7->R = malloc(sizeof(m33));
+  h7->R = (m33 *)malloc(sizeof(m33));
   if (h7->R == NULL) {
     fprintf(stderr, T("malloc(m33): %s"), xstrerror()); exit(3);
   }
@@ -1441,3 +1444,7 @@ void fila_wgs2gkxy_aft(GEOGRA in, GEOUTM *out)
   fila_wgs2tmxy(in, &tmxy);
   tmxy2gkxy_aft(tmxy, out);
 } /* fila_wgs2gkxy_aft */
+
+#ifdef __cplusplus
+}
+#endif
