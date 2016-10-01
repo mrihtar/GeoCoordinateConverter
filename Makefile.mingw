@@ -21,7 +21,7 @@ LIBS =
 #XLDFLAGS = -mwindows -s
 XLDFLAGS = -mwindows
 XLPATH = -Lfltk\lib
-XLIBS = -lfltk_images -lfltk_png -lfltk_z -lfltk_jpeg -lfltk -lpthread -lole32 -luuid -lcomctl32
+XLIBS = -lfltk_images -lfltk -lfltk_png -lfltk_z -lfltk_jpeg -lpthread -lole32 -luuid -lcomctl32
 
 TGTS = gk-slo.exe gk-shp.exe xgk-slo.exe
 WOBJS = wgk-slo.o wconv.o wutil.o wgeo.o
