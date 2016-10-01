@@ -45,7 +45,8 @@ extern int gid_wgs; // selected geoid on WGS 84 (in geo.c)
 extern int hsel;    // output height calculation (in geo.c)
 
 typedef struct ptid {
-  pthread_t tid; // { void *p; unsigned int x; }
+  // WIN32 { void *p; unsigned int x; }, UNIX: unsigned long
+  pthread_t tid;
   int done;
   int sts;
   struct ptid *next;
@@ -236,7 +237,11 @@ int xpthread_create(void *(*worker)(void *), void *arg)
       xlog("Thread creation failed, max. number of threads exceeded\n");
     else xlog("Thread creation failed, rc = %d\n", rc);
   else
+#ifdef _WIN32
     xlog("Created thread %08x\n", (unsigned int)threads->tid.p);
+#else
+    xlog("Created thread %08x\n", (unsigned int)threads->tid);
+#endif
   return rc;
 } /* xpthread_create */
 
@@ -263,7 +268,7 @@ void *convert(void *arg) {
   char *url;
   char *msg, *line;
   Fl_Browser *brow;
-  int sts;
+  long sts;
 
   targ = (TARG *)arg;
   url = targ->url; brow = targ->brow;
@@ -743,8 +748,13 @@ int main(int argc, char *argv[])
     rc = pthread_join(pt->tid, (void **)&sts);
     if (!rc) {
       pt->done = 1; pt->sts = sts;
+#ifdef _WIN32
       xlog("Completed join with thread %08x, status = %d\n",
            (unsigned int)pt->tid.p, pt->sts);
+#else
+      xlog("Completed join with thread %08x, status = %d\n",
+           (unsigned int)pt->tid, pt->sts);
+#endif
     }
   }
 

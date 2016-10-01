@@ -1,6 +1,7 @@
 # For GNU make
 CC = cc
-LD = cc
+CXX = c++
+LD = ld
 AR = ar
 RANLIB = ranlib
 RM = rm -f
@@ -9,30 +10,43 @@ CP = cp
 #DEBUG = -O2
 DEBUG = -g
 CFLAGS = -Wall -msse2 -mfpmath=sse
-IPATH = -Ishapelib
+CXXFLAGS = -Wall -msse2 -mfpmath=sse
+IPATH = -Ishapelib -Ifltk
 #LDFLAGS = -s
 LDFLAGS = 
 LPATH = 
 LIBS = -lm -lrt
+#XLDFLAGS = -s
+XLDFLAGS = 
+XLPATH = -Lfltk/lib
+XLIBS = -lfltk_images -lfltk -lX11 -lXft -lXcursor -lXinerama -lpng -lz -ljpeg -lpthread -lm -lrt
 
-TGTS = gk-slo gk-shp
-WOBJS = wgk-slo.o wutil.o wgeo.o
-OBJS = gk-shp.o util.o geo.o
+TGTS = gk-slo gk-shp xgk-slo
+WOBJS = wgk-slo.o wconv.o wutil.o wgeo.o
+SOBJS = gk-shp.o util.o geo.o
 INCL = common.h geo.h geoid_slo.h geoid_egm.h aft_gktm.h aft_tmgk.h
 SHPOBJS = shapelib/shpopen.o shapelib/dbfopen.o shapelib/safileio.o shapelib/shptree.o
 SHPINCL = shapelib/shapefil.h
+XOBJS = xgk-slo.o conv.o util.o geo.o
+XINCL = 
+
+.SUFFIXES: .cxx
 
 all: $(TGTS)
 
 gk-slo: $(WOBJS)
-	$(LD) -o $@ $(WOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
+	$(CC) -o $@ $^ $(LDFLAGS) $(LPATH) $(LIBS)
 
-gk-shp: $(OBJS) $(SHPOBJS)
-	$(LD) -o $@ $(OBJS) $(SHPOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
+gk-shp: $(SOBJS) $(SHPOBJS)
+	$(CC) -o $@ $^ $(LDFLAGS) $(LPATH) $(LIBS)
 
-$(OBJS): $(INCL)
+xgk-slo: $(XOBJS)
+	$(CXX) -o $@ $(XOBJS) $(XLDFLAGS) $(XLPATH) $(XLIBS)
+
 $(WOBJS): $(INCL)
+$(SOBJS): $(INCL)
 $(SHPOBJS): $(SHPINCL)
+$(XOBJS): $(XINCL)
 
 test: $(TGTS)
 	./gk-slo -x > gk-slo.tmp
@@ -42,18 +56,22 @@ test: $(TGTS)
 	@$(RM) gk-slo.tmp
 
 install: $(TGTS)
-	@echo Copy gk-slo and gk-shp to a directory of your choice
+	@echo Copy gk-slo, gk-shp and xgk-slo to a directory of your choice
 
 clean:
-	-$(RM) $(OBJS) $(WOBJS) $(SHPOBJS)
+	-$(RM) $(WOBJS) $(SOBJS) $(SHPOBJS) $(XOBJS)
 cleanall: clean
 	-$(RM) $(TGTS)
 
 wgk-slo.o: gk-slo.c
 	$(CC) $(DEBUG) -c $(CFLAGS) -D_WCHAR $(IPATH) gk-slo.c -o $@
+wconv.o: conv.c
+	$(CC) $(DEBUG) -c $(CFLAGS) -D_WCHAR $(IPATH) conv.c -o $@
 wutil.o: util.c
 	$(CC) $(DEBUG) -c $(CFLAGS) -D_WCHAR $(IPATH) util.c -o $@
 wgeo.o: geo.c
 	$(CC) $(DEBUG) -c $(CFLAGS) -D_WCHAR $(IPATH) geo.c -o $@
 .c.o:
 	$(CC) $(DEBUG) -c $(CFLAGS) $(IPATH) $< -o $@
+.cxx.o:
+	$(CXX) $(DEBUG) -c $(CXXFLAGS) $(IPATH) $< -o $@
