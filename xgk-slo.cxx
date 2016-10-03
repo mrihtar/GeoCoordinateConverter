@@ -32,8 +32,8 @@
 #include <FL/fl_ask.H>
 #include <FL/fl_draw.H>
 
-#define SW_VERSION "1.16"
-#define SW_BUILD   "Oct 2, 2016"
+#define SW_VERSION "1.17"
+#define SW_BUILD   "Oct 3, 2016"
 
 // global variables
 char *prog;  // program name
@@ -461,7 +461,7 @@ void height_cb(Fl_Widget *w, void *p) {
 
   b = (Fl_Radio_Round_Button *)w;
   bsel = -1;
-  for (ii = 0; ii < 3; ii++) {
+  for (ii = 0; ii < 4; ii++) {
     if (b == rb_height[ii]) {
       rb_height[ii]->labelfont(FL_BOLD);
       bsel = ii;
@@ -603,7 +603,7 @@ int main(int argc, char *argv[])
   pthread_mutex_init(&xlog_mutex, NULL);
 
   // Create main window
-  w0 = 724; h0 = 400;
+  w0 = 815; h0 = 400;
   mainwin = new Fl_Double_Window(w0, h0, prog);
   mainwin->resizable(mainwin);
   mainwin->size_range(w0-300, h0, w0+300, h0+300);
@@ -621,7 +621,7 @@ int main(int argc, char *argv[])
   // x,y is 0.0 from now on
 
   // Create radio buttons
-  g1 = new Fl_Group(5, 22, 245, 207, "Select transformation");
+  g1 = new Fl_Group(5, 22, 277, 207, "Select transformation");
   g1->labelsize(16); g1->labelfont(FL_BOLD + FL_ITALIC);
   g1->box(FL_DOWN_BOX);
 //g1->clip_children(1);
@@ -653,7 +653,7 @@ int main(int argc, char *argv[])
   rb->callback(trans_cb, NULL); rb_trans[ii++] = rb;
   g1->end();
 
-  g2 = new Fl_Group(g1->w()+10, subwin1->y()-8, 216, 75, "Select geoid");
+  g2 = new Fl_Group(g1->w()+10, subwin1->y()-8, 248, 75, "Select geoid");
   g2->labelsize(16); g2->labelfont(FL_BOLD + FL_ITALIC);
   g2->box(FL_DOWN_BOX);
 //g2->clip_children(1);
@@ -666,7 +666,7 @@ int main(int argc, char *argv[])
   rb->callback(geoid_cb, NULL); rb_geoid[ii++] = rb;
   g2->end();
 
-  g3 = new Fl_Group(g1->w()+10, subwin1->y()-8+75, 216, 100, "Select height calculation");
+  g3 = new Fl_Group(g1->w()+10, subwin1->y()-8+75, g2->w(), 100, "Select height calculation");
   g3->labelsize(16); g3->labelfont(FL_BOLD + FL_ITALIC);
   g3->box(FL_DOWN_BOX);
 //g3->clip_children(1);
@@ -683,7 +683,7 @@ int main(int argc, char *argv[])
   rb->callback(height_cb, NULL); rb_height[ii++] = rb;
   g3->end();
 
-  g4 = new Fl_Group(g1->w()+g2->w()+15, subwin1->y()-8, 242, 55, "Input syntax");
+  g4 = new Fl_Group(g1->w()+g2->w()+15, subwin1->y()-8, 270, 55, "Input syntax");
   g4->labelsize(16); g4->labelfont(FL_BOLD + FL_ITALIC);
   g4->box(FL_DOWN_BOX);
 //g4->clip_children(1);
@@ -692,7 +692,7 @@ int main(int argc, char *argv[])
   cb->callback(rev_cb, NULL);
   g4->end();
 
-  g5 = new Fl_Group(g1->w()+g2->w()+15, subwin1->y()-8+55, 242, 55, "Output format");
+  g5 = new Fl_Group(g1->w()+g2->w()+15, subwin1->y()-8+55, g4->w(), 55, "Output format");
   g5->labelsize(16); g5->labelfont(FL_BOLD + FL_ITALIC);
   g5->box(FL_DOWN_BOX);
 //g5->clip_children(1);
@@ -733,7 +733,7 @@ int main(int argc, char *argv[])
 
   // Show main window
   Fl::scheme("gtk+");
-  Fl::visual(FL_DOUBLE|FL_INDEX);
+  Fl::visual(FL_DOUBLE | FL_INDEX);
 #ifdef _WIN32
   mainwin->icon((const void *)LoadIcon(fl_display, "IDI_ICON1"));
 #endif
