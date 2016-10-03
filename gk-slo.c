@@ -438,7 +438,6 @@ int tmain(int argc, TCHAR *argv[])
   TCHAR outname[MAXS+1];
   int inpf, outf;
   FILE *out;
-  TCHAR *msg;
 
   // Get program name
   if ((prog = strrchr(argv[0], DIRSEP)) == NULL) prog = argv[0];
@@ -578,16 +577,10 @@ usage:      usage(prog, 0);
     }
   }
 
-  msg = (TCHAR *)calloc(MAXL+1, sizeof(TCHAR));
-
-  for (ii = 0; ii < ac; ii++) {
-    convert_file(av[ii], outf, out, msg);
-    if (strlen(msg) > 0)
-      fprintf(stderr, T("%s"), msg); // must use %s here!
-  } // for ac
+  for (ii = 0; ii < ac; ii++)
+    convert_file(av[ii], outf, out, NULL);
 
   if (outf == 3) fclose(out);
 
-  free(msg);
   return 0;
 } /* main */

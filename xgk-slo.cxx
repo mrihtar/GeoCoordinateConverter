@@ -32,8 +32,8 @@
 #include <FL/fl_ask.H>
 #include <FL/fl_draw.H>
 
-#define SW_VERSION "1.14"
-#define SW_BUILD   "Sep 27, 2016"
+#define SW_VERSION "1.16"
+#define SW_BUILD   "Oct 2, 2016"
 
 // global variables
 char *prog;  // program name
@@ -97,9 +97,9 @@ Fl_Menu_Item menubar_entries[] = {
   {0}
 }; /* menubar_entries */
 
-Fl_Radio_Round_Button *rb_trans[10];
-Fl_Radio_Round_Button *rb_geoid[2];
-Fl_Radio_Round_Button *rb_height[4];
+Fl_Radio_Round_Button *rb_trans[MAXC];
+Fl_Radio_Round_Button *rb_geoid[MAXC];
+Fl_Radio_Round_Button *rb_height[MAXC];
 
 // ----------------------------------------------------------------------------
 // Fl_DND_Box

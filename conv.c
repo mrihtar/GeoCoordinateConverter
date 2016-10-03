@@ -80,8 +80,8 @@ int convert_file(TCHAR *url, int outf, FILE *out, TCHAR *msg)
   struct timespec start, stop;
   double tdif;
 
-  if (url == NULL || msg == NULL) return 1;
-  msg[0] = '\0';
+  if (url == NULL) return 1;
+  if (msg != NULL) msg[0] = '\0';
 
   // Open input file
   if (strcmp(url, T("-")) == 0) {
@@ -94,7 +94,8 @@ int convert_file(TCHAR *url, int outf, FILE *out, TCHAR *msg)
   }
   if (inp == NULL) {
     snprintf(err, MAXS, T("%s: %s\n"), inpname, xstrerror());
-    xstrncat(msg, err, MAXL);
+    if (msg == NULL) fprintf(stderr, T("%s"), err);
+    else xstrncat(msg, err, MAXL);
     return 1;
   }
 
@@ -102,14 +103,16 @@ int convert_file(TCHAR *url, int outf, FILE *out, TCHAR *msg)
   if (outf == 2) { // convert to separate files
     if (fnfind(url, outname) == NULL) {
       snprintf(err, MAXS, T("%s: file already exists\n"), outname);
-      xstrncat(msg, err, MAXL);
+      if (msg == NULL) fprintf(stderr, T("%s"), err);
+      else xstrncat(msg, err, MAXL);
       if (inpf == 2) fclose(inp);
       return 1;
     }
     out = fopen(outname, T("w"));
     if (out == NULL) {
       snprintf(err, MAXS, T("%s: %s\n"), outname, xstrerror());
-      xstrncat(msg, err, MAXL);
+      if (msg == NULL) fprintf(stderr, T("%s"), err);
+      else xstrncat(msg, err, MAXL);
       if (inpf == 2) fclose(inp);
       return 1;
     }
@@ -124,7 +127,8 @@ int convert_file(TCHAR *url, int outf, FILE *out, TCHAR *msg)
     s = fgets(line, MAXS, inp);
     if (ferror(inp)) {
       snprintf(err, MAXS, T("%s: %s\n"), inpname, xstrerror());
-      xstrncat(msg, err, MAXL);
+      if (msg == NULL) fprintf(stderr, T("%s"), err);
+      else xstrncat(msg, err, MAXL);
       break;
     }
     if (feof(inp)) break;
@@ -155,7 +159,8 @@ int convert_file(TCHAR *url, int outf, FILE *out, TCHAR *msg)
 	else xstrncat(col1, T(" "), MAXS);
 	if (n != 4 && n != 3) {
 	  snprintf(err, MAXS, T("%s: line %d: %-.75s\n"), inpname, ln, line);
-          xstrncat(msg, err, MAXL);
+          if (msg == NULL) fprintf(stderr, T("%s"), err);
+          else xstrncat(msg, err, MAXL);
 	  continue;
 	}
       }
@@ -163,13 +168,15 @@ int convert_file(TCHAR *url, int outf, FILE *out, TCHAR *msg)
       if (rev) { tmp = fi; fi = la; la = tmp; }
       if (fi == 0.0 || la == 0.0) {
 	snprintf(err, MAXS, T("%s: line %d: %-.75s\n"), inpname, ln, line);
-        xstrncat(msg, err, MAXL);
+        if (msg == NULL) fprintf(stderr, T("%s"), err);
+        else xstrncat(msg, err, MAXL);
 	continue;
       }
       if (la > 17.0) {
 	if (warn) {
           snprintf(err, MAXS, T("%s: possibly reversed fi/la\n"), inpname);
-          xstrncat(msg, err, MAXL);
+          if (msg == NULL) fprintf(stderr, T("%s"), err);
+          else xstrncat(msg, err, MAXL);
           warn = 0;
         }
       }
@@ -194,7 +201,8 @@ int convert_file(TCHAR *url, int outf, FILE *out, TCHAR *msg)
 	else xstrncat(col1, T(" "), MAXS);
 	if (n != 4 && n != 3) {
 	  snprintf(err, MAXS, T("%s: line %d: %-.75s\n"), inpname, ln, line);
-          xstrncat(msg, err, MAXL);
+          if (msg == NULL) fprintf(stderr, T("%s"), err);
+          else xstrncat(msg, err, MAXL);
 	  continue;
 	}
       }
@@ -202,14 +210,16 @@ int convert_file(TCHAR *url, int outf, FILE *out, TCHAR *msg)
       if (rev) { tmp = x; x = y; y = tmp; }
       if (x == 0.0 || y == 0.0) {
 	snprintf(err, MAXS, T("%s: line %d: %-.75s\n"), inpname, ln, line);
-        xstrncat(msg, err, MAXL);
+        if (msg == NULL) fprintf(stderr, T("%s"), err);
+        else xstrncat(msg, err, MAXL);
 	continue;
       }
       if (y < 200000.0) {
 	y += 500000.0;
 	if (warn) {
           snprintf(err, MAXS, T("%s: possibly reversed x/y\n"), inpname);
-          xstrncat(msg, err, MAXL);
+          if (msg == NULL) fprintf(stderr, T("%s"), err);
+          else xstrncat(msg, err, MAXL);
           warn = 0;
         }
       }
