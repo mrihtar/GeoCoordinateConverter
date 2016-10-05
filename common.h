@@ -63,7 +63,6 @@
 #endif
 
 #ifdef _WIN32
-#define sleep Sleep
 #ifdef _WCHAR
 // simple wchar redefinitions (UNICODE support)
 #define T(x) L##x

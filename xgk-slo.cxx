@@ -32,8 +32,8 @@
 #include <FL/fl_ask.H>
 #include <FL/fl_draw.H>
 
-#define SW_VERSION "1.17"
-#define SW_BUILD   "Oct 3, 2016"
+#define SW_VERSION "1.18"
+#define SW_BUILD   "Oct 5, 2016"
 
 // global variables
 char *prog;  // program name
@@ -55,9 +55,12 @@ typedef struct ptid {
 PTID *threads, *threads0;
 pthread_attr_t pattr;
 pthread_mutex_t xlog_mutex; // xlog mutex
+#define MAXTN 5 // maximum number of allowed active threads
+pthread_mutex_t tn_mutex; // threads number mutex
+int tn; // number of active treads
 
 typedef struct targ {
-  char url[MAXS+1];
+  char text[MAXL+1];
   Fl_Browser *brow;
 } TARG;
 
@@ -231,7 +234,10 @@ int xpthread_create(void *(*worker)(void *), void *arg)
   threads->done = 0; threads->sts = -1;
   threads->next = NULL;
 
+  pthread_mutex_lock(&tn_mutex);
   rc = pthread_create(&threads->tid, &pattr, worker, arg);
+  tn++;
+  pthread_mutex_unlock(&tn_mutex);
   if (rc)
     if (rc == EAGAIN) // PTHREAD_THREADS_MAX = 2019
       xlog("Thread creation failed, max. number of threads exceeded\n");
@@ -251,11 +257,22 @@ int xpthread_create(void *(*worker)(void *), void *arg)
 // ----------------------------------------------------------------------------
 void *worker(void *arg) {
   Fl_Menu_Item *mi;
+  unsigned int tid;
   time_t now;
 
   mi = (Fl_Menu_Item *)arg;
-  xlog("Menu worker, menu %s\n", mi->label());  
+#ifdef _WIN32
+  tid = (unsigned int)pthread_self().p;
+#else
+  tid = (unsigned int)pthread_self();
+#endif
+  xlog("THREAD %08x: worker: menu %s\n", tid, mi->label());
+
   now = time(NULL);
+
+  pthread_mutex_lock(&tn_mutex);
+  tn--;
+  pthread_mutex_unlock(&tn_mutex);
   pthread_exit((void *)now);
   return NULL;
 } /* worker */
@@ -266,17 +283,23 @@ void *worker(void *arg) {
 void *convert(void *arg) {
   TARG *targ;
   char *url;
-  char *msg, *line;
   Fl_Browser *brow;
+  unsigned int tid;
+  char *msg, *line;
   long sts;
 
   targ = (TARG *)arg;
-  url = targ->url; brow = targ->brow;
+  url = targ->text; brow = targ->brow;
+#ifdef _WIN32
+  tid = (unsigned int)pthread_self().p;
+#else
+  tid = (unsigned int)pthread_self();
+#endif
+  xlog("THREAD %08x: convert: url %s\n", tid, url);
 
   msg = new char[MAXL+1];
   snprintf(msg, MAXL, "Converting %s\n", url);
 
-  xlog(msg);
   Fl::lock();
   brow->add(msg); brow->bottomline(brow->size());
   Fl::unlock();
@@ -286,22 +309,86 @@ void *convert(void *arg) {
   if (strlen(msg) > 0) {
     xlog("%s", msg); // must use %s here!
 
+    Fl::lock();
     line = strtok(msg, "\r\n");
     while (line != NULL) {
-      Fl::lock();
       brow->add(line); brow->bottomline(brow->size());
-      Fl::unlock();
-
       line = strtok(NULL, "\r\n");
     }
+    Fl::unlock();
     Fl::awake((void *)NULL);
   }
 
   delete msg;
   delete targ;
+  pthread_mutex_lock(&tn_mutex);
+  tn--;
+  pthread_mutex_unlock(&tn_mutex);
   pthread_exit((void *)sts);
   return NULL;
 } /* convert */
+
+
+// ----------------------------------------------------------------------------
+// THREAD: convert_all
+// ----------------------------------------------------------------------------
+void *convert_all(void *arg) {
+  char *urls, *url;
+  Fl_Browser *brow;
+  unsigned int tid;
+  int ii, len, rc;
+  TARG *targs, *targ;
+  struct timespec req, rem;
+  long sts;
+
+  targs = (TARG *)arg;
+  urls = targs->text; brow = targs->brow;
+#ifdef _WIN32
+  tid = (unsigned int)pthread_self().p;
+#else
+  tid = (unsigned int)pthread_self();
+#endif
+  len = strlen(urls);
+  if (len > 256)
+    xlog("THREAD %08x: convert_all: urls %.256s...\n", tid, urls);
+  else
+    xlog("THREAD %08x: convert_all: urls %s\n", tid, urls);
+
+  brow->clear();
+
+  ii = 0; sts = 0;
+  url = strtok(urls, "\r\n");
+  while (url != NULL) {
+    while (tn > MAXTN) { // wait until some of the threads finish
+#ifdef _WIN32
+      Sleep(100); // msec
+#else
+      req.tv_sec = 0; req.tv_nsec = 100000000L; // 100 msec
+      nanosleep(&req, &rem);
+#endif
+    }
+
+    ii++;
+    xlog("URL %d: %s\n", ii, url);
+ // brow->add(url); brow->bottomline(brow->size());
+ // Fl::flush();
+
+    targ = new TARG;
+    xstrncpy(targ->text, url, MAXL);
+    targ->brow = brow;
+
+    sts += xpthread_create(convert, (void *)targ);
+
+    url = strtok(NULL, "\r\n");
+  }
+
+  delete targs;
+  pthread_mutex_lock(&tn_mutex);
+  tn--;
+  pthread_mutex_unlock(&tn_mutex);
+  pthread_exit((void *)sts);
+  return NULL;
+} /* convert_all */
 
 
 // ----------------------------------------------------------------------------
@@ -329,7 +416,7 @@ void menu_cb(Fl_Widget *w, void *p) {
   if (!mi)
     xlog("menu_cb: mi = NULL\n");
   else if (mi->shortcut()) {
-    xlog("menu_cb: %s - %s\n", mi->label(), fl_shortcut_label(mi->shortcut()));
+    xlog("menu_cb: %s (%s)\n", mi->label(), fl_shortcut_label(mi->shortcut()));
     rc = xpthread_create(worker, (void *)mi);
   }
   else {
@@ -516,30 +603,24 @@ void rev_cb(Fl_Widget *w, void *p) {
 // dnd_proc
 // ----------------------------------------------------------------------------
 void dnd_proc(Fl_DND_Box *dnd, Fl_Browser *brow) {
-  char *urls, *url;
-  int ii, rc;
+  char *text;
+  int len, rc;
   TARG *targ;
 
-  urls = (char *)dnd->event_text();
+  text = (char *)dnd->event_text();
+  len = strlen(text);
+  if (len > MAXL) // event text is truncated to MAXL!
+    xlog("dnd_proc: len: %d, truncated text: %.256s...\n", len, text);
+  else if (len > 256)
+    xlog("dnd_proc: len: %d, text: %.256s...\n", len, text);
+  else
+    xlog("dnd_proc: len: %d, text: %s\n", len, text);
 
-  brow->clear();
+  targ = new TARG;
+  xstrncpy(targ->text, text, MAXL);
+  targ->brow = brow;
 
-  ii = 0;
-  url = strtok(urls, "\r\n");
-  while (url != NULL) {
-    ii++;
-    xlog("URL %d: %s\n", ii, url);
- // brow->add(url); brow->bottomline(brow->size());
- // Fl::flush();
-
-    targ = new TARG;
-    xstrncpy(targ->url, url, MAXS);
-    targ->brow = brow;
-
-    rc = xpthread_create(convert, (void *)targ);
-
-    url = strtok(NULL, "\r\n");
-  }
+  rc = xpthread_create(convert_all, (void *)targ);
 } /* dnd_proc */
 
 
@@ -557,6 +638,32 @@ void dnd_cb(Fl_Widget *w, void *p) {
   if (dnd->event() == FL_PASTE)
     dnd_proc(dnd, brow);
 } /* dnd_cb */
+
+
+// ----------------------------------------------------------------------------
+// join_threads
+// ----------------------------------------------------------------------------
+void join_threads(void *p) {
+  int rc, sts;
+  PTID *pt;
+
+  for (pt = threads0; pt != NULL; pt = pt->next) {
+    rc = pthread_join(pt->tid, (void **)&sts);
+    if (!rc) {
+      pt->done = 1; pt->sts = sts;
+#ifdef _WIN32
+      xlog("Completed join with thread %08x, status = %d\n",
+           (unsigned int)pt->tid.p, pt->sts);
+#else
+      xlog("Completed join with thread %08x, status = %d\n",
+           (unsigned int)pt->tid, pt->sts);
+#endif
+    }
+  }
+
+//Fl::flush();
+  Fl::repeat_timeout(0.5, join_threads);
+} /* join_threads */
 
 
 // ----------------------------------------------------------------------------
@@ -598,9 +705,12 @@ int main(int argc, char *argv[])
 
   // Initialize and set thread attribute
   pthread_attr_init(&pattr);
-  pthread_attr_setdetachstate(&pattr, PTHREAD_CREATE_JOINABLE);
+//pthread_attr_setdetachstate(&pattr, PTHREAD_CREATE_JOINABLE);
+  pthread_attr_setdetachstate(&pattr, PTHREAD_CREATE_DETACHED);
   // Initialize xlog mutex
   pthread_mutex_init(&xlog_mutex, NULL);
+  pthread_mutex_init(&tn_mutex, NULL);
+  tn = 0;
 
   // Create main window
   w0 = 815; h0 = 400;
@@ -739,11 +849,14 @@ int main(int argc, char *argv[])
 #endif
   mainwin->show(argc, argv);
 
+//Fl::add_timeout(0.5, join_threads); // join finished threads every 0.5 sec
+
   // Run in loop until main window closes
   Fl::run();
 
   // Free thread attribute and wait for all threads to finish
   pthread_attr_destroy(&pattr);
+#if 0
   for (pt = threads0; pt != NULL; pt = pt->next) {
     rc = pthread_join(pt->tid, (void **)&sts);
     if (!rc) {
@@ -757,9 +870,11 @@ int main(int argc, char *argv[])
 #endif
     }
   }
+#endif
 
-  xlog("Main program completed\n");
+  xlog("Main program completed (threads: %d)\n", tn);
   pthread_mutex_destroy(&xlog_mutex);
+  pthread_mutex_destroy(&tn_mutex);
   pthread_exit(NULL);
   return 0;
 } /* main */
