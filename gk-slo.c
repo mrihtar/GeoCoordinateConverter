@@ -29,6 +29,7 @@ int debug;
 int tr;      // transformation
 int rev;     // reverse xy/fila
 int ddms;    // display DMS
+
 extern int gid_wgs; // selected geoid on WGS 84 (in geo.c, via cmd line)
 extern int hsel;    // output height calculation (in geo.c, via cmd line)
 

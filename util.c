@@ -236,14 +236,15 @@ TCHAR *xstrerror(void)
 
   msg[0] = T('\0');
 #ifdef _WIN32
-  FormatMessageW(
+  FormatMessage(
     FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
     NULL, GetLastError(),
     MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),  // default language
-    (LPWSTR)&msg, MAXS, NULL);
+    (LPTSTR)&msg, MAXS, NULL);
 #else //not _WIN32
   xstrncpy(msg, strerror(errno), MAXS);
 #endif
+
   // Trim white spaces and dot from the end
   len = strlen(msg) - 1;
   while (len >= 0 && (isspace(msg[len]) || msg[len] == T('.')))
