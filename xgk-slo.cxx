@@ -32,8 +32,8 @@
 #include <FL/fl_ask.H>
 #include <FL/fl_draw.H>
 
-#define SW_VERSION "1.19"
-#define SW_BUILD   "Oct 5, 2016"
+#define SW_VERSION "1.20"
+#define SW_BUILD   "Oct 6, 2016"
 
 // global variables
 char *prog;  // program name
@@ -55,7 +55,7 @@ typedef struct ptid {
 PTID *threads, *threads0;
 pthread_attr_t pattr;
 pthread_mutex_t xlog_mutex; // xlog mutex
-#define MAXTN 5 // maximum number of allowed active threads
+#define MAXTN 25 // maximum number of allowed active threads
 pthread_mutex_t tn_mutex; // threads number mutex
 int tn; // number of active treads
 

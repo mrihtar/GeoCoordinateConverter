@@ -311,6 +311,7 @@ void h7_precalc(HELMERT7 *h7)
   double alfa, beta, gama;
   double sinAlfa, cosAlfa, sinBeta, cosBeta, sinGama, cosGama;
   m33 R1, R2, R3, R12;
+  TCHAR *errtxt;
 
   // Angles specified in arc seconds, convert to radians
   alfa = (h7->alfa/3600.0)*PI/180.0;
@@ -338,7 +339,12 @@ void h7_precalc(HELMERT7 *h7)
 
   h7->R = (m33 *)malloc(sizeof(m33));
   if (h7->R == NULL) {
-    fprintf(stderr, T("malloc(m33): %s"), xstrerror()); exit(3);
+    errtxt = xstrerror();
+    if (errtxt != NULL) {
+      fprintf(stderr, T("malloc(m33): %s\n"), errtxt); free(errtxt);
+    } else
+      fprintf(stderr, T("malloc(m33): Unknown error\n"));
+    exit(3);
   }
 
   matrix33_mul(R1,  R2, &R12);
@@ -358,9 +364,14 @@ void h7_precalc(HELMERT7 *h7)
   R3[1][0] = 0;        R3[1][1] = cosGama;  R3[1][2] = -sinGama;
   R3[2][0] = 0;        R3[2][1] = sinGama;  R3[2][2] = cosGama;
 
-  h7->R = malloc(sizeof(m33));
+  h7->R = (m33 *)malloc(sizeof(m33));
   if (h7->R == NULL) {
-    fprintf(stderr, T("malloc(m33): %s"), xstrerror()); exit(3);
+    errtxt = xstrerror();
+    if (errtxt != NULL) {
+      fprintf(stderr, T("malloc(m33): %s\n"), errtxt); free(errtxt);
+    } else
+      fprintf(stderr, T("malloc(m33): Unknown error\n"));
+    exit(3);
   }
 
   matrix33_mul(R1,  R2, &R12);

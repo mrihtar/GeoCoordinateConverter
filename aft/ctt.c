@@ -1,5 +1,5 @@
 // GK - Converter between Gauss-Krueger/TM and WGS84 coordinates for Slovenia
-// Copyright (c) 2014-2015 Matjaz Rihtar <matjaz@eunet.si>
+// Copyright (c) 2014-2016 Matjaz Rihtar <matjaz@eunet.si>
 // All rights reserved.
 //
 // This program is free software: you can redistribute it and/or modify
@@ -20,8 +20,8 @@
 #include "common.h"
 #include "geo.h"
 
-#define SW_VERSION T("2.05")
-#define SW_BUILD   T("Nov 28, 2015")
+#define SW_VERSION T("2.06")
+#define SW_BUILD   T("Oct 6, 2016")
 
 typedef struct triang {
   int t1, t2, t3;
@@ -177,8 +177,10 @@ void quick_sort(AFT *aft, int n)
 // ----------------------------------------------------------------------------
 void print_header(FILE *out, TCHAR *outname)
 {
+  TCHAR *errtxt;
+
   fprintf(out, T("// GK - Converter between Gauss-Krueger/TM and WGS84 coordinates for Slovenia\n"));
-  fprintf(out, T("// Copyright (c) 2014-2015 Matjaz Rihtar <matjaz@eunet.si>\n"));
+  fprintf(out, T("// Copyright (c) 2014-2016 Matjaz Rihtar <matjaz@eunet.si>\n"));
   fprintf(out, T("// All rights reserved.\n"));
   fprintf(out, T("//\n"));
   fprintf(out, T("// This program is free software: you can redistribute it and/or modify\n"));
@@ -195,7 +197,12 @@ void print_header(FILE *out, TCHAR *outname)
   fprintf(out, T("// along with this program; if not, see http://www.gnu.org/licenses/\n"));
   fprintf(out, T("//\n"));
   if (ferror(out)) {
-    fprintf(stderr, T("%s: %s\n"), outname, xstrerror()); exit(2);
+    errtxt = xstrerror();
+    if (errtxt != NULL) {
+      fprintf(stderr, T("%s: %s\n"), outname, errtxt); free(errtxt);
+    } else
+      fprintf(stderr, T("%s: Unknown error\n"), outname);
+    exit(2);
   }
   fflush(out);
 } /* print_header */
@@ -206,7 +213,7 @@ void print_header(FILE *out, TCHAR *outname)
 // ----------------------------------------------------------------------------
 void usage(TCHAR *prog, int ver_only)
 {
-  fprintf(stderr, T("%s %s  Copyright (c) 2014-2015 Matjaz Rihtar  (%s)\n"),
+  fprintf(stderr, T("%s %s  Copyright (c) 2014-2016 Matjaz Rihtar  (%s)\n"),
           prog, SW_VERSION, SW_BUILD);
   if (ver_only) return;
   fprintf(stderr, T("Usage: %s [<options>] <gknodename> <tmnodename> <elename>\n"), prog);
@@ -245,7 +252,7 @@ int main() {
 int tmain(int argc, TCHAR *argv[])
 {
   int ii, ac, opt;
-  TCHAR *s, *av[MAXC];
+  TCHAR *s, *av[MAXC], *errtxt;
   TCHAR gknodename[MAXS+1], tmnodename[MAXS+1], elename[MAXS+1];
   TCHAR outname[MAXS+1];
   FILE *gknode, *tmnode, *ele, *out;
@@ -291,7 +298,12 @@ usage:      usage(prog, 0);
     } // if opt
     av[ac] = (TCHAR *)malloc(MAXS+1);
     if (av[ac] == NULL) {
-      fprintf(stderr, T("malloc(av): %s\n"), xstrerror()); exit(3);
+      errtxt = xstrerror();
+      if (errtxt != NULL) {
+        fprintf(stderr, T("malloc(av): %s\n"), errtxt); free(errtxt);
+      } else
+        fprintf(stderr, T("malloc(av): Unknown error\n"));
+      exit(3);
     }
     xstrncpy(av[ac++], argv[ii], MAXS);
   } // for each argc
@@ -305,17 +317,32 @@ usage:      usage(prog, 0);
 
   gknode = fopen(gknodename, T("r"));
   if (gknode == NULL) {
-    fprintf(stderr, T("%s: %s\n"), gknodename, xstrerror()); exit(2);
+    errtxt = xstrerror();
+    if (errtxt != NULL) {
+      fprintf(stderr, T("%s: %s\n"), gknodename, errtxt); free(errtxt);
+    } else
+      fprintf(stderr, T("%s: Unknown error\n"), gknodename);
+    exit(2);
   }
 
   tmnode = fopen(tmnodename, T("r"));
   if (tmnode == NULL) {
-    fprintf(stderr, T("%s: %s\n"), tmnodename, xstrerror()); exit(2);
+    errtxt = xstrerror();
+    if (errtxt != NULL) {
+      fprintf(stderr, T("%s: %s\n"), tmnodename, errtxt); free(errtxt);
+    } else
+      fprintf(stderr, T("%s: Unknown error\n"), tmnodename);
+    exit(2);
   }
 
   ele = fopen(elename, T("r"));
   if (ele == NULL) {
-    fprintf(stderr, T("%s: %s\n"), elename, xstrerror()); exit(2);
+    errtxt = xstrerror();
+    if (errtxt != NULL) {
+      fprintf(stderr, T("%s: %s\n"), elename, errtxt); free(errtxt);
+    } else
+      fprintf(stderr, T("%s: Unknown error\n"), elename);
+    exit(2);
   }
 
   // parse GK node list
@@ -324,7 +351,11 @@ usage:      usage(prog, 0);
     // Read (next) line
     s = fgets(line, MAXS, gknode);
     if (ferror(gknode)) {
-      fprintf(stderr, T("%s: %s\n"), gknodename, xstrerror());
+      errtxt = xstrerror();
+      if (errtxt != NULL) {
+        fprintf(stderr, T("%s: %s\n"), gknodename, errtxt); free(errtxt);
+      } else
+        fprintf(stderr, T("%s: Unknown error\n"), gknodename);
       break;
     }
     if (feof(gknode)) break;
@@ -346,7 +377,12 @@ usage:      usage(prog, 0);
       }
       gk = malloc(gksize*sizeof(GEOUTM));
       if (gk == NULL) {
-        fprintf(stderr, T("malloc(gk): %s\n"), xstrerror()); exit(3);
+        errtxt = xstrerror();
+        if (errtxt != NULL) {
+          fprintf(stderr, T("malloc(gk): %s\n"), errtxt); free(errtxt);
+        } else
+          fprintf(stderr, T("malloc(gk): Unknown error\n"));
+        exit(3);
       }
       memset(gk, 0, gksize*sizeof(GEOUTM));
       if (debug)
@@ -370,7 +406,11 @@ usage:      usage(prog, 0);
     // Read (next) line
     s = fgets(line, MAXS, tmnode);
     if (ferror(tmnode)) {
-      fprintf(stderr, T("%s: %s\n"), tmnodename, xstrerror());
+      errtxt = xstrerror();
+      if (errtxt != NULL) {
+        fprintf(stderr, T("%s: %s\n"), tmnodename, errtxt); free(errtxt);
+      } else
+        fprintf(stderr, T("%s: Unknown error\n"), tmnodename);
       break;
     }
     if (feof(tmnode)) break;
@@ -395,7 +435,12 @@ usage:      usage(prog, 0);
       }
       tm = malloc(tmsize*sizeof(GEOUTM));
       if (tm == NULL) {
-        fprintf(stderr, T("malloc(tm): %s\n"), xstrerror()); exit(3);
+        errtxt = xstrerror();
+        if (errtxt != NULL) {
+          fprintf(stderr, T("malloc(tm): %s\n"), errtxt); free(errtxt);
+        } else
+          fprintf(stderr, T("malloc(tm): Unknown error\n"));
+        exit(3);
       }
       memset(tm, 0, tmsize*sizeof(GEOUTM));
       if (debug)
@@ -419,7 +464,11 @@ usage:      usage(prog, 0);
     // Read (next) line
     s = fgets(line, MAXS, ele);
     if (ferror(ele)) {
-      fprintf(stderr, T("%s: %s\n"), elename, xstrerror());
+      errtxt = xstrerror();
+      if (errtxt != NULL) {
+        fprintf(stderr, T("%s: %s\n"), elename, errtxt); free(errtxt);
+      } else
+        fprintf(stderr, T("%s: Unknown error\n"), elename);
       break;
     }
     if (feof(ele)) break;
@@ -441,7 +490,12 @@ usage:      usage(prog, 0);
       }
       tri = malloc(trisize*sizeof(GEOUTM));
       if (tri == NULL) {
-        fprintf(stderr, T("malloc(tri): %s\n"), xstrerror()); exit(3);
+        errtxt = xstrerror();
+        if (errtxt != NULL) {
+          fprintf(stderr, T("malloc(tri): %s\n"), errtxt); free(errtxt);
+        } else
+          fprintf(stderr, T("malloc(tri): Unknown error\n"));
+        exit(3);
       }
       memset(tri, 0, trisize*sizeof(GEOUTM));
       if (debug)
@@ -470,7 +524,12 @@ usage:      usage(prog, 0);
 
   aft = malloc(trisize*sizeof(AFT));
   if (aft == NULL) {
-    fprintf(stderr, T("malloc(aft): %s\n"), xstrerror()); exit(3);
+    errtxt = xstrerror();
+    if (errtxt != NULL) {
+      fprintf(stderr, T("malloc(aft): %s\n"), errtxt); free(errtxt);
+    } else
+      fprintf(stderr, T("malloc(aft): Unknown error\n"));
+    exit(3);
   }
 
   // prepare GK-->TM AFT table
@@ -498,14 +557,24 @@ usage:      usage(prog, 0);
   xstrncpy(outname, T("aft_gktm.h"), MAXS);
   out = fopen(outname, T("w"));
   if (out == NULL) {
-    fprintf(stderr, T("%s: %s\n"), outname, xstrerror()); exit(2);
+    errtxt = xstrerror();
+    if (errtxt != NULL) {
+      fprintf(stderr, T("%s: %s\n"), outname, errtxt); free(errtxt);
+    } else
+      fprintf(stderr, T("%s: Unknown error\n"), outname);
+    exit(2);
   }
   print_header(out, outname);
   fprintf(out, T("// %s: Affine transformation table from GK to TM for Slovenia\n"), outname);
   fprintf(out, T("//\n"));
   fprintf(out, T("AFT aft_gktm[%d] = {\n"), trisize);
   if (ferror(out)) {
-    fprintf(stderr, T("%s: %s\n"), outname, xstrerror()); exit(2);
+    errtxt = xstrerror();
+    if (errtxt != NULL) {
+      fprintf(stderr, T("%s: %s\n"), outname, errtxt); free(errtxt);
+    } else
+      fprintf(stderr, T("%s: Unknown error\n"), outname);
+    exit(2);
   }
   for (ii = 0; ii < trisize; ) {
     fprintf(out, T("{"));
@@ -527,12 +596,22 @@ usage:      usage(prog, 0);
     else fprintf(out, T("},\n"));
 
     if (ferror(out)) {
-      fprintf(stderr, T("%s: %s\n"), outname, xstrerror()); exit(2);
+      errtxt = xstrerror();
+      if (errtxt != NULL) {
+        fprintf(stderr, T("%s: %s\n"), outname, errtxt); free(errtxt);
+      } else
+        fprintf(stderr, T("%s: Unknown error\n"), outname);
+      exit(2);
     }
   }
   fprintf(out, T("};\n"));
   if (ferror(out)) {
-    fprintf(stderr, T("%s: %s\n"), outname, xstrerror()); exit(2);
+    errtxt = xstrerror();
+    if (errtxt != NULL) {
+      fprintf(stderr, T("%s: %s\n"), outname, errtxt); free(errtxt);
+    } else
+      fprintf(stderr, T("%s: Unknown error\n"), outname);
+    exit(2);
   }
   fclose(out);
   if (debug)
@@ -563,14 +642,24 @@ usage:      usage(prog, 0);
   xstrncpy(outname, T("aft_tmgk.h"), MAXS);
   out = fopen(outname, T("w"));
   if (out == NULL) {
-    fprintf(stderr, T("%s: %s\n"), outname, xstrerror()); exit(2);
+    errtxt = xstrerror();
+    if (errtxt != NULL) {
+      fprintf(stderr, T("%s: %s\n"), outname, errtxt); free(errtxt);
+    } else
+      fprintf(stderr, T("%s: Unknown error\n"), outname);
+    exit(2);
   }
   print_header(out, outname);
   fprintf(out, T("// %s: Affine transformation table from TM to GK for Slovenia\n"), outname);
   fprintf(out, T("//\n"));
   fprintf(out, T("AFT aft_tmgk[%d] = {\n"), trisize);
   if (ferror(out)) {
-    fprintf(stderr, T("%s: %s\n"), outname, xstrerror()); exit(2);
+    errtxt = xstrerror();
+    if (errtxt != NULL) {
+      fprintf(stderr, T("%s: %s\n"), outname, errtxt); free(errtxt);
+    } else
+      fprintf(stderr, T("%s: Unknown error\n"), outname);
+    exit(2);
   }
   for (ii = 0; ii < trisize; ) {
     fprintf(out, T("{"));
@@ -592,12 +681,22 @@ usage:      usage(prog, 0);
     else fprintf(out, T("},\n"));
 
     if (ferror(out)) {
-      fprintf(stderr, T("%s: %s\n"), outname, xstrerror()); exit(2);
+      errtxt = xstrerror();
+      if (errtxt != NULL) {
+        fprintf(stderr, T("%s: %s\n"), outname, errtxt); free(errtxt);
+      } else
+        fprintf(stderr, T("%s: Unknown error\n"), outname);
+      exit(2);
     }
   }
   fprintf(out, T("};\n"));
   if (ferror(out)) {
-    fprintf(stderr, T("%s: %s\n"), outname, xstrerror()); exit(2);
+    errtxt = xstrerror();
+    if (errtxt != NULL) {
+      fprintf(stderr, T("%s: %s\n"), outname, errtxt); free(errtxt);
+    } else
+      fprintf(stderr, T("%s: Unknown error\n"), outname);
+    exit(2);
   }
   fclose(out);
   if (debug)

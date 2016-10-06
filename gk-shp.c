@@ -21,8 +21,8 @@
 #include "geo.h"
 #include "shapefil.h"
 
-#define SW_VERSION T("1.02")
-#define SW_BUILD   T("Nov 22, 2015")
+#define SW_VERSION T("1.03")
+#define SW_BUILD   T("Oct 6, 2016")
 
 // global variables
 TCHAR *prog;  // program name
@@ -169,7 +169,7 @@ int main() {
 int tmain(int argc, TCHAR *argv[])
 {
   int ii, ac, opt;
-  TCHAR *s, *av[MAXC];
+  TCHAR *s, *av[MAXC], *errtxt;
   TCHAR geoid[MAXS+1];
   int value, tr, rev, warn;
   TCHAR inpname[MAXS+1], outname[MAXS+1], prjname[MAXS+1];
@@ -261,7 +261,12 @@ usage:      usage(prog, 0);
     } // if opt
     av[ac] = (TCHAR *)malloc(MAXS+1);
     if (av[ac] == NULL) {
-      fprintf(stderr, T("malloc(av): %s"), xstrerror()); exit(3);
+      errtxt = xstrerror();
+      if (errtxt != NULL) {
+        fprintf(stderr, T("malloc(av): %s\n"), errtxt); free(errtxt);
+      } else
+        fprintf(stderr, T("malloc(av): Unknown error\n"));
+      exit(3);
     }
     xstrncpy(av[ac++], argv[ii], MAXS);
   } // for each argc
@@ -321,7 +326,12 @@ usage:      usage(prog, 0);
 
   oTuple = (TCHAR *)malloc(oDBF->nRecordLength + 15);
   if (oTuple == NULL) {
-    fprintf(stderr, T("malloc(oTuple): %s"), xstrerror()); exit(3);
+    errtxt = xstrerror();
+    if (errtxt != NULL) {
+      fprintf(stderr, T("malloc(oTuple): %s\n"), errtxt); free(errtxt);
+    } else
+      fprintf(stderr, T("malloc(oTuple): Unknown error\n"));
+    exit(3);
   }
 
   // determine output projection
@@ -351,7 +361,12 @@ usage:      usage(prog, 0);
   // write selected projection to .prj file (for GIS programs)
   out = fopen(prjname, "w");
   if (out == NULL) {
-    fprintf(stderr, T("%s: %s"), prjname, xstrerror()); // ignore
+    errtxt = xstrerror();
+    if (errtxt != NULL) {
+      fprintf(stderr, T("%s: %s\n"), prjname, errtxt); free(errtxt);
+    } else
+      fprintf(stderr, T("%s: Unknown error\n"), prjname);
+    // ignore
   }
   else {
     fprintf(out, "%s\n", proj);

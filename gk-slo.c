@@ -20,8 +20,8 @@
 #include "common.h"
 #include "geo.h"
 
-#define SW_VERSION T("9.00")
-#define SW_BUILD   T("Sep 26, 2016")
+#define SW_VERSION T("9.01")
+#define SW_BUILD   T("Oct 6, 2016")
 
 // global variables
 TCHAR *prog; // program name
@@ -433,7 +433,7 @@ int main() {
 int tmain(int argc, TCHAR *argv[])
 {
   int ii, ac, opt;
-  TCHAR *s, *av[MAXC];
+  TCHAR *s, *av[MAXC], *errtxt;
   TCHAR geoid[MAXS+1];
   int value, test, gd;
   TCHAR outname[MAXS+1];
@@ -545,7 +545,11 @@ usage:      usage(prog, 0);
     } // if opt
     av[ac] = (TCHAR *)malloc(MAXS+1);
     if (av[ac] == NULL) {
-      fprintf(stderr, T("malloc(av): %s"), xstrerror());
+      errtxt = xstrerror();
+      if (errtxt != NULL) {
+        fprintf(stderr, T("malloc(av): %s\n"), errtxt); free(errtxt);
+      } else
+        fprintf(stderr, T("malloc(av): Unknown error\n"));
       exit(3);
     }
     xstrncpy(av[ac++], argv[ii], MAXS);
@@ -573,7 +577,11 @@ usage:      usage(prog, 0);
   if (outf == 3) { // specified file
     out = fopen(outname, T("w"));
     if (out == NULL) {
-      fprintf(stderr, T("%s: %s\n"), outname, xstrerror());
+      errtxt = xstrerror();
+      if (errtxt != NULL) {
+        fprintf(stderr, T("%s: %s\n"), outname, errtxt); free(errtxt);
+      } else
+        fprintf(stderr, T("%s: Unknown error\n"), outname);
       exit(2);
     }
   }

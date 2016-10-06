@@ -71,7 +71,7 @@ TCHAR *fnfind(TCHAR *fname, TCHAR *newname)
 // ----------------------------------------------------------------------------
 int convert_file(TCHAR *url, int outf, FILE *out, TCHAR *msg)
 {
-  TCHAR *s, err[MAXS+1];
+  TCHAR *s, err[MAXS+1], *errtxt;
   TCHAR inpname[MAXS+1], outname[MAXS+1];
   FILE *inp;
   TCHAR line[MAXS+1], col1[MAXS+1];
@@ -95,7 +95,11 @@ int convert_file(TCHAR *url, int outf, FILE *out, TCHAR *msg)
     inp = fopen(inpname, T("r")); inpf = 2;
   }
   if (inp == NULL) {
-    snprintf(err, MAXS, T("%s: %s\n"), inpname, xstrerror());
+    errtxt = xstrerror();
+    if (errtxt != NULL) {
+      snprintf(err, MAXS, T("%s: %s\n"), inpname, errtxt); free(errtxt);
+    } else
+      snprintf(err, MAXS, T("%s: Unknown error\n"), inpname);
     if (msg == NULL) fprintf(stderr, T("%s"), err);
     else xstrncat(msg, err, MAXL);
     return 1;
@@ -112,7 +116,11 @@ int convert_file(TCHAR *url, int outf, FILE *out, TCHAR *msg)
     }
     out = fopen(outname, T("w"));
     if (out == NULL) {
-      snprintf(err, MAXS, T("%s: %s\n"), outname, xstrerror());
+      errtxt = xstrerror();
+      if (errtxt != NULL) {
+        snprintf(err, MAXS, T("%s: %s\n"), outname, errtxt); free(errtxt);
+      } else
+        snprintf(err, MAXS, T("%s: Unknown error\n"), outname);
       if (msg == NULL) fprintf(stderr, T("%s"), err);
       else xstrncat(msg, err, MAXL);
       if (inpf == 2) fclose(inp);
@@ -128,7 +136,11 @@ int convert_file(TCHAR *url, int outf, FILE *out, TCHAR *msg)
     // Read (next) line
     s = fgets(line, MAXS, inp);
     if (ferror(inp)) {
-      snprintf(err, MAXS, T("%s: %s\n"), inpname, xstrerror());
+      errtxt = xstrerror();
+      if (errtxt != NULL) {
+        snprintf(err, MAXS, T("%s: %s\n"), inpname, errtxt); free(errtxt);
+      } else
+        snprintf(err, MAXS, T("%s: Unknown error\n"), inpname);
       if (msg == NULL) fprintf(stderr, T("%s"), err);
       else xstrncat(msg, err, MAXL);
       break;

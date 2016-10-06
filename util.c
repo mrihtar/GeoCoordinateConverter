@@ -288,22 +288,27 @@ TCHAR *xstrstr(TCHAR *s1, size_t n1, const TCHAR *s2, size_t n2)
 // ----------------------------------------------------------------------------
 // xstrerror
 // Returns string describing last occured error. Trims white spaces and dot
-// from the end.
+// from the end. Returned string must be freed after use outside the function.
 // ----------------------------------------------------------------------------
 TCHAR *xstrerror(void)
 {
-  static TCHAR msg[MAXS+1];
-  int len;
+  TCHAR *msg;
+  int error, len;
 
-  msg[0] = T('\0');
 #ifdef _WIN32
+  error = GetLastError();
+  msg = (TCHAR *)calloc(MAXS+1, sizeof(TCHAR));
+  if (msg == NULL) return NULL;
   FormatMessage(
     FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-    NULL, GetLastError(),
+    NULL, error,
     MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),  // default language
-    (LPTSTR)&msg, MAXS, NULL);
+    (LPTSTR)msg, MAXS, NULL);
 #else //not _WIN32
-  xstrncpy(msg, strerror(errno), MAXS);
+  error = errno;
+  msg = (TCHAR *)calloc(MAXS+1, sizeof(TCHAR));
+  if (msg == NULL) return NULL;
+  strerror_r(error, msg, MAXS);
 #endif
 
   // Trim white spaces and dot from the end
