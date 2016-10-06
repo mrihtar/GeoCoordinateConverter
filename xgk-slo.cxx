@@ -282,7 +282,7 @@ void *worker(void *arg) {
 // ----------------------------------------------------------------------------
 void *convert(void *arg) {
   TARG *targ;
-  char *url;
+  char *url, *s;
   Fl_Browser *brow;
   unsigned int tid;
   char *msg, *line;
@@ -310,10 +310,10 @@ void *convert(void *arg) {
     xlog("%s", msg); // must use %s here!
 
     Fl::lock();
-    line = strtok(msg, "\r\n");
+    line = xstrtok_r(msg, "\r\n", &s);
     while (line != NULL) {
       brow->add(line); brow->bottomline(brow->size());
-      line = strtok(NULL, "\r\n");
+      line = xstrtok_r(NULL, "\r\n", &s);
     }
     Fl::unlock();
     Fl::awake((void *)NULL);
