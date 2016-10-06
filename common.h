@@ -149,6 +149,7 @@ double xfmax(double d1, double d2);
 TCHAR *xstrncpy(TCHAR *s1, const TCHAR *s2, size_t n);
 TCHAR *xstrncat(TCHAR *s1, const TCHAR *s2, size_t n);
 TCHAR *xstrtrim(TCHAR *str);
+TCHAR *xstrtok_r(TCHAR *str, const TCHAR *delim, TCHAR **savep);
 TCHAR *xstrsep(TCHAR **strp, const TCHAR *delim);
 TCHAR *xstrstr(TCHAR *s1, size_t n1, const TCHAR *s2, size_t n2);
 TCHAR *xstrerror(void);

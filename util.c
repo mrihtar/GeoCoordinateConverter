@@ -163,31 +163,92 @@ TCHAR *xstrtrim(TCHAR *str)
 
 
 // ----------------------------------------------------------------------------
+// in_delim
+// Returns true if character is in delimiter list.
+// ----------------------------------------------------------------------------
+int in_delim(TCHAR c, const TCHAR *delim)
+{
+  int found;
+  TCHAR *s;
+
+//if (delim == NULL) return 0;
+
+  found = 0;
+  for (s = (TCHAR *)delim; *s && !found; s++) {
+    if (c == *s) found = 1;
+  }
+  return found;
+} /* in_delim */
+
+
+// ----------------------------------------------------------------------------
+// xstrtok_r
+// Extracts token from string str. Token delimiters are specified in string
+// delim. Consecutive delimiters are ignored.
+// (strtok_r is missing from Microsoft C & MinGW)
+// ----------------------------------------------------------------------------
+TCHAR *xstrtok_r(TCHAR *str, const TCHAR *delim, TCHAR **savep)
+{
+  TCHAR *ret;
+  int dc, tc;
+
+  if (str == NULL) {
+    if (savep == NULL) return NULL;
+    else str = *savep;
+    if (str == NULL) return NULL;
+  }
+  if (delim == NULL) return str; // check this!
+
+  // first clear all delimiters
+  for (dc = 1; *str && dc; ) {
+    dc = 0;
+    if (in_delim(*str, delim)) {
+      *str++ = T('\0'); dc = 1;
+    }
+  }
+
+  ret = str;
+
+  // token is until next delimiter, which is also cleared
+  tc = 0;
+  for (dc = 0; *str && !dc; str++) {
+    if (in_delim(*str, delim)) {
+      *str = T('\0'); dc = 1;
+    }
+    else tc++;
+  }
+  if (tc == 0) ret = NULL;
+  *savep = str;
+
+  return ret;
+} /* xstrtok_r */
+
+
+// ----------------------------------------------------------------------------
 // xstrsep
 // Extracts token from string *strp. Token delimiters are specified in string
 // delim. Consecutive delimiters return empty tokens.
+// Empty string *strp returns empty token (token after last delimiter).
 // (strsep is missing from Microsoft C)
 // ----------------------------------------------------------------------------
 TCHAR *xstrsep(TCHAR **strp, const TCHAR *delim)
 {
-  TCHAR *str, *s;
-  int found;
+  TCHAR *ret;
+  int dc;
 
   if (strp == NULL || *strp == NULL) return NULL;
-  str = *strp;
-  if (delim == NULL) return str;
+  if (delim == NULL) return *strp; // check this!
 
-  for (found = 0; **strp && !found; (*strp)++) {
-    for (s = (TCHAR *)delim; *s && !found; s++) {
-      if (**strp == *s) {
-        **strp = T('\0');
-        found = 1;
-      }
+  ret = *strp;
+
+  for (dc = 0; **strp && !dc; (*strp)++) {
+    if (in_delim(**strp, delim)) {
+      **strp = T('\0'); dc = 1;
     }
   }
-  if (!found) *strp = NULL;
+  if (!dc) *strp = NULL; // last token
 
-  return str;
+  return ret;
 } /* xstrsep */
 
 

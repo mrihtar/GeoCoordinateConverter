@@ -32,7 +32,7 @@
 #include <FL/fl_ask.H>
 #include <FL/fl_draw.H>
 
-#define SW_VERSION "1.18"
+#define SW_VERSION "1.19"
 #define SW_BUILD   "Oct 5, 2016"
 
 // global variables
@@ -333,7 +333,7 @@ void *convert(void *arg) {
 // THREAD: convert_all
 // ----------------------------------------------------------------------------
 void *convert_all(void *arg) {
-  char *urls, *url;
+  char *urls, *url, *s;
   Fl_Browser *brow;
   unsigned int tid;
   int ii, len, rc;
@@ -357,7 +357,7 @@ void *convert_all(void *arg) {
   brow->clear();
 
   ii = 0; sts = 0;
-  url = strtok(urls, "\r\n");
+  url = xstrtok_r(urls, "\r\n", &s);
   while (url != NULL) {
     while (tn > MAXTN) { // wait until some of the threads finish
 #ifdef _WIN32
@@ -379,7 +379,7 @@ void *convert_all(void *arg) {
 
     sts += xpthread_create(convert, (void *)targ);
 
-    url = strtok(NULL, "\r\n");
+    url = xstrtok_r(NULL, "\r\n", &s);
   }
 
   delete targs;
