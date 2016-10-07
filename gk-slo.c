@@ -37,7 +37,7 @@ extern int hsel;    // output height calculation (in geo.c, via cmd line)
 extern "C" {
 #endif
 // External function prototypes
-int convert_file(TCHAR *url, int outf, FILE *out, TCHAR *msg);
+int convert_xyz_file(TCHAR *url, int outf, FILE *out, TCHAR *msg);
 #ifdef __cplusplus
 }
 #endif
@@ -587,7 +587,7 @@ usage:      usage(prog, 0);
   }
 
   for (ii = 0; ii < ac; ii++)
-    convert_file(av[ii], outf, out, NULL);
+    convert_xyz_file(av[ii], outf, out, NULL);
 
   if (outf == 3) fclose(out);
 

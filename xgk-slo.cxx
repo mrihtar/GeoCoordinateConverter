@@ -27,12 +27,15 @@
 #include <FL/Fl_Sys_Menu_Bar.H>
 #include <FL/Fl_Radio_Round_Button.H>
 #include <FL/Fl_Check_Button.H>
+#include <FL/Fl_Button.H>
+#include <FL/Fl_Tabs.H>
+#include <FL/Fl_Choice.H>
 #include <FL/Fl_Browser.H>
 #include <FL/Fl_Help_Dialog.H>
 #include <FL/fl_ask.H>
 #include <FL/fl_draw.H>
 
-#define SW_VERSION "1.20"
+#define SW_VERSION "1.21"
 #define SW_BUILD   "Oct 6, 2016"
 
 // global variables
@@ -43,6 +46,7 @@ int rev;     // reverse xy/fila
 int ddms;    // display DMS
 extern int gid_wgs; // selected geoid on WGS 84 (in geo.c)
 extern int hsel;    // output height calculation (in geo.c)
+int ft;      // file type (XYZ/SHP)
 
 typedef struct ptid {
   // WIN32 { void *p; unsigned int x; }, UNIX: unsigned long
@@ -68,15 +72,17 @@ typedef struct targ {
 extern "C" {
 #endif
 // External function prototypes
-int convert_file(char *url, int outf, FILE *out, char *msg); // in conv.c
+int convert_xyz_file(char *url, int outf, FILE *out, char *msg); // in conv.c
+int convert_shp_file(char *url, char *msg); // in conv.c
 #ifdef __cplusplus
 }
 #endif
 
-// FLTK function prototypes
+// FLTK callback function prototypes
 void quit_cb(Fl_Widget *w, void *p);
 void help_cb(Fl_Widget *w, void *p);
 void about_cb(Fl_Widget *w, void *p);
+void ftchoice_cb(Fl_Widget *w, void *p);
 
 // FLTK global variables
 Fl_Menu_Item menubar_entries[] = {
@@ -103,6 +109,12 @@ Fl_Menu_Item menubar_entries[] = {
 Fl_Radio_Round_Button *rb_trans[MAXC];
 Fl_Radio_Round_Button *rb_geoid[MAXC];
 Fl_Radio_Round_Button *rb_height[MAXC];
+
+Fl_Menu_Item ft_choices[] = {
+  {"XYZ files", 0, ftchoice_cb, (void *)1},
+  {"SHP files", 0, ftchoice_cb, (void *)2},
+  {0}
+}; /* ft_choices */
 
 // ----------------------------------------------------------------------------
 // Fl_DND_Box
@@ -305,7 +317,11 @@ void *convert(void *arg) {
   Fl::unlock();
   Fl::awake((void *)NULL);
 
-  sts = convert_file(url, 2, NULL, msg); // convert to separate files
+  if (ft == 1) // XYZ files
+    sts = convert_xyz_file(url, 2, NULL, msg); // convert to separate files
+  else // SHP files
+    sts = convert_shp_file(url, msg);
+
   if (strlen(msg) > 0) {
     xlog("%s", msg); // must use %s here!
 
@@ -600,6 +616,19 @@ void rev_cb(Fl_Widget *w, void *p) {
 
 
 // ----------------------------------------------------------------------------
+// ftchoice_cb
+// ----------------------------------------------------------------------------
+void ftchoice_cb(Fl_Widget *w, void *p) {
+  Fl_Choice *c;
+
+  c = (Fl_Choice *)w;
+  ft = (fl_intptr_t)p;
+
+  xlog("ftchoice_cb: ft = %d\n", ft);
+} /* ftchoice_cb */
+
+
+// ----------------------------------------------------------------------------
 // dnd_proc
 // ----------------------------------------------------------------------------
 void dnd_proc(Fl_DND_Box *dnd, Fl_Browser *brow) {
@@ -677,8 +706,11 @@ int main(int argc, char *argv[])
   Fl_Group *g1, *g2, *g3, *g4, *g5;
   Fl_Radio_Round_Button *rb;
   Fl_Check_Button *cb;
+  Fl_Tabs *tabs;
   Fl_Browser *brow;
   Fl_Box *box; Fl_DND_Box *dnd;
+  Fl_Button *bt1, *bt2;
+  Fl_Choice *ch;
   int x0, y0, xinc, yinc, w0, h0;
   int ii, jj, rc, sts;
   PTID *pt;
@@ -696,6 +728,7 @@ int main(int argc, char *argv[])
   ddms = 0;    // don't display DMS
   gid_wgs = 1; // default geoid: slo2000
   hsel = -1;   // no default height processing (use internal recommendations)
+  ft = 1;      // file type: XYZ
 
   // geo.c initialization
   ellipsoid_init();
@@ -713,16 +746,16 @@ int main(int argc, char *argv[])
   tn = 0;
 
   // Create main window
-  w0 = 815; h0 = 400;
-  mainwin = new Fl_Double_Window(w0, h0, prog);
+  w0 = 815; h0 = 600;
+  mainwin = new Fl_Double_Window(w0, h0, "Geo Coordinate Converter");
   mainwin->resizable(mainwin);
   mainwin->size_range(w0-300, h0, w0+300, h0+300);
-  mainwin->callback(mainwin_cb);
+  mainwin->callback(mainwin_cb, NULL);
 
   // Create menu bar
   menubar = new Fl_Menu_Bar(0, 0, w0, 30);
   menubar->menu(menubar_entries);
-  menubar->callback(menu_cb);
+  menubar->callback(menu_cb, NULL);
 
   // Top window
   subwin1 = new Fl_Double_Window(0, menubar->y()+menubar->h(), mainwin->w(), 233);
@@ -817,22 +850,44 @@ int main(int argc, char *argv[])
   subwin1->end();
 
   // Bottom window
-  subwin2 = new Fl_Double_Window(0, menubar->y()+menubar->h()+subwin1->h(), mainwin->w(), 137);
+  subwin2 = new Fl_Double_Window(0, menubar->y()+menubar->h()+subwin1->h(), mainwin->w(), mainwin->h()-subwin1->h()-6);
   subwin2->box(FL_DOWN_BOX);
 //xlog("subwin2-x: %d, subwin2-y: %d\n", subwin2->x(), subwin2->y());
   // x,y is 0.0 from now on
 
-  // Create drag & drop area
-  g1 = new Fl_Group(5, 22, subwin2->w()-10, 110, "Drag & drop files to transform");
-  g1->labelsize(16); g1->labelfont(FL_BOLD + FL_ITALIC);
+  tabs = new Fl_Tabs(0, 22, subwin2->w(), subwin2->h()-46, "Operation");
+  tabs->labelsize(16); tabs->labelfont(FL_BOLD);
+  tabs->box(FL_DOWN_BOX);
+  // get available size for children tabs
+  tabs->client_area((int &)x0, (int &)y0, (int &)w0, (int &)h0, 25);
+
+  // Create drag & drop area tab
+  g1 = new Fl_Group(x0+5, y0, w0-10, h0-5, "Drag && drop files");
+  g1->labelsize(16); g1->labelfont(FL_BOLD);
   g1->box(FL_DOWN_BOX);
 //g1->clip_children(1);
 
-  brow = new Fl_Browser(g1->x(), g1->y(), g1->w(), g1->h());
+  ch = new Fl_Choice(g1->x()+85, g1->y()+8, 100, 25, "File type: ");
+  ch->labelsize(16); ch->labelfont(FL_BOLD + FL_ITALIC);
+  ch->menu(ft_choices);
+  ch->callback(ftchoice_cb, NULL);
+  ch->when(FL_WHEN_CHANGED);
+
+  brow = new Fl_Browser(g1->x(), g1->y()+40, g1->w(), g1->h()-40);
   dnd = new Fl_DND_Box(brow->x(), brow->y(), brow->w(), brow->h());
   dnd->callback(dnd_cb, brow);
 
   g1->end();
+
+  // Create interactive area tab
+  g2 = new Fl_Group(x0+5, y0, w0-10, h0-5, "Interactive");
+  g2->labelsize(16); g2->labelfont(FL_BOLD);
+  g2->box(FL_DOWN_BOX);
+//g2->clip_children(1);
+
+  g2->end();
+
+  tabs->end();
 
   // No more widgets in subwin2
   subwin2->resizable(subwin2);

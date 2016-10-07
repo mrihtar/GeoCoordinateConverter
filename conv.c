@@ -66,10 +66,10 @@ TCHAR *fnfind(TCHAR *fname, TCHAR *newname)
 
 
 // ----------------------------------------------------------------------------
-// convert_file
+// convert_xyz_file
 // ellipsoid_init() and params_init() must be called before this!
 // ----------------------------------------------------------------------------
-int convert_file(TCHAR *url, int outf, FILE *out, TCHAR *msg)
+int convert_xyz_file(TCHAR *url, int outf, FILE *out, TCHAR *msg)
 {
   TCHAR *s, err[MAXS+1], *errtxt;
   TCHAR inpname[MAXS+1], outname[MAXS+1];
@@ -334,7 +334,26 @@ int convert_file(TCHAR *url, int outf, FILE *out, TCHAR *msg)
   if (outf == 2) fclose(out);
 
   return 0;
-} /* convert_file */
+} /* convert_xyz_file */
+
+
+// ----------------------------------------------------------------------------
+// convert_shp_file
+// ellipsoid_init() and params_init() must be called before this!
+// ----------------------------------------------------------------------------
+int convert_shp_file(TCHAR *url, TCHAR *msg)
+{
+  TCHAR err[MAXS+1], *errtxt;
+
+  if (url == NULL) return 1;
+  if (msg != NULL) msg[0] = '\0';
+
+  snprintf(err, MAXS, T("%s: not implemented yet\n"), url);
+  if (msg == NULL) fprintf(stderr, T("%s"), err);
+  else xstrncat(msg, err, MAXL);
+
+  return 0;
+} /* convert_shp_file */
 
 #ifdef __cplusplus
 }
