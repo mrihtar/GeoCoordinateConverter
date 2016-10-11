@@ -19,6 +19,7 @@
 //
 #include "common.h"
 #include "geo.h"
+#include "shapefil.h"
 
 // global variables
 extern TCHAR *prog; // program name
@@ -34,36 +35,6 @@ extern int hsel;    // output height calculation (in geo.c)
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-// ----------------------------------------------------------------------------
-// fnfind
-// ----------------------------------------------------------------------------
-TCHAR *fnfind(TCHAR *fname, TCHAR *newname)
-{
-  TCHAR name[MAXS+1], ext[MAXS+1];
-//TCHAR *s;
-  struct _stat fst;
-  int ii;
-
-  xstrncpy(name, fname, MAXS);
-//if ((s = strrchr(name, T('.'))) != NULL) *s = T('\0');
-
-  xstrncpy(newname, name, MAXS);
-  xstrncat(newname, T(".out"), MAXS);
-  for (ii = 0; ii <= 15; ii++) { // append 1..15 to output file name
-    if (tstat(newname, &fst) < 0) break; // file not found
-    snprintf(ext, MAXS, T(".out.%d"), ii+1);
-    xstrncpy(newname, name, MAXS);
-    xstrncat(newname, ext, MAXS);
-  }
-  if (ii > 15) {
-    xstrncpy(newname, name, MAXS);
-    xstrncat(newname, T(".out"), MAXS);
-    return NULL;
-  }
-  return newname;
-} /* fnfind */
-
 
 // ----------------------------------------------------------------------------
 // convert_xyz_file
@@ -102,17 +73,17 @@ int convert_xyz_file(TCHAR *url, int outf, FILE *out, TCHAR *msg)
       snprintf(err, MAXS, T("%s: Unknown error\n"), inpname);
     if (msg == NULL) fprintf(stderr, T("%s"), err);
     else xstrncat(msg, err, MAXL);
-    return 1;
+    return 2;
   }
 
   // Open output file
   if (outf == 2) { // convert to separate files
-    if (fnfind(url, outname) == NULL) {
+    if (fefind(url, T(".out"), outname) == NULL) {
       snprintf(err, MAXS, T("%s: file already exists\n"), outname);
       if (msg == NULL) fprintf(stderr, T("%s"), err);
       else xstrncat(msg, err, MAXL);
       if (inpf == 2) fclose(inp);
-      return 1;
+      return 3;
     }
     out = fopen(outname, T("w"));
     if (out == NULL) {
@@ -124,7 +95,7 @@ int convert_xyz_file(TCHAR *url, int outf, FILE *out, TCHAR *msg)
       if (msg == NULL) fprintf(stderr, T("%s"), err);
       else xstrncat(msg, err, MAXL);
       if (inpf == 2) fclose(inp);
-      return 1;
+      return 2;
     }
   }
 
@@ -335,25 +306,6 @@ int convert_xyz_file(TCHAR *url, int outf, FILE *out, TCHAR *msg)
 
   return 0;
 } /* convert_xyz_file */
-
-
-// ----------------------------------------------------------------------------
-// convert_shp_file
-// ellipsoid_init() and params_init() must be called before this!
-// ----------------------------------------------------------------------------
-int convert_shp_file(TCHAR *url, TCHAR *msg)
-{
-  TCHAR err[MAXS+1], *errtxt;
-
-  if (url == NULL) return 1;
-  if (msg != NULL) msg[0] = '\0';
-
-  snprintf(err, MAXS, T("%s: not implemented yet\n"), url);
-  if (msg == NULL) fprintf(stderr, T("%s"), err);
-  else xstrncat(msg, err, MAXL);
-
-  return 0;
-} /* convert_shp_file */
 
 #ifdef __cplusplus
 }

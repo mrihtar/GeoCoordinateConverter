@@ -431,6 +431,37 @@ int clock_gettime(int clk_id, struct timespec *tv)
 } /* clock_gettime */
 #endif
 
+
+// ----------------------------------------------------------------------------
+// fefind
+// Tries to find first free file name with specified extension (adding numbers
+// to the name until 15).
+// ----------------------------------------------------------------------------
+TCHAR *fefind(TCHAR *fname, TCHAR *ext, TCHAR *newname)
+{
+  TCHAR name[MAXS+1], newext[MAXS+1], *s;
+  struct _stat fst;
+  int ii;
+
+  xstrncpy(name, fname, MAXS);
+  if ((s = strrchr(name, T('.'))) != NULL) *s = T('\0');
+
+  xstrncpy(newname, name, MAXS);
+  xstrncat(newname, ext, MAXS);
+  for (ii = 0; ii <= 15; ii++) { // append 1..15 to output file name
+    if (tstat(newname, &fst) < 0) break; // file not found
+    snprintf(newext, MAXS, T("-%d%s"), ii+1, ext);
+    xstrncpy(newname, name, MAXS);
+    xstrncat(newname, newext, MAXS);
+  }
+  if (ii > 15) {
+    xstrncpy(newname, name, MAXS);
+    xstrncat(newname, ext, MAXS);
+    return NULL;
+  }
+  return newname;
+} /* fefind */
+
 #ifdef __cplusplus
 }
 #endif

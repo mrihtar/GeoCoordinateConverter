@@ -155,6 +155,7 @@ TCHAR *xstrstr(TCHAR *s1, size_t n1, const TCHAR *s2, size_t n2);
 TCHAR *xstrerror(void);
 int xprintf(FILE *log, TCHAR *fmt, ...);
 int clock_gettime(int clk_id, struct timespec *tv);
+TCHAR *fefind(TCHAR *fname, TCHAR *ext, TCHAR *newname);
 
 #ifdef __cplusplus
 }

@@ -35,8 +35,8 @@
 #include <FL/fl_ask.H>
 #include <FL/fl_draw.H>
 
-#define SW_VERSION "1.21"
-#define SW_BUILD   "Oct 6, 2016"
+#define SW_VERSION "1.22"
+#define SW_BUILD   "Oct 10, 2016"
 
 // global variables
 char *prog;  // program name
@@ -73,7 +73,7 @@ extern "C" {
 #endif
 // External function prototypes
 int convert_xyz_file(char *url, int outf, FILE *out, char *msg); // in conv.c
-int convert_shp_file(char *url, char *msg); // in conv.c
+int convert_shp_file(TCHAR *inpurl, TCHAR *outurl, TCHAR *msg); // in conv.c
 #ifdef __cplusplus
 }
 #endif
@@ -320,7 +320,7 @@ void *convert(void *arg) {
   if (ft == 1) // XYZ files
     sts = convert_xyz_file(url, 2, NULL, msg); // convert to separate files
   else // SHP files
-    sts = convert_shp_file(url, msg);
+    sts = convert_shp_file(url, NULL, msg);
 
   if (strlen(msg) > 0) {
     xlog("%s", msg); // must use %s here!
