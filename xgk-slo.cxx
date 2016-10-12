@@ -35,8 +35,8 @@
 #include <FL/fl_ask.H>
 #include <FL/fl_draw.H>
 
-#define SW_VERSION "1.22"
-#define SW_BUILD   "Oct 10, 2016"
+#define SW_VERSION "1.23"
+#define SW_BUILD   "Oct 11, 2016"
 
 // global variables
 char *prog;  // program name
@@ -115,6 +115,10 @@ Fl_Menu_Item ft_choices[] = {
   {"SHP files", 0, ftchoice_cb, (void *)2},
   {0}
 }; /* ft_choices */
+
+Fl_Input *input[MAXC];
+Fl_Radio_Round_Button *rb_dms[MAXC];
+Fl_Group *gtr1, *gtr2;
 
 // ----------------------------------------------------------------------------
 // Fl_DND_Box
@@ -294,10 +298,10 @@ void *worker(void *arg) {
 // ----------------------------------------------------------------------------
 void *convert(void *arg) {
   TARG *targ;
-  char *url, *s;
+  char *url, line[MAXS+1], *linep;
   Fl_Browser *brow;
   unsigned int tid;
-  char *msg, *line;
+  char *msg, *msgp, *s;
   long sts;
 
   targ = (TARG *)arg;
@@ -309,14 +313,15 @@ void *convert(void *arg) {
 #endif
   xlog("THREAD %08x: convert: url %s\n", tid, url);
 
-  msg = new char[MAXL+1];
-  snprintf(msg, MAXL, "Converting %s\n", url);
+  linep = line;
 
+  snprintf(linep, MAXL, "Converting %s\n", url);
   Fl::lock();
-  brow->add(msg); brow->bottomline(brow->size());
+  brow->add(linep); brow->bottomline(brow->size());
   Fl::unlock();
   Fl::awake((void *)NULL);
 
+  msg = new char[MAXL+1];
   if (ft == 1) // XYZ files
     sts = convert_xyz_file(url, 2, NULL, msg); // convert to separate files
   else // SHP files
@@ -326,14 +331,21 @@ void *convert(void *arg) {
     xlog("%s", msg); // must use %s here!
 
     Fl::lock();
-    line = xstrtok_r(msg, "\r\n", &s);
-    while (line != NULL) {
-      brow->add(line); brow->bottomline(brow->size());
-      line = xstrtok_r(NULL, "\r\n", &s);
+    s = xstrtok_r(msg, "\r\n", &msgp);
+    while (s != NULL) {
+      snprintf(linep, MAXS, "@C1%s", s); // write errors in red (C1)
+      brow->add(linep); brow->bottomline(brow->size());
+      s = xstrtok_r(NULL, "\r\n", &msgp);
     }
     Fl::unlock();
     Fl::awake((void *)NULL);
   }
+
+  snprintf(linep, MAXL, "Finished converting %s\n", url);
+  Fl::lock();
+  brow->add(linep); brow->bottomline(brow->size());
+  Fl::unlock();
+  Fl::awake((void *)NULL);
 
   delete msg;
   delete targ;
@@ -514,16 +526,16 @@ void trans_cb(Fl_Widget *w, void *p) {
     rb_trans[ii]->redraw_label();
   }
   switch (bsel) {
-    case 0: tr =  1; break; // xy (D96/TM) ==> fila (ETRS89)
-    case 1: tr =  2; break; // fila (ETRS89) ==> xy (D96/TM)
-    case 2: tr =  3; break; // xy (D48/GK) ==> fila (ETRS89)
-    case 3: tr =  4; break; // fila (ETRS89) ==> xy (D48/GK)
-    case 4: tr =  5; break; // xy (D48/GK) ==> xy (D96/TM)
-    case 5: tr =  6; break; // xy (D96/TM) ==> xy (D48/GK)
-    case 6: tr =  7; break; // xy (D48/GK) ==> xy (D96/TM), AFT
-    case 7: tr =  8; break; // xy (D96/TM) ==> xy (D48/GK), AFT
-    case 8: tr =  9; break; // xy (D48/GK) ==> fila (ETRS89), AFT
-    case 9: tr = 10; break; // fila (ETRS89) ==> xy (D48/GK), AFT
+    case 0: tr =  1; gtr1->show(); gtr2->hide(); break; // xy (D96/TM) ==> fila (ETRS89)
+    case 1: tr =  2; gtr1->hide(); gtr2->show(); break; // fila (ETRS89) ==> xy (D96/TM)
+    case 2: tr =  3; gtr1->show(); gtr2->hide(); break; // xy (D48/GK) ==> fila (ETRS89)
+    case 3: tr =  4; gtr1->hide(); gtr2->show(); break; // fila (ETRS89) ==> xy (D48/GK)
+    case 4: tr =  5; gtr1->show(); gtr2->hide(); break; // xy (D48/GK) ==> xy (D96/TM)
+    case 5: tr =  6; gtr1->show(); gtr2->hide(); break; // xy (D96/TM) ==> xy (D48/GK)
+    case 6: tr =  7; gtr1->show(); gtr2->hide(); break; // xy (D48/GK) ==> xy (D96/TM), AFT
+    case 7: tr =  8; gtr1->show(); gtr2->hide(); break; // xy (D96/TM) ==> xy (D48/GK), AFT
+    case 8: tr =  9; gtr1->show(); gtr2->hide(); break; // xy (D48/GK) ==> fila (ETRS89), AFT
+    case 9: tr = 10; gtr1->hide(); gtr2->show(); break; // fila (ETRS89) ==> xy (D48/GK), AFT
     default: break;
   }
   xlog("trans_cb: button = %s, tr = %d\n", b->label(), tr);
@@ -584,9 +596,9 @@ void height_cb(Fl_Widget *w, void *p) {
 
 
 // ----------------------------------------------------------------------------
-// dms_cb
+// ddms_cb
 // ----------------------------------------------------------------------------
-void dms_cb(Fl_Widget *w, void *p) {
+void ddms_cb(Fl_Widget *w, void *p) {
   Fl_Check_Button *b;
 
   b = (Fl_Check_Button *)w;
@@ -595,8 +607,8 @@ void dms_cb(Fl_Widget *w, void *p) {
   b->redraw_label();
 
   ddms = b->value(); // Display fila in DMS format
-  xlog("dms_cb: button = %s, ddms = %d\n", b->label(), ddms);
-} /* dms_cb */
+  xlog("ddms_cb: button = %s, ddms = %d\n", b->label(), ddms);
+} /* ddms_cb */
 
 
 // ----------------------------------------------------------------------------
@@ -670,6 +682,30 @@ void dnd_cb(Fl_Widget *w, void *p) {
 
 
 // ----------------------------------------------------------------------------
+// dms_cb
+// ----------------------------------------------------------------------------
+void dms_cb(Fl_Widget *w, void *p) {
+  Fl_Radio_Round_Button *b;
+  int ii, bsel;
+
+  b = (Fl_Radio_Round_Button *)w;
+  bsel = -1;
+  for (ii = 0; ii < 3; ii++) {
+    if (b == rb_dms[ii]) {
+      rb_dms[ii]->labelfont(FL_BOLD);
+      bsel = ii;
+    }
+    else rb_dms[ii]->labelfont(0);
+    rb_dms[ii]->redraw_label();
+  }
+  switch (bsel) {
+    default: break;
+  }
+  xlog("dms_cb: button = %s\n", b->label());
+} /* dms_cb */
+
+
+// ----------------------------------------------------------------------------
 // join_threads
 // ----------------------------------------------------------------------------
 void join_threads(void *p) {
@@ -703,14 +739,14 @@ int main(int argc, char *argv[])
   char *s;
   Fl_Double_Window *mainwin, *subwin1, *subwin2;
   Fl_Menu_Bar *menubar;
-  Fl_Group *g1, *g2, *g3, *g4, *g5;
+  Fl_Group *g1, *g2, *g3, *g4, *g5, *tab1, *tab2;
   Fl_Radio_Round_Button *rb;
   Fl_Check_Button *cb;
   Fl_Tabs *tabs;
   Fl_Browser *brow;
   Fl_Box *box; Fl_DND_Box *dnd;
-  Fl_Button *bt1, *bt2;
   Fl_Choice *ch;
+  Fl_Button *bt;
   int x0, y0, xinc, yinc, w0, h0;
   int ii, jj, rc, sts;
   PTID *pt;
@@ -842,7 +878,7 @@ int main(int argc, char *argv[])
   x0 = g1->w()+g2->w()+15; y0 = g4->h()+25; yinc = 20; w0 = g5->w()-4, h0 = 22;
   // degree sign:  Unicode: 00B0, UTF8: B0
   cb = new Fl_Check_Button(x0, y0+0*yinc, w0, h0, "Display \xCF\x86\xCE\xBB in D\xB0M'S\" format");
-  cb->callback(dms_cb, NULL);
+  cb->callback(ddms_cb, NULL);
   g5->end();
 
   // No more widgets in subwin1
@@ -862,30 +898,104 @@ int main(int argc, char *argv[])
   tabs->client_area((int &)x0, (int &)y0, (int &)w0, (int &)h0, 25);
 
   // Create drag & drop area tab
-  g1 = new Fl_Group(x0+5, y0, w0-10, h0-5, "Drag && drop files");
-  g1->labelsize(16); g1->labelfont(FL_BOLD);
-  g1->box(FL_DOWN_BOX);
-//g1->clip_children(1);
+  tab1 = new Fl_Group(x0+5, y0, w0-10, h0-5, "Drag && drop files");
+  tab1->labelsize(16); tab1->labelfont(FL_BOLD);
+  tab1->box(FL_DOWN_BOX);
+//tab1->clip_children(1);
 
-  ch = new Fl_Choice(g1->x()+85, g1->y()+8, 100, 25, "File type: ");
+  ch = new Fl_Choice(tab1->x()+85, tab1->y()+8, 100, 25, "File type: ");
   ch->labelsize(16); ch->labelfont(FL_BOLD + FL_ITALIC);
   ch->menu(ft_choices);
   ch->callback(ftchoice_cb, NULL);
   ch->when(FL_WHEN_CHANGED);
 
-  brow = new Fl_Browser(g1->x(), g1->y()+40, g1->w(), g1->h()-40);
+  brow = new Fl_Browser(tab1->x(), tab1->y()+40, tab1->w(), tab1->h()-40);
   dnd = new Fl_DND_Box(brow->x(), brow->y(), brow->w(), brow->h());
   dnd->callback(dnd_cb, brow);
 
-  g1->end();
+  tab1->end();
 
   // Create interactive area tab
-  g2 = new Fl_Group(x0+5, y0, w0-10, h0-5, "Interactive");
-  g2->labelsize(16); g2->labelfont(FL_BOLD);
+  tab2 = new Fl_Group(x0+5, y0, w0-10, h0-5, "Interactive");
+  tab2->labelsize(16); tab2->labelfont(FL_BOLD);
+  tab2->box(FL_DOWN_BOX);
+//tab2->clip_children(1);
+
+  gtr1 = new Fl_Group(tab2->x(), tab2->y(), tab2->w(), tab2->h());
+  gtr1->box(FL_DOWN_BOX);
+//gtr1->clip_children(1);
+
+  input[0] = new Fl_Input(tab2->x()+30, tab2->y()+20, 150, 25, "X:");
+  input[0]->tooltip("Enter X");
+  input[1] = new Fl_Input(tab2->x()+30, tab2->y()+55, 150, 25, "Y:");
+  input[1]->tooltip("Enter Y");
+  input[2] = new Fl_Input(tab2->x()+30, tab2->y()+90, 150, 25, "H:");
+  input[2]->tooltip("Enter ortometric (above sea level) height (H)");
+
+  bt = new Fl_Button(input[0]->x()+input[0]->w()+20, input[1]->y(), 70, 25, "Convert");
+
+  input[3] = new Fl_Input(bt->x()+bt->w()+70, bt->y()-35, 150, 25, "Lat (\xCF\x86):");
+  input[3]->tooltip("Enter Latitude (\xCF\x86, N/S)");
+  input[4] = new Fl_Input(bt->x()+bt->w()+70, bt->y(), 150, 25, "Lon (\xCE\xBB):");
+  input[4]->tooltip("Enter Longitude (\xCE\xBB, E/W)");
+  input[5] = new Fl_Input(bt->x()+bt->w()+70, bt->y()+35, 150, 25, "h:");
+  input[5]->tooltip("Enter ellipsoidal height (h)");
+
+  g1 = new Fl_Group(input[3]->x()+input[3]->w()+20, input[3]->y(), 130, 64);
+  g1->box(FL_DOWN_BOX);
+//g1->clip_children(1);
+  ii = 0;
+  x0 = g1->x(); y0 = g1->y(); yinc = 20; w0 = g1->w()-4, h0 = 22;
+  rb = new Fl_Radio_Round_Button(x0, y0+0*yinc, w0, h0, "Dec. Degrees");
+  rb->set(); rb->labelfont(FL_BOLD);
+  rb->callback(dms_cb, NULL); rb_dms[ii++] = rb;
+  rb = new Fl_Radio_Round_Button(x0, y0+1*yinc, w0, h0, "Deg. Min.");
+  rb->callback(dms_cb, NULL); rb_dms[ii++] = rb;
+  rb = new Fl_Radio_Round_Button(x0, y0+2*yinc, w0, h0, "Deg. Min. Sec.");
+  rb->callback(dms_cb, NULL); rb_dms[ii++] = rb;
+  g1->end();
+
+  gtr1->end();
+//gtr1->hide();
+
+  gtr2 = new Fl_Group(tab2->x(), tab2->y(), tab2->w(), tab2->h());
+  gtr2->box(FL_DOWN_BOX);
+//gtr2->clip_children(1);
+
+  g2 = new Fl_Group(tab2->x()+15, tab2->y()+20, 130, 64);
   g2->box(FL_DOWN_BOX);
 //g2->clip_children(1);
-
+  ii = 0;
+  x0 = g2->x(); y0 = g2->y(); yinc = 20; w0 = g2->w()-4, h0 = 22;
+  rb = new Fl_Radio_Round_Button(x0, y0+0*yinc, w0, h0, "Dec. Degrees");
+  rb->set(); rb->labelfont(FL_BOLD);
+  rb->callback(dms_cb, NULL); rb_dms[ii++] = rb;
+  rb = new Fl_Radio_Round_Button(x0, y0+1*yinc, w0, h0, "Deg. Min.");
+  rb->callback(dms_cb, NULL); rb_dms[ii++] = rb;
+  rb = new Fl_Radio_Round_Button(x0, y0+2*yinc, w0, h0, "Deg. Min. Sec.");
+  rb->callback(dms_cb, NULL); rb_dms[ii++] = rb;
   g2->end();
+
+  input[6] = new Fl_Input(g2->x()+g2->w()+70, g2->y(), 150, 25, "Lat (\xCF\x86):");
+  input[6]->tooltip("Enter Latitude (\xCF\x86, N/S)");
+  input[7] = new Fl_Input(g2->x()+g2->w()+70, g2->y()+35, 150, 25, "Lon (\xCE\xBB):");
+  input[7]->tooltip("Enter Longitude (\xCE\xBB, E/W)");
+  input[8] = new Fl_Input(g2->x()+g2->w()+70, g2->y()+70, 150, 25, "h:");
+  input[8]->tooltip("Enter ellipsoidal height (h)");
+
+  bt = new Fl_Button(input[6]->x()+input[6]->w()+20, input[7]->y(), 70, 25, "Convert");
+
+  input[9] = new Fl_Input(bt->x()+bt->w()+35, bt->y()-35, 150, 25, "X:");
+  input[9]->tooltip("Enter X");
+  input[10] = new Fl_Input(bt->x()+bt->w()+35, bt->y(), 150, 25, "Y:");
+  input[10]->tooltip("Enter Y");
+  input[11] = new Fl_Input(bt->x()+bt->w()+35, bt->y()+35, 150, 25, "H:");
+  input[11]->tooltip("Enter ortometric (above sea level) height (H)");
+
+  gtr2->end();
+  gtr2->hide();
+
+  tab2->end();
 
   tabs->end();
 
