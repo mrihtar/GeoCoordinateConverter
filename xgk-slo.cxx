@@ -35,18 +35,19 @@
 #include <FL/fl_ask.H>
 #include <FL/fl_draw.H>
 
-#define SW_VERSION "1.23"
-#define SW_BUILD   "Oct 11, 2016"
+#define SW_VERSION "1.24"
+#define SW_BUILD   "Oct 12, 2016"
 
 // global variables
 char *prog;  // program name
 int debug;
 int tr;      // transformation
 int rev;     // reverse xy/fila
-int ddms;    // display DMS
+int wdms;    // write DMS
 extern int gid_wgs; // selected geoid on WGS 84 (in geo.c)
 extern int hsel;    // output height calculation (in geo.c)
 int ft;      // file type (XYZ/SHP)
+int ddms;    // display DMS
 
 typedef struct ptid {
   // WIN32 { void *p; unsigned int x; }, UNIX: unsigned long
@@ -118,7 +119,7 @@ Fl_Menu_Item ft_choices[] = {
 
 Fl_Input *input[MAXC];
 Fl_Radio_Round_Button *rb_dms[MAXC];
-Fl_Group *gtr1, *gtr2;
+Fl_Group *gtr1, *gtr2, *gtr3;
 
 // ----------------------------------------------------------------------------
 // Fl_DND_Box
@@ -509,6 +510,34 @@ void about_cb(Fl_Widget *w, void *p) {
 
 
 // ----------------------------------------------------------------------------
+// tab_show
+// ----------------------------------------------------------------------------
+void tab_show(int n)
+{
+  int ii;
+
+  switch (n) {
+    case 1:
+      // set ddms to proper value on switched tab
+      for (ii = 0; ii < 3; ii++)
+        if (rb_dms[ii]->value()) ddms = ii % 3 + 1;
+      gtr1->show(); gtr2->hide(); gtr3->hide();
+      break;
+    case 2:
+      // set ddms to proper value on switched tab
+      for (ii = 3; ii < 6; ii++)
+        if (rb_dms[ii]->value()) ddms = ii % 3 + 1;
+      gtr1->hide(); gtr2->show(); gtr3->hide();
+      break;
+    case 3:
+      gtr1->hide(); gtr2->hide(); gtr3->show();
+      break;
+  }
+  xlog("tab_show: ddms = %d\n", ddms);
+} /* tab_show */
+
+
+// ----------------------------------------------------------------------------
 // trans_cb
 // ----------------------------------------------------------------------------
 void trans_cb(Fl_Widget *w, void *p) {
@@ -526,16 +555,16 @@ void trans_cb(Fl_Widget *w, void *p) {
     rb_trans[ii]->redraw_label();
   }
   switch (bsel) {
-    case 0: tr =  1; gtr1->show(); gtr2->hide(); break; // xy (D96/TM) ==> fila (ETRS89)
-    case 1: tr =  2; gtr1->hide(); gtr2->show(); break; // fila (ETRS89) ==> xy (D96/TM)
-    case 2: tr =  3; gtr1->show(); gtr2->hide(); break; // xy (D48/GK) ==> fila (ETRS89)
-    case 3: tr =  4; gtr1->hide(); gtr2->show(); break; // fila (ETRS89) ==> xy (D48/GK)
-    case 4: tr =  5; gtr1->show(); gtr2->hide(); break; // xy (D48/GK) ==> xy (D96/TM)
-    case 5: tr =  6; gtr1->show(); gtr2->hide(); break; // xy (D96/TM) ==> xy (D48/GK)
-    case 6: tr =  7; gtr1->show(); gtr2->hide(); break; // xy (D48/GK) ==> xy (D96/TM), AFT
-    case 7: tr =  8; gtr1->show(); gtr2->hide(); break; // xy (D96/TM) ==> xy (D48/GK), AFT
-    case 8: tr =  9; gtr1->show(); gtr2->hide(); break; // xy (D48/GK) ==> fila (ETRS89), AFT
-    case 9: tr = 10; gtr1->hide(); gtr2->show(); break; // fila (ETRS89) ==> xy (D48/GK), AFT
+    case 0: tr =  1; tab_show(1); break; // xy (D96/TM) ==> fila (ETRS89)
+    case 1: tr =  2; tab_show(2); break; // fila (ETRS89) ==> xy (D96/TM)
+    case 2: tr =  3; tab_show(1); break; // xy (D48/GK) ==> fila (ETRS89)
+    case 3: tr =  4; tab_show(2); break; // fila (ETRS89) ==> xy (D48/GK)
+    case 4: tr =  5; tab_show(3); break; // xy (D48/GK) ==> xy (D96/TM)
+    case 5: tr =  6; tab_show(3); break; // xy (D96/TM) ==> xy (D48/GK)
+    case 6: tr =  7; tab_show(3); break; // xy (D48/GK) ==> xy (D96/TM), AFT
+    case 7: tr =  8; tab_show(3); break; // xy (D96/TM) ==> xy (D48/GK), AFT
+    case 8: tr =  9; tab_show(1); break; // xy (D48/GK) ==> fila (ETRS89), AFT
+    case 9: tr = 10; tab_show(2); break; // fila (ETRS89) ==> xy (D48/GK), AFT
     default: break;
   }
   xlog("trans_cb: button = %s, tr = %d\n", b->label(), tr);
@@ -596,9 +625,9 @@ void height_cb(Fl_Widget *w, void *p) {
 
 
 // ----------------------------------------------------------------------------
-// ddms_cb
+// wdms_cb
 // ----------------------------------------------------------------------------
-void ddms_cb(Fl_Widget *w, void *p) {
+void wdms_cb(Fl_Widget *w, void *p) {
   Fl_Check_Button *b;
 
   b = (Fl_Check_Button *)w;
@@ -606,9 +635,9 @@ void ddms_cb(Fl_Widget *w, void *p) {
   else b->labelfont(0);
   b->redraw_label();
 
-  ddms = b->value(); // Display fila in DMS format
-  xlog("ddms_cb: button = %s, ddms = %d\n", b->label(), ddms);
-} /* ddms_cb */
+  wdms = b->value(); // Display fila in DMS format
+  xlog("wdms_cb: button = %s, wdms = %d\n", b->label(), wdms);
+} /* wdms_cb */
 
 
 // ----------------------------------------------------------------------------
@@ -682,15 +711,15 @@ void dnd_cb(Fl_Widget *w, void *p) {
 
 
 // ----------------------------------------------------------------------------
-// dms_cb
+// ddms_cb
 // ----------------------------------------------------------------------------
-void dms_cb(Fl_Widget *w, void *p) {
+void ddms_cb(Fl_Widget *w, void *p) {
   Fl_Radio_Round_Button *b;
   int ii, bsel;
 
   b = (Fl_Radio_Round_Button *)w;
   bsel = -1;
-  for (ii = 0; ii < 3; ii++) {
+  for (ii = 0; ii < 6; ii++) {
     if (b == rb_dms[ii]) {
       rb_dms[ii]->labelfont(FL_BOLD);
       bsel = ii;
@@ -699,10 +728,16 @@ void dms_cb(Fl_Widget *w, void *p) {
     rb_dms[ii]->redraw_label();
   }
   switch (bsel) {
+    case 0: ddms = 1; break; // gtr1: Dec. Degrees
+    case 1: ddms = 2; break; // gtr1: Deg. Min.
+    case 2: ddms = 3; break; // gtr1: Deg. Min. Sec.
+    case 3: ddms = 1; break; // gtr2: Dec. Degrees
+    case 4: ddms = 2; break; // gtr2: Deg. Min.
+    case 5: ddms = 3; break; // gtr2: Deg. Min. Sec.
     default: break;
   }
-  xlog("dms_cb: button = %s\n", b->label());
-} /* dms_cb */
+  xlog("ddms_cb: button = %s, ddms = %d\n", b->label(), ddms);
+} /* ddms_cb */
 
 
 // ----------------------------------------------------------------------------
@@ -761,10 +796,11 @@ int main(int argc, char *argv[])
   debug = 0;   // no debug
   tr = 1;      // default transformation: xy (d96tm) --> fila (etrs89)
   rev = 0;     // don't reverse xy/fila
-  ddms = 0;    // don't display DMS
+  wdms = 0;    // don't write DMS
   gid_wgs = 1; // default geoid: slo2000
   hsel = -1;   // no default height processing (use internal recommendations)
   ft = 1;      // file type: XYZ
+  ddms = 1;    // display DMS: Dec. Degrees
 
   // geo.c initialization
   ellipsoid_init();
@@ -878,7 +914,7 @@ int main(int argc, char *argv[])
   x0 = g1->w()+g2->w()+15; y0 = g4->h()+25; yinc = 20; w0 = g5->w()-4, h0 = 22;
   // degree sign:  Unicode: 00B0, UTF8: B0
   cb = new Fl_Check_Button(x0, y0+0*yinc, w0, h0, "Display \xCF\x86\xCE\xBB in D\xB0M'S\" format");
-  cb->callback(ddms_cb, NULL);
+  cb->callback(wdms_cb, NULL);
   g5->end();
 
   // No more widgets in subwin1
@@ -948,11 +984,11 @@ int main(int argc, char *argv[])
   x0 = g1->x(); y0 = g1->y(); yinc = 20; w0 = g1->w()-4, h0 = 22;
   rb = new Fl_Radio_Round_Button(x0, y0+0*yinc, w0, h0, "Dec. Degrees");
   rb->set(); rb->labelfont(FL_BOLD);
-  rb->callback(dms_cb, NULL); rb_dms[ii++] = rb;
+  rb->callback(ddms_cb, NULL); rb_dms[ii++] = rb;
   rb = new Fl_Radio_Round_Button(x0, y0+1*yinc, w0, h0, "Deg. Min.");
-  rb->callback(dms_cb, NULL); rb_dms[ii++] = rb;
+  rb->callback(ddms_cb, NULL); rb_dms[ii++] = rb;
   rb = new Fl_Radio_Round_Button(x0, y0+2*yinc, w0, h0, "Deg. Min. Sec.");
-  rb->callback(dms_cb, NULL); rb_dms[ii++] = rb;
+  rb->callback(ddms_cb, NULL); rb_dms[ii++] = rb;
   g1->end();
 
   gtr1->end();
@@ -965,15 +1001,15 @@ int main(int argc, char *argv[])
   g2 = new Fl_Group(tab2->x()+15, tab2->y()+20, 130, 64);
   g2->box(FL_DOWN_BOX);
 //g2->clip_children(1);
-  ii = 0;
+//ii = 0;
   x0 = g2->x(); y0 = g2->y(); yinc = 20; w0 = g2->w()-4, h0 = 22;
   rb = new Fl_Radio_Round_Button(x0, y0+0*yinc, w0, h0, "Dec. Degrees");
   rb->set(); rb->labelfont(FL_BOLD);
-  rb->callback(dms_cb, NULL); rb_dms[ii++] = rb;
+  rb->callback(ddms_cb, NULL); rb_dms[ii++] = rb;
   rb = new Fl_Radio_Round_Button(x0, y0+1*yinc, w0, h0, "Deg. Min.");
-  rb->callback(dms_cb, NULL); rb_dms[ii++] = rb;
+  rb->callback(ddms_cb, NULL); rb_dms[ii++] = rb;
   rb = new Fl_Radio_Round_Button(x0, y0+2*yinc, w0, h0, "Deg. Min. Sec.");
-  rb->callback(dms_cb, NULL); rb_dms[ii++] = rb;
+  rb->callback(ddms_cb, NULL); rb_dms[ii++] = rb;
   g2->end();
 
   input[6] = new Fl_Input(g2->x()+g2->w()+70, g2->y(), 150, 25, "Lat (\xCF\x86):");
@@ -994,6 +1030,29 @@ int main(int argc, char *argv[])
 
   gtr2->end();
   gtr2->hide();
+
+  gtr3 = new Fl_Group(tab2->x(), tab2->y(), tab2->w(), tab2->h());
+  gtr3->box(FL_DOWN_BOX);
+//gtr3->clip_children(1);
+
+  input[12] = new Fl_Input(tab2->x()+30, tab2->y()+20, 150, 25, "X:");
+  input[12]->tooltip("Enter X");
+  input[13] = new Fl_Input(tab2->x()+30, tab2->y()+55, 150, 25, "Y:");
+  input[13]->tooltip("Enter Y");
+  input[14] = new Fl_Input(tab2->x()+30, tab2->y()+90, 150, 25, "H:");
+  input[14]->tooltip("Enter ortometric (above sea level) height (H)");
+
+  bt = new Fl_Button(input[12]->x()+input[12]->w()+20, input[13]->y(), 70, 25, "Convert");
+
+  input[15] = new Fl_Input(bt->x()+bt->w()+35, bt->y()-35, 150, 25, "X:");
+  input[15]->tooltip("Enter X");
+  input[16] = new Fl_Input(bt->x()+bt->w()+35, bt->y(), 150, 25, "Y:");
+  input[16]->tooltip("Enter Y");
+  input[17] = new Fl_Input(bt->x()+bt->w()+35, bt->y()+35, 150, 25, "H:");
+  input[17]->tooltip("Enter ortometric (above sea level) height (H)");
+
+  gtr3->end();
+  gtr3->hide();
 
   tab2->end();
 
