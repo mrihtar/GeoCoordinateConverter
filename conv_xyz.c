@@ -27,7 +27,7 @@ extern TCHAR *prog; // program name
 extern int debug;
 extern int tr;      // transformation
 extern int rev;     // reverse xy/fila
-extern int ddms;    // display DMS
+extern int wdms;    // write DMS
 
 extern int gid_wgs; // selected geoid on WGS 84 (in geo.c)
 extern int hsel;    // output height calculation (in geo.c)
@@ -215,7 +215,7 @@ int convert_xyz_file(TCHAR *url, int outf, FILE *out, TCHAR *msg)
       xy.x = x; xy.y = y; xy.H = H;
       tmxy2fila_wgs(xy, &fl);
       fprintf(out, T("%s%.10f %.10f %.3f"), col1, fl.fi, fl.la, fl.h);
-      if (ddms) {
+      if (wdms) {
 	deg2dms(fl.fi, &lat); deg2dms(fl.la, &lon);
 	fprintf(out, T(" %.0f %2.0f %8.5f %.0f %2.0f %8.5f\n"),
 	  lat.deg, lat.min, lat.sec, lon.deg, lon.min, lon.sec);
@@ -236,7 +236,7 @@ int convert_xyz_file(TCHAR *url, int outf, FILE *out, TCHAR *msg)
       xy.x = x; xy.y = y; xy.H = H;
       gkxy2fila_wgs(xy, &fl);
       fprintf(out, T("%s%.10f %.10f %.3f"), col1, fl.fi, fl.la, fl.h);
-      if (ddms) {
+      if (wdms) {
 	deg2dms(fl.fi, &lat); deg2dms(fl.la, &lon);
 	fprintf(out, T(" %.0f %2.0f %8.5f %.0f %2.0f %8.5f\n"),
 	  lat.deg, lat.min, lat.sec, lon.deg, lon.min, lon.sec);
@@ -281,7 +281,7 @@ int convert_xyz_file(TCHAR *url, int outf, FILE *out, TCHAR *msg)
       xy.x = x; xy.y = y; xy.H = H;
       gkxy2fila_wgs_aft(xy, &fl);
       fprintf(out, T("%s%.10f %.10f %.3f"), col1, fl.fi, fl.la, fl.h);
-      if (ddms) {
+      if (wdms) {
 	deg2dms(fl.fi, &lat); deg2dms(fl.la, &lon);
 	fprintf(out, T(" %.0f %2.0f %8.5f %.0f %2.0f %8.5f\n"),
 	  lat.deg, lat.min, lat.sec, lon.deg, lon.min, lon.sec);

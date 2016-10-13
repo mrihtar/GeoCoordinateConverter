@@ -87,9 +87,13 @@ extern "C" {
 
 // Forward declarations
 void dms2deg(DMS dms, double *deg);
+void dm2deg(DMS dms, double *deg);
 void dms2rad(DMS dms, double *rad);
+void dm2rad(DMS dms, double *rad);
 void deg2dms(double deg, DMS *dms);
+void deg2dm(double deg, DMS *dms);
 void rad2dms(double rad, DMS *dms);
+void rad2dm(double rad, DMS *dms);
 
 void matrix33_mul(m33 R1, m33 R2, m33 *R12);
 

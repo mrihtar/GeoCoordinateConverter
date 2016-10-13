@@ -27,7 +27,6 @@ extern TCHAR *prog; // program name
 extern int debug;
 extern int tr;      // transformation
 extern int rev;     // reverse xy/fila
-extern int ddms;    // display DMS
 
 extern int gid_wgs; // selected geoid on WGS 84 (in geo.c)
 extern int hsel;    // output height calculation (in geo.c)

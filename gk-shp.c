@@ -29,7 +29,6 @@ TCHAR *prog;  // program name
 int debug;
 int tr;      // transformation
 int rev;     // reverse xy/fila
-int ddms;    // display DMS
 
 extern int gid_wgs; // selected geoid on WGS 84 (in geo.c, via cmd line)
 extern int hsel;    // output height calculation (in geo.c, via cmd line)
@@ -214,6 +213,9 @@ usage:      usage(prog, 0);
   params_init();
 
   if (ac < 2) goto usage;
+
+  if ((s = strrchr(av[0], T('.'))) != NULL) *s = T('\0'); // clear current extension
+  xstrncat(av[0], T(".shp"), MAXS); // look for <name>.shp
 
   convert_shp_file(av[0], av[1], NULL);
 

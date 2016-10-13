@@ -28,7 +28,7 @@ TCHAR *prog; // program name
 int debug;
 int tr;      // transformation
 int rev;     // reverse xy/fila
-int ddms;    // display DMS
+int wdms;    // write DMS
 
 extern int gid_wgs; // selected geoid on WGS 84 (in geo.c, via cmd line)
 extern int hsel;    // output height calculation (in geo.c, via cmd line)
@@ -451,7 +451,7 @@ int tmain(int argc, TCHAR *argv[])
   gd = 0;      // no gendata
   tr = 1;      // default transformation: xy (d96tm) --> fila (etrs89)
   rev = 0;     // don't reverse xy/fila
-  ddms = 0;    // don't display DMS
+  wdms = 0;    // don't write DMS
   geoid[0] = T('\0');
   gid_wgs = 1; // slo2000
   inpf = 1;    // stdin
@@ -511,8 +511,8 @@ int tmain(int argc, TCHAR *argv[])
         hsel = 2;
         continue;
       }
-      else if (strcasecmp(argv[ii], T("-dms")) == 0) { // display DMS
-        ddms = 1;
+      else if (strcasecmp(argv[ii], T("-dms")) == 0) { // write DMS
+        wdms = 1;
         continue;
       }
       else if (strcasecmp(argv[ii], T("--")) == 0) { // end of options

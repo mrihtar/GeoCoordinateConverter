@@ -35,8 +35,8 @@
 #include <FL/fl_ask.H>
 #include <FL/fl_draw.H>
 
-#define SW_VERSION "1.24"
-#define SW_BUILD   "Oct 12, 2016"
+#define SW_VERSION "1.25"
+#define SW_BUILD   "Oct 13, 2016"
 
 // global variables
 char *prog;  // program name
@@ -49,6 +49,7 @@ extern int hsel;    // output height calculation (in geo.c)
 int ft;      // file type (XYZ/SHP)
 int ddms;    // display DMS
 
+// thread variables
 typedef struct ptid {
   // WIN32 { void *p; unsigned int x; }, UNIX: unsigned long
   pthread_t tid;
@@ -64,6 +65,7 @@ pthread_mutex_t xlog_mutex; // xlog mutex
 pthread_mutex_t tn_mutex; // threads number mutex
 int tn; // number of active treads
 
+// thread arguments
 typedef struct targ {
   char text[MAXL+1];
   Fl_Browser *brow;
@@ -198,6 +200,37 @@ class Fl_DND_Box : public Fl_Box
 
 
 // ----------------------------------------------------------------------------
+// Fl_Arrow_Box
+// ----------------------------------------------------------------------------
+class Fl_Arrow_Box : public Fl_Box
+{
+  public:
+    Fl_Arrow_Box(int X, int Y, int W, int H, const char *L = 0) :
+      Fl_Box(X,Y,W,H,L)
+    {
+      labeltype(FL_NO_LABEL);
+      box(FL_NO_BOX);
+      clear_visible_focus();
+    } /* Fl_Arrow_Box ctor */
+
+  protected:
+    void draw() {
+      Fl_Color savec = fl_color();
+      Fl_Box::draw();
+
+      fl_color(FL_RED);
+      fl_line_style(FL_SOLID | FL_CAP_ROUND | FL_JOIN_ROUND, 3);
+      fl_line(x()+10, y()+h()/2-1, x()+w()-10, y()+h()/2-1);
+      fl_line(x()+w()-20, y()+h()/2-7, x()+w()-10, y()+h()/2-1);
+      fl_line(x()+w()-20, y()+h()/2+5, x()+w()-10, y()+h()/2-1);
+
+      fl_line_style(0);
+      fl_color(savec);
+    } /* draw */
+}; /* Fl_Arrow_Box */
+
+
+// ----------------------------------------------------------------------------
 // xlog
 // ----------------------------------------------------------------------------
 int xlog(const char *fmt, ...)
@@ -325,8 +358,12 @@ void *convert(void *arg) {
   msg = new char[MAXL+1];
   if (ft == 1) // XYZ files
     sts = convert_xyz_file(url, 2, NULL, msg); // convert to separate files
-  else // SHP files
+  else { // SHP files
+    if ((s = strrchr(url, '.')) != NULL) *s = '\0'; // clear current extension
+    xstrncat(url, ".shp", MAXL); // look for <name>.shp
+
     sts = convert_shp_file(url, NULL, msg);
+  }
 
   if (strlen(msg) > 0) {
     xlog("%s", msg); // must use %s here!
@@ -418,6 +455,164 @@ void *convert_all(void *arg) {
   pthread_exit((void *)sts);
   return NULL;
 } /* convert_all */
+
+
+// ----------------------------------------------------------------------------
+// convert_cb
+// widget w and parameter p can be NULL!
+// ----------------------------------------------------------------------------
+void convert_cb(Fl_Widget *w, void *p) {
+//Fl_Group *gtr;
+  int n;
+  char value1[MAXS+1], value2[MAXS+1], value3[MAXS+1];
+  double fi, la, h, x, y, H;
+  GEOGRA fl; GEOUTM xy, gkxy, tmxy;
+  DMS lat, lon;
+
+//gtr = (Fl_Group *)p;
+  switch (tr) {
+    case  1: // gtr1, xy (D96/TM) ==> fila (ETRS89)
+    case  3: // gtr1, xy (D48/GK) ==> fila (ETRS89)
+    case  9: // gtr1, xy (D48/GK) ==> fila (ETRS89), AFT
+      n = sscanf(input[0]->value(), "%lf", &x);
+      if (n != 1 || n == EOF) {
+        // error1
+        x = 0.0;
+      }
+      n = sscanf(input[1]->value(), "%lf", &y);
+      if (n != 1 || n == EOF) {
+        // error2
+        y = 0.0;
+      }
+      n = sscanf(input[2]->value(), "%lf", &H);
+      if (n != 1 || n == EOF) {
+        H = 0.0;
+      }
+      xlog("convert_cb: input(tr = %d): x = %g, y = %g, H = %g\n", tr, x, y, H);
+      if (y < 200000.0) {
+        // warn: possibly reversed x/y
+      }
+      xy.x = x; xy.y = y; xy.H = H;
+      break;
+
+    case  2: // gtr2, fila (ETRS89) ==> xy (D96/TM)
+    case  4: // gtr2, fila (ETRS89) ==> xy (D48/GK)
+    case 10: // gtr2, fila (ETRS89) ==> xy (D48/GK), AFT
+      n = sscanf(input[6]->value(), "%lf", &fi);
+      if (n != 1 || n == EOF) {
+        // error1
+        fi = 0.0;
+      }
+      n = sscanf(input[7]->value(), "%lf", &la);
+      if (n != 1 || n == EOF) {
+        // error2
+        la = 0.0;
+      }
+      n = sscanf(input[8]->value(), "%lf", &h);
+      if (n != 1 || n == EOF) {
+        h = 0.0;
+      }
+      xlog("convert_cb: input(tr = %d): fi = %g, la = %g, h = %g\n", tr, fi, la, h);
+      if (la > 17.0) {
+        // warn: possibly reversed fi/la
+      }
+      fl.fi = fi; fl.la = la; fl.h = h;
+      break;
+
+    case  5: // gtr3, xy (D48/GK) ==> xy (D96/TM)
+    case  6: // gtr3, xy (D96/TM) ==> xy (D48/GK)
+    case  7: // gtr3, xy (D48/GK) ==> xy (D96/TM), AFT
+    case  8: // gtr3, xy (D96/TM) ==> xy (D48/GK), AFT
+      n = sscanf(input[12]->value(), "%lf", &x);
+      if (n != 1 || n == EOF) {
+        // error1
+        x = 0.0;
+      }
+      n = sscanf(input[13]->value(), "%lf", &y);
+      if (n != 1 || n == EOF) {
+        // error2
+        y = 0.0;
+      }
+      n = sscanf(input[14]->value(), "%lf", &H);
+      if (n != 1 || n == EOF) {
+        H = 0.0;
+      }
+      xlog("convert_cb: input(tr = %d): x = %g, y = %g, H = %g\n", tr, x, y, H);
+      if (y < 200000.0) {
+        // warn: possibly reversed x/y
+      }
+      xy.x = x; xy.y = y; xy.H = H;
+      break;
+  } // switch (tr)
+
+  switch (tr) {
+    case  1: tmxy2fila_wgs(xy, &fl); break;              // gtr1, xy (D96/TM) ==> fila (ETRS89)
+    case  2: fila_wgs2tmxy(fl, &xy); break;              // gtr2, fila (ETRS89) ==> xy (D96/TM)
+    case  3: gkxy2fila_wgs(xy, &fl); break;              // gtr1, xy (D48/GK) ==> fila (ETRS89)
+    case  4: fila_wgs2gkxy(fl, &xy); break;              // gtr2, fila (ETRS89) ==> xy (D48/GK)
+    case  5: gkxy2tmxy(xy, &tmxy); xy = tmxy; break;     // gtr3, xy (D48/GK) ==> xy (D96/TM)
+    case  6: tmxy2gkxy(xy, &gkxy); xy = gkxy; break;     // gtr3, xy (D96/TM) ==> xy (D48/GK)
+    case  7: gkxy2tmxy_aft(xy, &tmxy); xy = tmxy; break; // gtr3, xy (D48/GK) ==> xy (D96/TM), AFT
+    case  8: tmxy2gkxy_aft(xy, &gkxy); xy = gkxy; break; // gtr3, xy (D96/TM) ==> xy (D48/GK), AFT
+    case  9: gkxy2fila_wgs_aft(xy, &fl); break;          // gtr1, xy (D48/GK) ==> fila (ETRS89), AFT
+    case 10: fila_wgs2gkxy_aft(fl, &xy); break;          // gtr2, fila (ETRS89) ==> xy (D48/GK), AFT
+  } // switch (tr)
+
+  switch (tr) {
+    case  1: // gtr1, xy (D96/TM) ==> fila (ETRS89)
+    case  3: // gtr1, xy (D48/GK) ==> fila (ETRS89)
+    case  9: // gtr1, xy (D48/GK) ==> fila (ETRS89), AFT
+      xlog("convert_cb: output(tr = %d): fi = %.10f, la = %.10f, h = %.3f\n", tr, fl.fi, fl.la, fl.h);
+      switch (ddms) {
+        case 1: // Dec. Degrees
+          snprintf(value1, MAXS, "%.10f", fl.fi);
+          snprintf(value2, MAXS, "%.10f", fl.la);
+          snprintf(value3, MAXS, "%.3f", fl.h);
+          break;
+        case 2: // Deg. Min.
+          deg2dm(fl.fi, &lat); deg2dm(fl.la, &lon);
+          snprintf(value1, MAXS, "%.0f\xB0 %.7f'", lat.deg, lat.min);
+          snprintf(value2, MAXS, "%.0f\xB0 %.7f'", lon.deg, lon.min);
+          snprintf(value3, MAXS, "%.3f", fl.h);
+          break;
+        case 3: // Deg. Min. Sec.
+          deg2dms(fl.fi, &lat); deg2dms(fl.la, &lon);
+          snprintf(value1, MAXS, "%.0f\xB0 %.0f' %.5f\"", lat.deg, lat.min, lat.sec);
+          snprintf(value2, MAXS, "%.0f\xB0 %.0f' %.5f\"", lon.deg, lon.min, lon.sec);
+          snprintf(value3, MAXS, "%.3f", fl.h);
+          break;
+      } // switch (ddms)
+      input[3]->value(value1);
+      input[4]->value(value2);
+      input[5]->value(value3);
+      break;
+
+    case  2: // gtr2, fila (ETRS89) ==> xy (D96/TM)
+    case  4: // gtr2, fila (ETRS89) ==> xy (D48/GK)
+    case 10: // gtr2, fila (ETRS89) ==> xy (D48/GK), AFT
+      xlog("convert_cb: output(tr = %d): x = %.10f, y = %.10f, H = %.3f\n", tr, xy.x, xy.y, xy.H);
+      snprintf(value1, MAXS, "%.3f", xy.x);
+      snprintf(value2, MAXS, "%.3f", xy.y);
+      snprintf(value3, MAXS, "%.3f", xy.H);
+      input[9]->value(value1);
+      input[10]->value(value2);
+      input[11]->value(value3);
+      break;
+
+    case  5: // gtr3, xy (D48/GK) ==> xy (D96/TM)
+    case  6: // gtr3, xy (D96/TM) ==> xy (D48/GK)
+    case  7: // gtr3, xy (D48/GK) ==> xy (D96/TM), AFT
+    case  8: // gtr3, xy (D96/TM) ==> xy (D48/GK), AFT
+      xlog("convert_cb: output(tr = %d): x = %.10f, y = %.10f, H = %.3f\n", tr, xy.x, xy.y, xy.H);
+      snprintf(value1, MAXS, "%.3f", xy.x);
+      snprintf(value2, MAXS, "%.3f", xy.y);
+      snprintf(value3, MAXS, "%.3f", xy.H);
+      input[15]->value(value1);
+      input[16]->value(value2);
+      input[17]->value(value3);
+      break;
+  } // switch (tr)
+} /* convert_cb */
 
 
 // ----------------------------------------------------------------------------
@@ -728,9 +923,9 @@ void ddms_cb(Fl_Widget *w, void *p) {
     rb_dms[ii]->redraw_label();
   }
   switch (bsel) {
-    case 0: ddms = 1; break; // gtr1: Dec. Degrees
-    case 1: ddms = 2; break; // gtr1: Deg. Min.
-    case 2: ddms = 3; break; // gtr1: Deg. Min. Sec.
+    case 0: ddms = 1; convert_cb(NULL, NULL); break; // gtr1: Dec. Degrees
+    case 1: ddms = 2; convert_cb(NULL, NULL); break; // gtr1: Deg. Min.
+    case 2: ddms = 3; convert_cb(NULL, NULL); break; // gtr1: Deg. Min. Sec.
     case 3: ddms = 1; break; // gtr2: Dec. Degrees
     case 4: ddms = 2; break; // gtr2: Deg. Min.
     case 5: ddms = 3; break; // gtr2: Deg. Min. Sec.
@@ -782,6 +977,7 @@ int main(int argc, char *argv[])
   Fl_Box *box; Fl_DND_Box *dnd;
   Fl_Choice *ch;
   Fl_Button *bt;
+  Fl_Arrow_Box *ar;
   int x0, y0, xinc, yinc, w0, h0;
   int ii, jj, rc, sts;
   PTID *pt;
@@ -969,13 +1165,15 @@ int main(int argc, char *argv[])
   input[2]->tooltip("Enter ortometric (above sea level) height (H)");
 
   bt = new Fl_Button(input[0]->x()+input[0]->w()+20, input[1]->y(), 70, 25, "Convert");
+  bt->callback(convert_cb, gtr1);
+  ar = new Fl_Arrow_Box(bt->x(), bt->y()+bt->h(), bt->w(), 30);
 
   input[3] = new Fl_Input(bt->x()+bt->w()+70, bt->y()-35, 150, 25, "Lat (\xCF\x86):");
-  input[3]->tooltip("Enter Latitude (\xCF\x86, N/S)");
+  input[3]->tooltip("Latitude (\xCF\x86, N/S)"); input[3]->readonly(1);
   input[4] = new Fl_Input(bt->x()+bt->w()+70, bt->y(), 150, 25, "Lon (\xCE\xBB):");
-  input[4]->tooltip("Enter Longitude (\xCE\xBB, E/W)");
+  input[4]->tooltip("Longitude (\xCE\xBB, E/W)"); input[4]->readonly(1);
   input[5] = new Fl_Input(bt->x()+bt->w()+70, bt->y()+35, 150, 25, "h:");
-  input[5]->tooltip("Enter ellipsoidal height (h)");
+  input[5]->tooltip("Ellipsoidal height (h)"); input[5]->readonly(1);
 
   g1 = new Fl_Group(input[3]->x()+input[3]->w()+20, input[3]->y(), 130, 64);
   g1->box(FL_DOWN_BOX);
@@ -1020,13 +1218,15 @@ int main(int argc, char *argv[])
   input[8]->tooltip("Enter ellipsoidal height (h)");
 
   bt = new Fl_Button(input[6]->x()+input[6]->w()+20, input[7]->y(), 70, 25, "Convert");
+  bt->callback(convert_cb, gtr2);
+  ar = new Fl_Arrow_Box(bt->x(), bt->y()+bt->h(), bt->w(), 30);
 
   input[9] = new Fl_Input(bt->x()+bt->w()+35, bt->y()-35, 150, 25, "X:");
-  input[9]->tooltip("Enter X");
+  input[9]->tooltip("X"); input[9]->readonly(1);
   input[10] = new Fl_Input(bt->x()+bt->w()+35, bt->y(), 150, 25, "Y:");
-  input[10]->tooltip("Enter Y");
+  input[10]->tooltip("Y"); input[10]->readonly(1);
   input[11] = new Fl_Input(bt->x()+bt->w()+35, bt->y()+35, 150, 25, "H:");
-  input[11]->tooltip("Enter ortometric (above sea level) height (H)");
+  input[11]->tooltip("Ortometric (above sea level) height (H)"); input[11]->readonly(1);
 
   gtr2->end();
   gtr2->hide();
@@ -1043,13 +1243,15 @@ int main(int argc, char *argv[])
   input[14]->tooltip("Enter ortometric (above sea level) height (H)");
 
   bt = new Fl_Button(input[12]->x()+input[12]->w()+20, input[13]->y(), 70, 25, "Convert");
+  bt->callback(convert_cb, gtr3);
+  ar = new Fl_Arrow_Box(bt->x(), bt->y()+bt->h(), bt->w(), 30);
 
   input[15] = new Fl_Input(bt->x()+bt->w()+35, bt->y()-35, 150, 25, "X:");
-  input[15]->tooltip("Enter X");
+  input[15]->tooltip("X"); input[15]->readonly(1);
   input[16] = new Fl_Input(bt->x()+bt->w()+35, bt->y(), 150, 25, "Y:");
-  input[16]->tooltip("Enter Y");
+  input[16]->tooltip("Y"); input[16]->readonly(1);
   input[17] = new Fl_Input(bt->x()+bt->w()+35, bt->y()+35, 150, 25, "H:");
-  input[17]->tooltip("Enter ortometric (above sea level) height (H)");
+  input[17]->tooltip("Ortometric (above sea level) height (H)"); input[17]->readonly(1);
 
   gtr3->end();
   gtr3->hide();
