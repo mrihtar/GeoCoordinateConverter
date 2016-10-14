@@ -31,12 +31,13 @@
 #include <FL/Fl_Tabs.H>
 #include <FL/Fl_Choice.H>
 #include <FL/Fl_Browser.H>
+#include <FL/FL_Text_Display.H>
 #include <FL/Fl_Help_Dialog.H>
 #include <FL/fl_ask.H>
 #include <FL/fl_draw.H>
 
-#define SW_VERSION "1.25"
-#define SW_BUILD   "Oct 13, 2016"
+#define SW_VERSION "1.26"
+#define SW_BUILD   "Oct 14, 2016"
 
 // global variables
 char *prog;  // program name
@@ -90,8 +91,7 @@ void ftchoice_cb(Fl_Widget *w, void *p);
 // FLTK global variables
 Fl_Menu_Item menubar_entries[] = {
   {"&File", 0, 0, 0, FL_SUBMENU},
-    {"&Open",   FL_ALT+'o',  0, 0, FL_MENU_INACTIVE},
-    {"&Close",  0,           0, 0, FL_MENU_DIVIDER},
+    {"&Open",   FL_ALT+'o',  0, 0, FL_MENU_DIVIDER},
     {"&Quit",   FL_ALT+'q',  quit_cb},
     {0},
   {"&Edit", 0, 0, 0, FL_SUBMENU},
@@ -218,7 +218,7 @@ class Fl_Arrow_Box : public Fl_Box
       Fl_Color savec = fl_color();
       Fl_Box::draw();
 
-      fl_color(FL_RED);
+      fl_color(FL_BLUE);
       fl_line_style(FL_SOLID | FL_CAP_ROUND | FL_JOIN_ROUND, 3);
       fl_line(x()+10, y()+h()/2-1, x()+w()-10, y()+h()/2-1);
       fl_line(x()+w()-20, y()+h()/2-7, x()+w()-10, y()+h()/2-1);
@@ -456,10 +456,64 @@ void *convert_all(void *arg) {
   return NULL;
 } /* convert_all */
 
+// ----------------------------------------------------------------------------
+// parse_dms
+// ----------------------------------------------------------------------------
+int parse_dms(const char *str, double *val) {
+  DMS dms;
+  int n;
+
+  switch (ddms) {
+    case 1: // Dec. Degrees
+      dms.min = 0.0; dms.sec = 0.0;
+      n = sscanf(str, "%lf", &dms.deg);
+      if (n != 1) {
+        // error
+        dms.deg = 0.0;
+      }
+      break;
+    case 2: // Deg. Min.
+      dms.sec = 0.0;
+      n = sscanf(str, "%lf%*[^0-9.-]%lf", &dms.deg, &dms.min);
+      if (n != 2) {
+        // error
+        dms.min = 0.0;
+        if (n != 1) dms.deg = 0.0;
+      }
+      break;
+    case 3: // Deg. Min. Sec.
+      n = sscanf(str, "%lf%*[^0-9.-]%lf%*[^0-9.-]%lf", &dms.deg, &dms.min, &dms.sec);
+      if (n != 3) {
+        // error
+        dms.sec = 0.0;
+        if (n != 2) dms.min = 0.0;
+        if (n != 1) dms.deg = 0.0;
+      }
+      break;
+  } // switch (ddms)
+
+  dms2deg(dms, val);
+  return 0;
+} /* parse_dms */
+
+
+// ----------------------------------------------------------------------------
+// parse_double
+// ----------------------------------------------------------------------------
+int parse_double(const char *str, double *val) {
+  int n;
+
+  n = sscanf(str, "%lf", val);
+  if (n != 1) {
+    *val = 0.0;
+  }
+  return 0;
+} /* parse_double */
+
 
 // ----------------------------------------------------------------------------
 // convert_cb
-// widget w and parameter p can be NULL!
+// Widget w and parameter p can be NULL!
 // ----------------------------------------------------------------------------
 void convert_cb(Fl_Widget *w, void *p) {
 //Fl_Group *gtr;
@@ -474,20 +528,9 @@ void convert_cb(Fl_Widget *w, void *p) {
     case  1: // gtr1, xy (D96/TM) ==> fila (ETRS89)
     case  3: // gtr1, xy (D48/GK) ==> fila (ETRS89)
     case  9: // gtr1, xy (D48/GK) ==> fila (ETRS89), AFT
-      n = sscanf(input[0]->value(), "%lf", &x);
-      if (n != 1 || n == EOF) {
-        // error1
-        x = 0.0;
-      }
-      n = sscanf(input[1]->value(), "%lf", &y);
-      if (n != 1 || n == EOF) {
-        // error2
-        y = 0.0;
-      }
-      n = sscanf(input[2]->value(), "%lf", &H);
-      if (n != 1 || n == EOF) {
-        H = 0.0;
-      }
+      parse_double(input[0]->value(), &x);
+      parse_double(input[1]->value(), &y);
+      parse_double(input[2]->value(), &H);
       xlog("convert_cb: input(tr = %d): x = %g, y = %g, H = %g\n", tr, x, y, H);
       if (y < 200000.0) {
         // warn: possibly reversed x/y
@@ -498,20 +541,11 @@ void convert_cb(Fl_Widget *w, void *p) {
     case  2: // gtr2, fila (ETRS89) ==> xy (D96/TM)
     case  4: // gtr2, fila (ETRS89) ==> xy (D48/GK)
     case 10: // gtr2, fila (ETRS89) ==> xy (D48/GK), AFT
-      n = sscanf(input[6]->value(), "%lf", &fi);
-      if (n != 1 || n == EOF) {
-        // error1
-        fi = 0.0;
-      }
-      n = sscanf(input[7]->value(), "%lf", &la);
-      if (n != 1 || n == EOF) {
-        // error2
-        la = 0.0;
-      }
-      n = sscanf(input[8]->value(), "%lf", &h);
-      if (n != 1 || n == EOF) {
-        h = 0.0;
-      }
+      parse_dms(input[6]->value(), &fi);
+      if (fi > 90.0 || fi < -90.0) fi = 0.0;
+      parse_dms(input[7]->value(), &la);
+      if (la > 180.0 || la < -180.0) la = 0.0;
+      parse_double(input[8]->value(), &h);
       xlog("convert_cb: input(tr = %d): fi = %g, la = %g, h = %g\n", tr, fi, la, h);
       if (la > 17.0) {
         // warn: possibly reversed fi/la
@@ -523,20 +557,9 @@ void convert_cb(Fl_Widget *w, void *p) {
     case  6: // gtr3, xy (D96/TM) ==> xy (D48/GK)
     case  7: // gtr3, xy (D48/GK) ==> xy (D96/TM), AFT
     case  8: // gtr3, xy (D96/TM) ==> xy (D48/GK), AFT
-      n = sscanf(input[12]->value(), "%lf", &x);
-      if (n != 1 || n == EOF) {
-        // error1
-        x = 0.0;
-      }
-      n = sscanf(input[13]->value(), "%lf", &y);
-      if (n != 1 || n == EOF) {
-        // error2
-        y = 0.0;
-      }
-      n = sscanf(input[14]->value(), "%lf", &H);
-      if (n != 1 || n == EOF) {
-        H = 0.0;
-      }
+      parse_double(input[12]->value(), &x);
+      parse_double(input[13]->value(), &y);
+      parse_double(input[14]->value(), &H);
       xlog("convert_cb: input(tr = %d): x = %g, y = %g, H = %g\n", tr, x, y, H);
       if (y < 200000.0) {
         // warn: possibly reversed x/y
@@ -906,6 +929,40 @@ void dnd_cb(Fl_Widget *w, void *p) {
 
 
 // ----------------------------------------------------------------------------
+// redisplay_dms
+// ----------------------------------------------------------------------------
+void redisplay_dms(int f1, int f2, int new_ddms) {
+  char value1[MAXS+1], value2[MAXS+1];
+  double fi, la;
+  DMS lat, lon;
+
+  parse_dms(input[f1]->value(), &fi);
+  if (fi > 90.0 || fi < -90.0) fi = 0.0;
+  parse_dms(input[f2]->value(), &la);
+  if (la > 180.0 || la < -180.0) la = 0.0;
+
+  switch (new_ddms) {
+    case 1: // Dec. Degrees
+      snprintf(value1, MAXS, "%.10f", fi);
+      snprintf(value2, MAXS, "%.10f", la);
+      break;
+    case 2: // Deg. Min.
+      deg2dm(fi, &lat); deg2dm(la, &lon);
+      snprintf(value1, MAXS, "%.0f\xB0 %.7f'", lat.deg, lat.min);
+      snprintf(value2, MAXS, "%.0f\xB0 %.7f'", lon.deg, lon.min);
+      break;
+    case 3: // Deg. Min. Sec.
+      deg2dms(fi, &lat); deg2dms(la, &lon);
+      snprintf(value1, MAXS, "%.0f\xB0 %.0f' %.5f\"", lat.deg, lat.min, lat.sec);
+      snprintf(value2, MAXS, "%.0f\xB0 %.0f' %.5f\"", lon.deg, lon.min, lon.sec);
+      break;
+  } // switch (ddms)
+  input[f1]->value(value1);
+  input[f2]->value(value2);
+} /* redisplay_dms */
+
+
+// ----------------------------------------------------------------------------
 // ddms_cb
 // ----------------------------------------------------------------------------
 void ddms_cb(Fl_Widget *w, void *p) {
@@ -923,12 +980,12 @@ void ddms_cb(Fl_Widget *w, void *p) {
     rb_dms[ii]->redraw_label();
   }
   switch (bsel) {
-    case 0: ddms = 1; convert_cb(NULL, NULL); break; // gtr1: Dec. Degrees
-    case 1: ddms = 2; convert_cb(NULL, NULL); break; // gtr1: Deg. Min.
-    case 2: ddms = 3; convert_cb(NULL, NULL); break; // gtr1: Deg. Min. Sec.
-    case 3: ddms = 1; break; // gtr2: Dec. Degrees
-    case 4: ddms = 2; break; // gtr2: Deg. Min.
-    case 5: ddms = 3; break; // gtr2: Deg. Min. Sec.
+    case 0: redisplay_dms(3, 4, 1); ddms = 1; break; // gtr1: Dec. Degrees
+    case 1: redisplay_dms(3, 4, 2); ddms = 2; break; // gtr1: Deg. Min.
+    case 2: redisplay_dms(3, 4, 3); ddms = 3; break; // gtr1: Deg. Min. Sec.
+    case 3: redisplay_dms(6, 7, 1); ddms = 1; break; // gtr2: Dec. Degrees
+    case 4: redisplay_dms(6, 7, 2); ddms = 2; break; // gtr2: Deg. Min.
+    case 5: redisplay_dms(6, 7, 3); ddms = 3; break; // gtr2: Deg. Min. Sec.
     default: break;
   }
   xlog("ddms_cb: button = %s, ddms = %d\n", b->label(), ddms);
@@ -974,6 +1031,8 @@ int main(int argc, char *argv[])
   Fl_Check_Button *cb;
   Fl_Tabs *tabs;
   Fl_Browser *brow;
+  Fl_Text_Display *help;
+  Fl_Text_Buffer *help_tb;
   Fl_Box *box; Fl_DND_Box *dnd;
   Fl_Choice *ch;
   Fl_Button *bt;
@@ -1028,13 +1087,12 @@ int main(int argc, char *argv[])
   // Top window
   subwin1 = new Fl_Double_Window(0, menubar->y()+menubar->h(), mainwin->w(), 233);
   subwin1->box(FL_DOWN_BOX);
-//xlog("subwin1-x: %d, subwin1-y: %d\n", subwin1->x(), subwin1->y());
   // x,y is 0.0 from now on
 
   // Create radio buttons
   g1 = new Fl_Group(5, 22, 277, 207, "Select transformation");
   g1->labelsize(16); g1->labelfont(FL_BOLD + FL_ITALIC);
-  g1->box(FL_DOWN_BOX);
+//g1->box(FL_DOWN_BOX);
 //g1->clip_children(1);
   ii = 0;
   x0 = 5; y0 = 25; yinc = 20; w0 = g1->w()-4, h0 = 22;
@@ -1066,7 +1124,7 @@ int main(int argc, char *argv[])
 
   g2 = new Fl_Group(g1->w()+10, subwin1->y()-8, 248, 75, "Select geoid");
   g2->labelsize(16); g2->labelfont(FL_BOLD + FL_ITALIC);
-  g2->box(FL_DOWN_BOX);
+//g2->box(FL_DOWN_BOX);
 //g2->clip_children(1);
   ii = 0;
   x0 = g1->w()+10; y0 = 25; yinc = 20; w0 = g2->w()-4, h0 = 22;
@@ -1079,7 +1137,7 @@ int main(int argc, char *argv[])
 
   g3 = new Fl_Group(g1->w()+10, subwin1->y()-8+75, g2->w(), 100, "Select height calculation");
   g3->labelsize(16); g3->labelfont(FL_BOLD + FL_ITALIC);
-  g3->box(FL_DOWN_BOX);
+//g3->box(FL_DOWN_BOX);
 //g3->clip_children(1);
   ii = 0;
   x0 = g1->w()+10; y0 = g3->h(); yinc = 20; w0 = g3->w()-4, h0 = 22;
@@ -1094,18 +1152,18 @@ int main(int argc, char *argv[])
   rb->callback(height_cb, NULL); rb_height[ii++] = rb;
   g3->end();
 
-  g4 = new Fl_Group(g1->w()+g2->w()+15, subwin1->y()-8, 270, 55, "Input syntax");
+  g4 = new Fl_Group(g1->w()+g2->w()+15, subwin1->y()-8, 270, 55, "Input file syntax");
   g4->labelsize(16); g4->labelfont(FL_BOLD + FL_ITALIC);
-  g4->box(FL_DOWN_BOX);
+//g4->box(FL_DOWN_BOX);
 //g4->clip_children(1);
   x0 = g1->w()+g2->w()+15; y0 = 25; yinc = 20; w0 = g4->w()-4, h0 = 22;
   cb = new Fl_Check_Button(x0, y0+0*yinc, w0, h0, "Reverse parsing order of xy/\xCF\x86\xCE\xBB");
   cb->callback(rev_cb, NULL);
   g4->end();
 
-  g5 = new Fl_Group(g1->w()+g2->w()+15, subwin1->y()-8+55, g4->w(), 55, "Output format");
+  g5 = new Fl_Group(g1->w()+g2->w()+15, subwin1->y()-8+55, g4->w(), 45, "Output file format");
   g5->labelsize(16); g5->labelfont(FL_BOLD + FL_ITALIC);
-  g5->box(FL_DOWN_BOX);
+//g5->box(FL_DOWN_BOX);
 //g5->clip_children(1);
   x0 = g1->w()+g2->w()+15; y0 = g4->h()+25; yinc = 20; w0 = g5->w()-4, h0 = 22;
   // degree sign:  Unicode: 00B0, UTF8: B0
@@ -1113,19 +1171,32 @@ int main(int argc, char *argv[])
   cb->callback(wdms_cb, NULL);
   g5->end();
 
+  help = new Fl_Text_Display(g1->w()+g2->w()+15, subwin1->y()-8+100, g4->w(), 110);
+  help->box(FL_DOWN_BOX);
+  help_tb = new Fl_Text_Buffer();
+  help->buffer(help_tb);
+  help->textsize(11); help->textcolor(FL_BLUE);
+  help_tb->text("x = Easting\n"
+                "y = Northing\n"
+                "H = Ortometric (Above sea level) Height\n"
+                "\xCF\x86 = Phi, Latitude, Breite (N/S)\n"
+                "\xCE\xBB = Lambda, Longitude, L\xE4nge (E/W)\n"
+                "h = Ellipsoidal Height\n"
+                "AFT = Affine Transformation");
+
   // No more widgets in subwin1
   subwin1->resizable(subwin1);
   subwin1->end();
 
   // Bottom window
   subwin2 = new Fl_Double_Window(0, menubar->y()+menubar->h()+subwin1->h(), mainwin->w(), mainwin->h()-subwin1->h()-6);
-  subwin2->box(FL_DOWN_BOX);
+//subwin2->box(FL_DOWN_BOX);
 //xlog("subwin2-x: %d, subwin2-y: %d\n", subwin2->x(), subwin2->y());
   // x,y is 0.0 from now on
 
   tabs = new Fl_Tabs(0, 22, subwin2->w(), subwin2->h()-46, "Operation");
   tabs->labelsize(16); tabs->labelfont(FL_BOLD);
-  tabs->box(FL_DOWN_BOX);
+//tabs->box(FL_DOWN_BOX);
   // get available size for children tabs
   tabs->client_area((int &)x0, (int &)y0, (int &)w0, (int &)h0, 25);
 
@@ -1145,6 +1216,11 @@ int main(int argc, char *argv[])
   dnd = new Fl_DND_Box(brow->x(), brow->y(), brow->w(), brow->h());
   dnd->callback(dnd_cb, brow);
 
+  brow->add("@C4You can drag & drop many files of the same type or open them from the File menu.");
+  brow->bottomline(brow->size());
+  brow->add("@C4They will be processed in parallel.");
+  brow->bottomline(brow->size());
+
   tab1->end();
 
   // Create interactive area tab
@@ -1154,7 +1230,7 @@ int main(int argc, char *argv[])
 //tab2->clip_children(1);
 
   gtr1 = new Fl_Group(tab2->x(), tab2->y(), tab2->w(), tab2->h());
-  gtr1->box(FL_DOWN_BOX);
+//gtr1->box(FL_DOWN_BOX);
 //gtr1->clip_children(1);
 
   input[0] = new Fl_Input(tab2->x()+30, tab2->y()+20, 150, 25, "X:");
@@ -1176,7 +1252,7 @@ int main(int argc, char *argv[])
   input[5]->tooltip("Ellipsoidal height (h)"); input[5]->readonly(1);
 
   g1 = new Fl_Group(input[3]->x()+input[3]->w()+20, input[3]->y(), 130, 64);
-  g1->box(FL_DOWN_BOX);
+//g1->box(FL_DOWN_BOX);
 //g1->clip_children(1);
   ii = 0;
   x0 = g1->x(); y0 = g1->y(); yinc = 20; w0 = g1->w()-4, h0 = 22;
@@ -1193,11 +1269,11 @@ int main(int argc, char *argv[])
 //gtr1->hide();
 
   gtr2 = new Fl_Group(tab2->x(), tab2->y(), tab2->w(), tab2->h());
-  gtr2->box(FL_DOWN_BOX);
+//gtr2->box(FL_DOWN_BOX);
 //gtr2->clip_children(1);
 
   g2 = new Fl_Group(tab2->x()+15, tab2->y()+20, 130, 64);
-  g2->box(FL_DOWN_BOX);
+//g2->box(FL_DOWN_BOX);
 //g2->clip_children(1);
 //ii = 0;
   x0 = g2->x(); y0 = g2->y(); yinc = 20; w0 = g2->w()-4, h0 = 22;
@@ -1232,7 +1308,7 @@ int main(int argc, char *argv[])
   gtr2->hide();
 
   gtr3 = new Fl_Group(tab2->x(), tab2->y(), tab2->w(), tab2->h());
-  gtr3->box(FL_DOWN_BOX);
+//gtr3->box(FL_DOWN_BOX);
 //gtr3->clip_children(1);
 
   input[12] = new Fl_Input(tab2->x()+30, tab2->y()+20, 150, 25, "X:");
