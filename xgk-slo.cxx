@@ -31,7 +31,7 @@
 #include <FL/Fl_Tabs.H>
 #include <FL/Fl_Choice.H>
 #include <FL/Fl_Browser.H>
-#include <FL/FL_Text_Display.H>
+#include <FL/Fl_Text_Display.H>
 #include <FL/Fl_Help_Dialog.H>
 #include <FL/fl_ask.H>
 #include <FL/fl_draw.H>
