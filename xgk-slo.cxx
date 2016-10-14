@@ -349,7 +349,7 @@ void *convert(void *arg) {
 
   linep = line;
 
-  snprintf(linep, MAXL, "Converting %s\n", url);
+  snprintf(linep, MAXS, "Converting %s\n", url);
   Fl::lock();
   brow->add(linep); brow->bottomline(brow->size());
   Fl::unlock();
@@ -379,7 +379,7 @@ void *convert(void *arg) {
     Fl::awake((void *)NULL);
   }
 
-  snprintf(linep, MAXL, "Finished converting %s\n", url);
+  snprintf(linep, MAXS, "Finished converting %s\n", url);
   Fl::lock();
   brow->add(linep); brow->bottomline(brow->size());
   Fl::unlock();
@@ -1206,7 +1206,7 @@ int main(int argc, char *argv[])
   tab1->box(FL_DOWN_BOX);
 //tab1->clip_children(1);
 
-  ch = new Fl_Choice(tab1->x()+85, tab1->y()+8, 100, 25, "File type: ");
+  ch = new Fl_Choice(tab1->x()+100, tab1->y()+8, 100, 25, "File type: ");
   ch->labelsize(16); ch->labelfont(FL_BOLD + FL_ITALIC);
   ch->menu(ft_choices);
   ch->callback(ftchoice_cb, NULL);
