@@ -33,10 +33,11 @@
 #include <FL/Fl_Browser.H>
 #include <FL/Fl_Text_Display.H>
 #include <FL/Fl_Help_Dialog.H>
+#include <FL/Fl_Native_File_Chooser.H>
 #include <FL/fl_ask.H>
 #include <FL/fl_draw.H>
 
-#define SW_VERSION "1.26"
+#define SW_VERSION "1.27"
 #define SW_BUILD   "Oct 14, 2016"
 
 // global variables
@@ -69,7 +70,7 @@ int tn; // number of active treads
 // thread arguments
 typedef struct targ {
   char text[MAXL+1];
-  Fl_Browser *brow;
+  Fl_Widget *w;
 } TARG;
 
 #ifdef __cplusplus
@@ -83,6 +84,7 @@ int convert_shp_file(TCHAR *inpurl, TCHAR *outurl, TCHAR *msg); // in conv.c
 #endif
 
 // FLTK callback function prototypes
+void open_cb(Fl_Widget *w, void *p);
 void quit_cb(Fl_Widget *w, void *p);
 void help_cb(Fl_Widget *w, void *p);
 void about_cb(Fl_Widget *w, void *p);
@@ -91,7 +93,7 @@ void ftchoice_cb(Fl_Widget *w, void *p);
 // FLTK global variables
 Fl_Menu_Item menubar_entries[] = {
   {"&File", 0, 0, 0, FL_SUBMENU},
-    {"&Open",   FL_ALT+'o',  0, 0, FL_MENU_DIVIDER},
+    {"&Open",   FL_ALT+'o',  open_cb, 0, FL_MENU_DIVIDER},
     {"&Quit",   FL_ALT+'q',  quit_cb},
     {0},
   {"&Edit", 0, 0, 0, FL_SUBMENU},
@@ -119,6 +121,8 @@ Fl_Menu_Item ft_choices[] = {
   {0}
 }; /* ft_choices */
 
+Fl_Group *tab1, *tab2;
+Fl_Browser *brow;
 Fl_Input *input[MAXC];
 Fl_Radio_Round_Button *rb_dms[MAXC];
 Fl_Group *gtr1, *gtr2, *gtr3;
@@ -332,14 +336,14 @@ void *worker(void *arg) {
 // ----------------------------------------------------------------------------
 void *convert(void *arg) {
   TARG *targ;
-  char *url, line[MAXS+1], *linep;
-  Fl_Browser *brow;
+  char *url, orig_url[MAXS+1];
+  char line[MAXS+1], *linep;
   unsigned int tid;
   char *msg, *msgp, *s;
   long sts;
 
   targ = (TARG *)arg;
-  url = targ->text; brow = targ->brow;
+  url = targ->text;
 #ifdef _WIN32
   tid = (unsigned int)pthread_self().p;
 #else
@@ -356,6 +360,8 @@ void *convert(void *arg) {
   Fl::awake((void *)NULL);
 
   msg = new char[MAXL+1];
+  xstrncpy(orig_url, url, MAXS);
+
   if (ft == 1) // XYZ files
     sts = convert_xyz_file(url, 2, NULL, msg); // convert to separate files
   else { // SHP files
@@ -371,7 +377,7 @@ void *convert(void *arg) {
     Fl::lock();
     s = xstrtok_r(msg, "\r\n", &msgp);
     while (s != NULL) {
-      snprintf(linep, MAXS, "@C1%s", s); // write errors in red (C1)
+      snprintf(linep, MAXS, "@C1%s", s); // write errors in red
       brow->add(linep); brow->bottomline(brow->size());
       s = xstrtok_r(NULL, "\r\n", &msgp);
     }
@@ -379,7 +385,15 @@ void *convert(void *arg) {
     Fl::awake((void *)NULL);
   }
 
-  snprintf(linep, MAXS, "Finished converting %s\n", url);
+  if (sts == 0) {
+    if (strlen(msg) > 0) // warning: dark magenta
+      snprintf(linep, MAXS, "@C13Finished converting %s\n", orig_url);
+    else // all OK: dark green
+      snprintf(linep, MAXS, "@C10Finished converting %s\n", orig_url);
+  }
+  else // error: dark red
+    snprintf(linep, MAXS, "@C9Finished converting %s\n", orig_url);
+
   Fl::lock();
   brow->add(linep); brow->bottomline(brow->size());
   Fl::unlock();
@@ -400,7 +414,6 @@ void *convert(void *arg) {
 // ----------------------------------------------------------------------------
 void *convert_all(void *arg) {
   char *urls, *url, *s;
-  Fl_Browser *brow;
   unsigned int tid;
   int ii, len, rc;
   TARG *targs, *targ;
@@ -408,7 +421,7 @@ void *convert_all(void *arg) {
   long sts;
 
   targs = (TARG *)arg;
-  urls = targs->text; brow = targs->brow;
+  urls = targs->text;
 #ifdef _WIN32
   tid = (unsigned int)pthread_self().p;
 #else
@@ -441,7 +454,6 @@ void *convert_all(void *arg) {
 
     targ = new TARG;
     xstrncpy(targ->text, url, MAXL);
-    targ->brow = brow;
 
     sts += xpthread_create(convert, (void *)targ);
 
@@ -674,6 +686,52 @@ void menu_cb(Fl_Widget *w, void *p) {
 
 
 // ----------------------------------------------------------------------------
+// open_cb
+// ----------------------------------------------------------------------------
+void open_cb(Fl_Widget *w, void *p) {
+  Fl_Native_File_Chooser *nfc;
+  char *text;
+  int ii, rc;
+  TARG *targ;
+
+  nfc = new Fl_Native_File_Chooser();
+  nfc->title("Select files");
+  nfc->type(Fl_Native_File_Chooser::BROWSE_MULTI_FILE);
+  if (ft == 1) // XYZ files
+    nfc->filter("XYZ Files\t*.{xyz,csv,txt}\n"
+                "LIDAR Files\t*.asc\n"
+                "ESRI Shapefiles\t*.shp\n");
+  else // SHP files
+    nfc->filter("ESRI Shapefiles\t*.shp\n"
+                "XYZ Files\t*.{xyz,csv,txt}\n"
+                "LIDAR Files\t*.asc\n");
+//nfc->directory("/tmp");
+//nfc->preset_file("test.xyz");
+
+  switch (nfc->show()) {
+    case -1: xlog("open_cb: error = %s\n", nfc->errmsg()); break;
+    case  1: xlog("open_cb: cancel\n"); break;
+    default:
+      tab1->show(); // switch to drag & drop area tab
+
+      text = new char[MAXL+1]; *text = '\0';
+      for (ii = 0; ii < nfc->count(); ii++) {
+        xlog("open_cb: selected = %s\n", nfc->filename(ii));
+        xstrncat(text, nfc->filename(ii), MAXL);
+        xstrncat(text, "\n", MAXL);
+      }
+      targ = new TARG;
+      xstrncpy(targ->text, text, MAXL);
+      delete text;
+
+      rc = xpthread_create(convert_all, (void *)targ);
+
+      break;
+  }
+} /* open_cb */
+
+
+// ----------------------------------------------------------------------------
 // quit_cb
 // ----------------------------------------------------------------------------
 void quit_cb(Fl_Widget *w, void *p) {
@@ -728,21 +786,21 @@ void about_cb(Fl_Widget *w, void *p) {
 
 
 // ----------------------------------------------------------------------------
-// tab_show
+// fields_show
 // ----------------------------------------------------------------------------
-void tab_show(int n)
+void fields_show(int n)
 {
   int ii;
 
   switch (n) {
     case 1:
-      // set ddms to proper value on switched tab
+      // set ddms to proper value on switched fields
       for (ii = 0; ii < 3; ii++)
         if (rb_dms[ii]->value()) ddms = ii % 3 + 1;
       gtr1->show(); gtr2->hide(); gtr3->hide();
       break;
     case 2:
-      // set ddms to proper value on switched tab
+      // set ddms to proper value on switched fields
       for (ii = 3; ii < 6; ii++)
         if (rb_dms[ii]->value()) ddms = ii % 3 + 1;
       gtr1->hide(); gtr2->show(); gtr3->hide();
@@ -751,8 +809,8 @@ void tab_show(int n)
       gtr1->hide(); gtr2->hide(); gtr3->show();
       break;
   }
-  xlog("tab_show: ddms = %d\n", ddms);
-} /* tab_show */
+  xlog("fields_show: ddms = %d\n", ddms);
+} /* fields_show */
 
 
 // ----------------------------------------------------------------------------
@@ -773,16 +831,16 @@ void trans_cb(Fl_Widget *w, void *p) {
     rb_trans[ii]->redraw_label();
   }
   switch (bsel) {
-    case 0: tr =  1; tab_show(1); break; // xy (D96/TM) ==> fila (ETRS89)
-    case 1: tr =  2; tab_show(2); break; // fila (ETRS89) ==> xy (D96/TM)
-    case 2: tr =  3; tab_show(1); break; // xy (D48/GK) ==> fila (ETRS89)
-    case 3: tr =  4; tab_show(2); break; // fila (ETRS89) ==> xy (D48/GK)
-    case 4: tr =  5; tab_show(3); break; // xy (D48/GK) ==> xy (D96/TM)
-    case 5: tr =  6; tab_show(3); break; // xy (D96/TM) ==> xy (D48/GK)
-    case 6: tr =  7; tab_show(3); break; // xy (D48/GK) ==> xy (D96/TM), AFT
-    case 7: tr =  8; tab_show(3); break; // xy (D96/TM) ==> xy (D48/GK), AFT
-    case 8: tr =  9; tab_show(1); break; // xy (D48/GK) ==> fila (ETRS89), AFT
-    case 9: tr = 10; tab_show(2); break; // fila (ETRS89) ==> xy (D48/GK), AFT
+    case 0: tr =  1; fields_show(1); break; // xy (D96/TM) ==> fila (ETRS89)
+    case 1: tr =  2; fields_show(2); break; // fila (ETRS89) ==> xy (D96/TM)
+    case 2: tr =  3; fields_show(1); break; // xy (D48/GK) ==> fila (ETRS89)
+    case 3: tr =  4; fields_show(2); break; // fila (ETRS89) ==> xy (D48/GK)
+    case 4: tr =  5; fields_show(3); break; // xy (D48/GK) ==> xy (D96/TM)
+    case 5: tr =  6; fields_show(3); break; // xy (D96/TM) ==> xy (D48/GK)
+    case 6: tr =  7; fields_show(3); break; // xy (D48/GK) ==> xy (D96/TM), AFT
+    case 7: tr =  8; fields_show(3); break; // xy (D96/TM) ==> xy (D48/GK), AFT
+    case 8: tr =  9; fields_show(1); break; // xy (D48/GK) ==> fila (ETRS89), AFT
+    case 9: tr = 10; fields_show(2); break; // fila (ETRS89) ==> xy (D48/GK), AFT
     default: break;
   }
   xlog("trans_cb: button = %s, tr = %d\n", b->label(), tr);
@@ -888,43 +946,33 @@ void ftchoice_cb(Fl_Widget *w, void *p) {
 
 
 // ----------------------------------------------------------------------------
-// dnd_proc
-// ----------------------------------------------------------------------------
-void dnd_proc(Fl_DND_Box *dnd, Fl_Browser *brow) {
-  char *text;
-  int len, rc;
-  TARG *targ;
-
-  text = (char *)dnd->event_text();
-  len = strlen(text);
-  if (len > MAXL) // event text is truncated to MAXL!
-    xlog("dnd_proc: len: %d, truncated text: %.256s...\n", len, text);
-  else if (len > 256)
-    xlog("dnd_proc: len: %d, text: %.256s...\n", len, text);
-  else
-    xlog("dnd_proc: len: %d, text: %s\n", len, text);
-
-  targ = new TARG;
-  xstrncpy(targ->text, text, MAXL);
-  targ->brow = brow;
-
-  rc = xpthread_create(convert_all, (void *)targ);
-} /* dnd_proc */
-
-
-// ----------------------------------------------------------------------------
 // dnd_cb
 // ----------------------------------------------------------------------------
 void dnd_cb(Fl_Widget *w, void *p) {
   Fl_DND_Box *dnd;
-  Fl_Browser *brow;
+  char *text;
+  int len, rc;
+  TARG *targ;
 
   dnd = (Fl_DND_Box *)w;
-  brow = (Fl_Browser *)p;
   xlog("dnd_cb\n");
 
-  if (dnd->event() == FL_PASTE)
-    dnd_proc(dnd, brow);
+  if (dnd->event() == FL_PASTE) { // process Paste event
+    text = (char *)dnd->event_text();
+
+    len = strlen(text);
+    if (len > MAXL) // event text is truncated to MAXL!
+      xlog("dnd_proc: len: %d, truncated text: %.256s...\n", len, text);
+    else if (len > 256)
+      xlog("dnd_proc: len: %d, text: %.256s...\n", len, text);
+    else
+      xlog("dnd_proc: len: %d, text: %s\n", len, text);
+
+    targ = new TARG;
+    xstrncpy(targ->text, text, MAXL);
+
+    rc = xpthread_create(convert_all, (void *)targ);
+  }
 } /* dnd_cb */
 
 
@@ -1026,18 +1074,17 @@ int main(int argc, char *argv[])
   char *s;
   Fl_Double_Window *mainwin, *subwin1, *subwin2;
   Fl_Menu_Bar *menubar;
-  Fl_Group *g1, *g2, *g3, *g4, *g5, *tab1, *tab2;
+  Fl_Group *g1, *g2, *g3, *g4, *g5;
   Fl_Radio_Round_Button *rb;
   Fl_Check_Button *cb;
   Fl_Tabs *tabs;
-  Fl_Browser *brow;
   Fl_Text_Display *help;
   Fl_Text_Buffer *help_tb;
   Fl_Box *box; Fl_DND_Box *dnd;
   Fl_Choice *ch;
   Fl_Button *bt;
   Fl_Arrow_Box *ar;
-  int x0, y0, xinc, yinc, w0, h0;
+  int x0, y0, xinc, yinc, w0, h0, x1;
   int ii, jj, rc, sts;
   PTID *pt;
 
@@ -1206,7 +1253,12 @@ int main(int argc, char *argv[])
   tab1->box(FL_DOWN_BOX);
 //tab1->clip_children(1);
 
-  ch = new Fl_Choice(tab1->x()+100, tab1->y()+8, 100, 25, "File type: ");
+#ifdef _WIN32
+  x1 = tab1->x()+85; // different font sizes on Windows & Unix
+#else
+  x1 = tab1->x()+100;
+#endif
+  ch = new Fl_Choice(x1, tab1->y()+8, 100, 25, "File type: ");
   ch->labelsize(16); ch->labelfont(FL_BOLD + FL_ITALIC);
   ch->menu(ft_choices);
   ch->callback(ftchoice_cb, NULL);
@@ -1214,7 +1266,7 @@ int main(int argc, char *argv[])
 
   brow = new Fl_Browser(tab1->x(), tab1->y()+40, tab1->w(), tab1->h()-40);
   dnd = new Fl_DND_Box(brow->x(), brow->y(), brow->w(), brow->h());
-  dnd->callback(dnd_cb, brow);
+  dnd->callback(dnd_cb, NULL);
 
   brow->add("@C4You can drag & drop many files of the same type or open them from the File menu.");
   brow->bottomline(brow->size());
