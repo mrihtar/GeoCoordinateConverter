@@ -7,27 +7,27 @@ RANLIB = ranlib
 RM = rm -f
 CP = cp
 
-#DEBUG = -O2
-DEBUG = -g
+DEBUG = -O2
+#DEBUG = -g
 CFLAGS = -Wall -msse2 -mfpmath=sse
 CXXFLAGS = -Wall -msse2 -mfpmath=sse
 IPATH = -Ishapelib -Ifltk
-#LDFLAGS = -s
-LDFLAGS = 
+LDFLAGS = -s
+#LDFLAGS = 
 LPATH = 
 LIBS = -lm -lrt
-#XLDFLAGS = -s
-XLDFLAGS = 
+XLDFLAGS = -s
+#XLDFLAGS = 
 XLPATH = -Lfltk/lib
 XLIBS = -lfltk_images -lfltk -lX11 -lXft -lXcursor -lXinerama -lpng -lz -ljpeg -lpthread -lm -lrt
 
 TGTS = gk-slo gk-shp xgk-slo
-WOBJS = wgk-slo.o wconv.o wutil.o wgeo.o
-SOBJS = gk-shp.o util.o geo.o
+WOBJS = wgk-slo.o wconv_xyz.o wutil.o wgeo.o
+SOBJS = gk-shp.o conv_shp.o util.o geo.o
 INCL = common.h geo.h geoid_slo.h geoid_egm.h aft_gktm.h aft_tmgk.h
 SHPOBJS = shapelib/shpopen.o shapelib/dbfopen.o shapelib/safileio.o shapelib/shptree.o
 SHPINCL = shapelib/shapefil.h
-XOBJS = xgk-slo.o conv.o util.o geo.o
+XOBJS = xgk-slo.o conv_xyz.o conv_shp.o util.o geo.o
 XINCL = 
 
 .SUFFIXES: .cxx
@@ -40,8 +40,8 @@ gk-slo: $(WOBJS)
 gk-shp: $(SOBJS) $(SHPOBJS)
 	$(CC) -o $@ $^ $(LDFLAGS) $(LPATH) $(LIBS)
 
-xgk-slo: $(XOBJS)
-	$(CXX) -o $@ $(XOBJS) $(XLDFLAGS) $(XLPATH) $(XLIBS)
+xgk-slo: $(XOBJS) $(SHPOBJS)
+	$(CXX) -o $@ $(XOBJS) $(SHPOBJS) $(XLDFLAGS) $(XLPATH) $(XLIBS)
 
 $(WOBJS): $(INCL)
 $(SOBJS): $(INCL)
@@ -65,8 +65,8 @@ cleanall: clean
 
 wgk-slo.o: gk-slo.c
 	$(CC) $(DEBUG) -c $(CFLAGS) -D_WCHAR $(IPATH) gk-slo.c -o $@
-wconv.o: conv.c
-	$(CC) $(DEBUG) -c $(CFLAGS) -D_WCHAR $(IPATH) conv.c -o $@
+wconv_xyz.o: conv_xyz.c
+	$(CC) $(DEBUG) -c $(CFLAGS) -D_WCHAR $(IPATH) conv_xyz.c -o $@
 wutil.o: util.c
 	$(CC) $(DEBUG) -c $(CFLAGS) -D_WCHAR $(IPATH) util.c -o $@
 wgeo.o: geo.c
