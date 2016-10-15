@@ -11,15 +11,20 @@ DEBUG = -O2
 #DEBUG = -g
 CFLAGS = -Wall -msse2 -mfpmath=sse
 CXXFLAGS = -Wall -msse2 -mfpmath=sse
-IPATH = -Ishapelib -Ifltk
+IPATH = -Ishapelib -Ifltk -I/usr/local/include
 LDFLAGS = -s
 #LDFLAGS = 
 LPATH = 
 LIBS = -lm -lrt
 XLDFLAGS = -s
 #XLDFLAGS = 
-XLPATH = -Lfltk/lib
+ifeq ($(shell uname),FreeBSD)
+XLPATH = -Lfltk/lib -L/usr/local/lib -L/usr/local/lib/fltk-devel
+XLIBS = -lfltk_images -lfltk -lX11 -lXft -lXcursor -lXinerama -lfontconfig -lXfixes -lXext -lpng -lz -ljpeg -lpthread -lm -lrt
+else
+XLPATH = -Lfltk/lib -L/usr/local/lib
 XLIBS = -lfltk_images -lfltk -lX11 -lXft -lXcursor -lXinerama -lpng -lz -ljpeg -lpthread -lm -lrt
+endif
 
 TGTS = gk-slo gk-shp xgk-slo
 WOBJS = wgk-slo.o wconv_xyz.o wutil.o wgeo.o
@@ -35,10 +40,10 @@ XINCL =
 all: $(TGTS)
 
 gk-slo: $(WOBJS)
-	$(CC) -o $@ $^ $(LDFLAGS) $(LPATH) $(LIBS)
+	$(CC) -o $@ $(WOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
 
 gk-shp: $(SOBJS) $(SHPOBJS)
-	$(CC) -o $@ $^ $(LDFLAGS) $(LPATH) $(LIBS)
+	$(CC) -o $@ $(SOBJS) $(SHPOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
 
 xgk-slo: $(XOBJS) $(SHPOBJS)
 	$(CXX) -o $@ $(XOBJS) $(SHPOBJS) $(XLDFLAGS) $(XLPATH) $(XLIBS)

@@ -303,7 +303,7 @@ int xpthread_create(void *(*worker)(void *), void *arg)
 #ifdef _WIN32
     xlog("Created thread %08x\n", (unsigned int)threads->tid.p);
 #else
-    xlog("Created thread %08x\n", (unsigned int)threads->tid);
+    xlog("Created thread %08x\n", (unsigned long)threads->tid);
 #endif
   return rc;
 } /* xpthread_create */
@@ -321,7 +321,7 @@ void *worker(void *arg) {
 #ifdef _WIN32
   tid = (unsigned int)pthread_self().p;
 #else
-  tid = (unsigned int)pthread_self();
+  tid = (unsigned long)pthread_self();
 #endif
   xlog("THREAD %08x: worker: menu %s\n", tid, mi->label());
 
@@ -350,7 +350,7 @@ void *convert(void *arg) {
 #ifdef _WIN32
   tid = (unsigned int)pthread_self().p;
 #else
-  tid = (unsigned int)pthread_self();
+  tid = (unsigned long)pthread_self();
 #endif
   xlog("THREAD %08x: convert: url %s\n", tid, url);
 
@@ -428,7 +428,7 @@ void *convert_all(void *arg) {
 #ifdef _WIN32
   tid = (unsigned int)pthread_self().p;
 #else
-  tid = (unsigned int)pthread_self();
+  tid = (unsigned long)pthread_self();
 #endif
   len = strlen(urls);
   if (len > 256)
@@ -1093,7 +1093,7 @@ void join_threads(void *p) {
            (unsigned int)pt->tid.p, pt->sts);
 #else
       xlog("Completed join with thread %08x, status = %d\n",
-           (unsigned int)pt->tid, pt->sts);
+           (unsigned long)pt->tid, pt->sts);
 #endif
     }
   }

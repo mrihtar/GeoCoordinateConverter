@@ -37,10 +37,10 @@ XINCL =
 all: $(TGTS)
 
 gk-slo.exe: $(WOBJS)
-	$(CC) -o $@ $^ $(LDFLAGS) $(LPATH) $(LIBS)
+	$(CC) -o $@ $(WOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
 
 gk-shp.exe: $(SOBJS) $(SHPOBJS)
-	$(CC) -o $@ $^ $(LDFLAGS) $(LPATH) $(LIBS)
+	$(CC) -o $@ $(SOBJS) $(SHPOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
 
 xgk-slo.exe: $(XOBJS) $(SHPOBJS) xgk-slo.rc
 	$(RC) $(basename $@).rc $(basename $@).res.o
