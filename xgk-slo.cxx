@@ -264,7 +264,7 @@ int xlog(const char *fmt, ...)
   va_end(ap);
 
   snprintf(logfile, MAXS, "%s.log", prog);
-  log = fopen(logfile, "a");
+  log = utf8_fopen(logfile, "a");
   if (log != NULL) {
     fprintf(log, "%s %s", stime, msg);
     fclose(log);
@@ -312,7 +312,8 @@ int xpthread_create(void *(*worker)(void *), void *arg)
 // ----------------------------------------------------------------------------
 // THREAD: worker
 // ----------------------------------------------------------------------------
-void *worker(void *arg) {
+void *worker(void *arg)
+{
   Fl_Menu_Item *mi;
   unsigned int tid;
   time_t now;
@@ -337,7 +338,8 @@ void *worker(void *arg) {
 // ----------------------------------------------------------------------------
 // THREAD: convert
 // ----------------------------------------------------------------------------
-void *convert(void *arg) {
+void *convert(void *arg)
+{
   TARG *targ;
   char *url, orig_url[MAXS+1];
   char line[MAXS+1], *linep;
@@ -415,7 +417,8 @@ void *convert(void *arg) {
 // ----------------------------------------------------------------------------
 // THREAD: convert_all
 // ----------------------------------------------------------------------------
-void *convert_all(void *arg) {
+void *convert_all(void *arg)
+{
   char *urls, *url, *s;
   unsigned int tid;
   int ii, len, rc;
@@ -474,7 +477,8 @@ void *convert_all(void *arg) {
 // ----------------------------------------------------------------------------
 // parse_dms
 // ----------------------------------------------------------------------------
-int parse_dms(const char *str, double *val) {
+int parse_dms(const char *str, double *val)
+{
   DMS dms;
   int n;
 
@@ -515,7 +519,8 @@ int parse_dms(const char *str, double *val) {
 // ----------------------------------------------------------------------------
 // parse_double
 // ----------------------------------------------------------------------------
-int parse_double(const char *str, double *val) {
+int parse_double(const char *str, double *val)
+{
   int n;
 
   n = sscanf(str, "%lf", val);
@@ -530,7 +535,8 @@ int parse_double(const char *str, double *val) {
 // convert_cb
 // Widget w and parameter p can be NULL!
 // ----------------------------------------------------------------------------
-void convert_cb(Fl_Widget *w, void *p) {
+void convert_cb(Fl_Widget *w, void *p)
+{
 //Fl_Group *gtr;
   int n;
   char value1[MAXS+1], value2[MAXS+1], value3[MAXS+1];
@@ -656,7 +662,8 @@ void convert_cb(Fl_Widget *w, void *p) {
 // ----------------------------------------------------------------------------
 // mainwin_cb
 // ----------------------------------------------------------------------------
-void mainwin_cb(Fl_Widget *w, void *p) {
+void mainwin_cb(Fl_Widget *w, void *p)
+{
   Fl_Double_Window *mw;
 
   mw = (Fl_Double_Window *)w;
@@ -668,7 +675,8 @@ void mainwin_cb(Fl_Widget *w, void *p) {
 // ----------------------------------------------------------------------------
 // menu_cb
 // ----------------------------------------------------------------------------
-void menu_cb(Fl_Widget *w, void *p) {
+void menu_cb(Fl_Widget *w, void *p)
+{
   Fl_Menu_ *m;
   const Fl_Menu_Item *mi;
   int rc;
@@ -691,7 +699,8 @@ void menu_cb(Fl_Widget *w, void *p) {
 // ----------------------------------------------------------------------------
 // open_cb
 // ----------------------------------------------------------------------------
-void open_cb(Fl_Widget *w, void *p) {
+void open_cb(Fl_Widget *w, void *p)
+{
   Fl_Native_File_Chooser *nfc;
   char *text;
   int ii, rc;
@@ -737,7 +746,8 @@ void open_cb(Fl_Widget *w, void *p) {
 // ----------------------------------------------------------------------------
 // quit_cb
 // ----------------------------------------------------------------------------
-void quit_cb(Fl_Widget *w, void *p) {
+void quit_cb(Fl_Widget *w, void *p)
+{
   Fl_Menu_ *m;
 
   m = (Fl_Menu_ *)w;
@@ -750,7 +760,8 @@ void quit_cb(Fl_Widget *w, void *p) {
 // ----------------------------------------------------------------------------
 // help_cb
 // ----------------------------------------------------------------------------
-void help_cb(Fl_Widget *w, void *p) {
+void help_cb(Fl_Widget *w, void *p)
+{
   Fl_Menu_ *m;
   struct _stat fst;
   char fname[] = "xgk-help.html";
@@ -777,7 +788,8 @@ void help_cb(Fl_Widget *w, void *p) {
 // ----------------------------------------------------------------------------
 // clear_cb
 // ----------------------------------------------------------------------------
-void clear_cb(Fl_Widget *w, void *p) {
+void clear_cb(Fl_Widget *w, void *p)
+{
   Fl_Menu_ *m;
 
   m = (Fl_Menu_ *)w;
@@ -790,7 +802,8 @@ void clear_cb(Fl_Widget *w, void *p) {
 // ----------------------------------------------------------------------------
 // about_cb
 // ----------------------------------------------------------------------------
-void about_cb(Fl_Widget *w, void *p) {
+void about_cb(Fl_Widget *w, void *p)
+{
   Fl_Menu_ *m;
 
   m = (Fl_Menu_ *)w;
@@ -836,7 +849,8 @@ void fields_show(int n)
 // ----------------------------------------------------------------------------
 // trans_cb
 // ----------------------------------------------------------------------------
-void trans_cb(Fl_Widget *w, void *p) {
+void trans_cb(Fl_Widget *w, void *p)
+{
   Fl_Radio_Round_Button *b;
   int ii, bsel;
 
@@ -870,7 +884,8 @@ void trans_cb(Fl_Widget *w, void *p) {
 // ----------------------------------------------------------------------------
 // geoid_cb
 // ----------------------------------------------------------------------------
-void geoid_cb(Fl_Widget *w, void *p) {
+void geoid_cb(Fl_Widget *w, void *p)
+{
   Fl_Radio_Round_Button *b;
   int ii, bsel;
 
@@ -895,7 +910,8 @@ void geoid_cb(Fl_Widget *w, void *p) {
 // ----------------------------------------------------------------------------
 // height_cb
 // ----------------------------------------------------------------------------
-void height_cb(Fl_Widget *w, void *p) {
+void height_cb(Fl_Widget *w, void *p)
+{
   Fl_Radio_Round_Button *b;
   int ii, bsel;
 
@@ -923,7 +939,8 @@ void height_cb(Fl_Widget *w, void *p) {
 // ----------------------------------------------------------------------------
 // wdms_cb
 // ----------------------------------------------------------------------------
-void wdms_cb(Fl_Widget *w, void *p) {
+void wdms_cb(Fl_Widget *w, void *p)
+{
   Fl_Check_Button *b;
 
   b = (Fl_Check_Button *)w;
@@ -939,7 +956,8 @@ void wdms_cb(Fl_Widget *w, void *p) {
 // ----------------------------------------------------------------------------
 // rev_cb
 // ----------------------------------------------------------------------------
-void rev_cb(Fl_Widget *w, void *p) {
+void rev_cb(Fl_Widget *w, void *p)
+{
   Fl_Check_Button *b;
 
   b = (Fl_Check_Button *)w;
@@ -955,7 +973,8 @@ void rev_cb(Fl_Widget *w, void *p) {
 // ----------------------------------------------------------------------------
 // ftchoice_cb
 // ----------------------------------------------------------------------------
-void ftchoice_cb(Fl_Widget *w, void *p) {
+void ftchoice_cb(Fl_Widget *w, void *p)
+{
   Fl_Choice *c;
 
   c = (Fl_Choice *)w;
@@ -968,7 +987,8 @@ void ftchoice_cb(Fl_Widget *w, void *p) {
 // ----------------------------------------------------------------------------
 // dnd_cb
 // ----------------------------------------------------------------------------
-void dnd_cb(Fl_Widget *w, void *p) {
+void dnd_cb(Fl_Widget *w, void *p)
+{
   Fl_DND_Box *dnd;
   char *text;
   int len, rc;
@@ -999,7 +1019,8 @@ void dnd_cb(Fl_Widget *w, void *p) {
 // ----------------------------------------------------------------------------
 // redisplay_dms
 // ----------------------------------------------------------------------------
-void redisplay_dms(int gtrn, int new_ddms) {
+void redisplay_dms(int gtrn, int new_ddms)
+{
   char value1[MAXS+1], value2[MAXS+1];
   double fi, la;
   DMS lat, lon;
@@ -1050,7 +1071,8 @@ void redisplay_dms(int gtrn, int new_ddms) {
 // ----------------------------------------------------------------------------
 // ddms_cb
 // ----------------------------------------------------------------------------
-void ddms_cb(Fl_Widget *w, void *p) {
+void ddms_cb(Fl_Widget *w, void *p)
+{
   Fl_Radio_Round_Button *b;
   int ii, bsel;
 
@@ -1080,7 +1102,8 @@ void ddms_cb(Fl_Widget *w, void *p) {
 // ----------------------------------------------------------------------------
 // join_threads
 // ----------------------------------------------------------------------------
-void join_threads(void *p) {
+void join_threads(void *p)
+{
   int rc, sts;
   PTID *pt;
 

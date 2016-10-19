@@ -351,6 +351,37 @@ int xprintf(FILE *log, TCHAR *fmt, ...)
 } /* xprintf */
 
 
+// ----------------------------------------------------------------------------
+// fefind
+// Tries to find first free file name with specified extension (adding numbers
+// to the name until 15).
+// ----------------------------------------------------------------------------
+TCHAR *fefind(TCHAR *fname, TCHAR *ext, TCHAR *newname)
+{
+  TCHAR name[MAXS+1], newext[MAXS+1], *s;
+  struct _stat fst;
+  int ii;
+
+  xstrncpy(name, fname, MAXS);
+  if ((s = strrchr(name, T('.'))) != NULL) *s = T('\0');
+
+  xstrncpy(newname, name, MAXS);
+  xstrncat(newname, ext, MAXS);
+  for (ii = 0; ii <= 15; ii++) { // append 1..15 to output file name
+    if (utf8_stat(newname, &fst) < 0) break; // file not found
+    snprintf(newext, MAXS, T("-%d%s"), ii+1, ext);
+    xstrncpy(newname, name, MAXS);
+    xstrncat(newname, newext, MAXS);
+  }
+  if (ii > 15) {
+    xstrncpy(newname, name, MAXS);
+    xstrncat(newname, ext, MAXS);
+    return NULL;
+  }
+  return newname;
+} /* fefind */
+
+
 #ifdef _WIN32
 // ----------------------------------------------------------------------------
 // getFILETIMEoffset
@@ -429,38 +460,112 @@ int clock_gettime(int clk_id, struct timespec *tv)
 
   return 0;
 } /* clock_gettime */
-#endif
 
 
 // ----------------------------------------------------------------------------
-// fefind
-// Tries to find first free file name with specified extension (adding numbers
-// to the name until 15).
+// utf82wchar
+// Converts UTF-8 encoded string to a wide character (UTF-16) string.
 // ----------------------------------------------------------------------------
-TCHAR *fefind(TCHAR *fname, TCHAR *ext, TCHAR *newname)
+wchar_t *utf82wchar(const char *str)
 {
-  TCHAR name[MAXS+1], newext[MAXS+1], *s;
-  struct _stat fst;
-  int ii;
+  int wlen;
+  wchar_t *wstr;
 
-  xstrncpy(name, fname, MAXS);
-  if ((s = strrchr(name, T('.'))) != NULL) *s = T('\0');
+  wlen = MultiByteToWideChar(CP_UTF8, 0, str, -1, 0, 0);
+  if (wlen == 0) return NULL;
 
-  xstrncpy(newname, name, MAXS);
-  xstrncat(newname, ext, MAXS);
-  for (ii = 0; ii <= 15; ii++) { // append 1..15 to output file name
-    if (tstat(newname, &fst) < 0) break; // file not found
-    snprintf(newext, MAXS, T("-%d%s"), ii+1, ext);
-    xstrncpy(newname, name, MAXS);
-    xstrncat(newname, newext, MAXS);
-  }
-  if (ii > 15) {
-    xstrncpy(newname, name, MAXS);
-    xstrncat(newname, ext, MAXS);
+  wstr = (wchar_t *)malloc(wlen * sizeof(wchar_t));
+  if (wstr == NULL) return NULL;
+
+  if (MultiByteToWideChar(CP_UTF8, 0, str, -1, wstr, wlen) == 0) {
+    free(wstr);
     return NULL;
   }
-  return newname;
-} /* fefind */
+
+  return wstr;
+} /* utf82wchar */
+
+
+// ----------------------------------------------------------------------------
+// wchar2utf8
+// Converts wide character (UTF-16) string to an UTF-8 encoded string.
+// ----------------------------------------------------------------------------
+char *wchar2utf8(const wchar_t *wstr)
+{
+  int len;
+  char *str;
+
+  len = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, 0, 0, NULL, NULL);
+  if (len == 0) return NULL;
+
+  str = (char *)malloc(len);
+  if (str == NULL) return NULL;
+
+  if (WideCharToMultiByte(CP_UTF8, 0, wstr, -1, str, len, NULL, NULL) == 0) {
+    free(str);
+    return NULL;
+  }
+
+  return str;
+} /* wchar2utf8 */
+
+
+#ifndef _WCHAR
+// ----------------------------------------------------------------------------
+// utf8_fopen
+// Open UTF-8 encoded file name.
+// ----------------------------------------------------------------------------
+FILE *utf8_fopen(const char *fname, const char *mode)
+{
+  wchar_t *wfname, *wmode;
+  FILE *file;
+  int error;
+
+  wfname = utf82wchar(fname);
+  wmode = utf82wchar(mode);
+  if (wfname == NULL || wmode == NULL) {
+    if (wfname != NULL) free(wfname);
+    if (wmode != NULL) free(wmode);
+    SetLastError(ENOMEM);
+    return NULL;
+  }
+
+  file = _wfopen(wfname, wmode);
+
+  error = GetLastError();
+  free(wfname);
+  free(wmode);
+  SetLastError(error);
+
+  return file;
+} /* utf8_fopen */
+
+
+// ----------------------------------------------------------------------------
+// utf8_stat
+// Get status information for UTF-8 encoded file name.
+// ----------------------------------------------------------------------------
+int utf8_stat(const char *fname, struct _stat *fst)
+{
+  wchar_t *wfname;
+  int rc, error;
+
+  wfname = utf82wchar(fname);
+  if (wfname == NULL) {
+    SetLastError(ENOMEM);
+    return -1;
+  }
+
+  rc = _wstat(wfname, fst);
+
+  error = GetLastError();
+  free(wfname);
+  SetLastError(error);
+
+  return rc;
+} /* utf8_stat */
+#endif
+#endif //_WIN32
 
 #ifdef __cplusplus
 }

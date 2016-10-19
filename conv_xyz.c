@@ -63,7 +63,7 @@ int convert_xyz_file(TCHAR *url, int outf, FILE *out, TCHAR *msg)
   }
   else {
     xstrncpy(inpname, url, MAXS);
-    inp = fopen(inpname, T("r")); inpf = 2;
+    inp = utf8_fopen(inpname, T("r")); inpf = 2;
   }
   if (inp == NULL) {
     errtxt = xstrerror();
@@ -85,7 +85,7 @@ int convert_xyz_file(TCHAR *url, int outf, FILE *out, TCHAR *msg)
       if (inpf == 2) fclose(inp);
       return 3;
     }
-    out = fopen(outname, T("w"));
+    out = utf8_fopen(outname, T("w"));
     if (out == NULL) {
       errtxt = xstrerror();
       if (errtxt != NULL) {

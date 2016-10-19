@@ -407,22 +407,12 @@ void usage(TCHAR *prog, int ver_only)
 // ----------------------------------------------------------------------------
 // main (mingw32 unicode wrapper)
 // ----------------------------------------------------------------------------
-#if defined(__MINGW32__) && defined(_WCHAR)
+#ifdef __MINGW32__
 extern int _CRT_glob;
-extern
 #ifdef __cplusplus
-"C"
+extern "C"
 #endif
-void __wgetmainargs(int*, TCHAR***, TCHAR***, int, int*);
-int tmain(int argc, TCHAR *argv[]);
-
-int main() {
-  TCHAR **argv, **enpv;
-  int argc, si = 0;
-
-  __wgetmainargs(&argc, &argv, &enpv, _CRT_glob, &si);
-  return tmain(argc, argv);
-}
+void __wgetmainargs(int *, wchar_t ***, wchar_t ***, int, int *);
 #endif
 
 
@@ -431,6 +421,9 @@ int main() {
 // ----------------------------------------------------------------------------
 int tmain(int argc, TCHAR *argv[])
 {
+#ifdef _WIN32
+  wchar_t **wargv, **wenpv; int si = 0;
+#endif
   int ii, ac, opt;
   TCHAR *s, *av[MAXC], *errtxt;
   TCHAR geoid[MAXS+1];
@@ -438,6 +431,11 @@ int tmain(int argc, TCHAR *argv[])
   TCHAR outname[MAXS+1];
   int inpf, outf;
   FILE *out;
+
+#ifdef _WIN32
+  __wgetmainargs(&argc, &wargv, &wenpv, _CRT_glob, &si);
+  argv[0] = wchar2utf8(wargv[0]); // convert to UTF-8
+#endif
 
   // Get program name
   if ((prog = strrchr(argv[0], DIRSEP)) == NULL) prog = argv[0];
@@ -462,6 +460,9 @@ int tmain(int argc, TCHAR *argv[])
   // Parse command line
   ac = 0; opt = 1;
   for (ii = 1; ii < argc && ac < MAXC; ii++) {
+#ifdef _WIN32
+    argv[ii] = wchar2utf8(wargv[ii]); // convert to UTF-8
+#endif
     if (opt && *argv[ii] == T('-')) {
       if (strcasecmp(argv[ii], T("-g")) == 0) { // geoid
         ii++; if (ii >= argc) goto usage;

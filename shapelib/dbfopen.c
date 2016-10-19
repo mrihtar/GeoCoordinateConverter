@@ -368,7 +368,11 @@ DBFOpen( const char * pszFilename, const char * pszAccess )
 {
     SAHooks sHooks;
 
+#ifdef SHPAPI_UTF8_HOOKS
+    SASetupUtf8Hooks( &sHooks );
+#else
     SASetupDefaultHooks( &sHooks );
+#endif
 
     return DBFOpenLL( pszFilename, pszAccess, &sHooks );
 }
@@ -644,7 +648,11 @@ DBFCreateEx( const char * pszFilename, const char* pszCodePage )
 {
     SAHooks sHooks;
 
+#ifdef SHPAPI_UTF8_HOOKS
+    SASetupUtf8Hooks( &sHooks );
+#else
     SASetupDefaultHooks( &sHooks );
+#endif
 
     return DBFCreateLL( pszFilename, pszCodePage , &sHooks );
 }

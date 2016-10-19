@@ -810,7 +810,11 @@ SHPTreeDiskHandle SHPOpenDiskTree( const char* pszQIXFilename,
     hDiskTree = (SHPTreeDiskHandle) calloc(sizeof(struct SHPDiskTreeInfo),1);
 
     if (psHooks == NULL)
+#ifdef SHPAPI_UTF8_HOOKS
+        SASetupUtf8Hooks( &(hDiskTree->sHooks) );
+#else
         SASetupDefaultHooks( &(hDiskTree->sHooks) );
+#endif
     else
         memcpy( &(hDiskTree->sHooks), psHooks, sizeof(SAHooks) );
 
@@ -1111,7 +1115,11 @@ int SHPAPI_CALL SHPWriteTree(SHPTree *tree, const char *filename )
 {
     SAHooks sHooks;
 
+#ifdef SHPAPI_UTF8_HOOKS
+    SASetupUtf8Hooks( &sHooks );
+#else
     SASetupDefaultHooks( &sHooks );
+#endif
 
     return SHPWriteTreeLL(tree, filename, &sHooks);
 }
@@ -1130,7 +1138,11 @@ int SHPWriteTreeLL(SHPTree *tree, const char *filename, SAHooks* psHooks )
     SAHooks sHooks;
     if (psHooks == NULL)
     {
+#ifdef SHPAPI_UTF8_HOOKS
+        SASetupUtf8Hooks( &sHooks );
+#else
         SASetupDefaultHooks( &sHooks );
+#endif
         psHooks = &sHooks;
     }
   

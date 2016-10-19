@@ -478,7 +478,11 @@ SHPOpen( const char * pszLayer, const char * pszAccess )
 {
     SAHooks sHooks;
 
+#ifdef SHPAPI_UTF8_HOOKS
+    SASetupUtf8Hooks( &sHooks );
+#else
     SASetupDefaultHooks( &sHooks );
+#endif
 
     return SHPOpenLL( pszLayer, pszAccess, &sHooks );
 }
@@ -844,7 +848,11 @@ SHPCreate( const char * pszLayer, int nShapeType )
 {
     SAHooks sHooks;
 
+#ifdef SHPAPI_UTF8_HOOKS
+    SASetupUtf8Hooks( &sHooks );
+#else
     SASetupDefaultHooks( &sHooks );
+#endif
 
     return SHPCreateLL( pszLayer, nShapeType, &sHooks );
 }

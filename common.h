@@ -157,6 +157,17 @@ int xprintf(FILE *log, TCHAR *fmt, ...);
 int clock_gettime(int clk_id, struct timespec *tv);
 TCHAR *fefind(TCHAR *fname, TCHAR *ext, TCHAR *newname);
 
+#ifdef _WIN32
+wchar_t *utf82wchar(const char *str);
+char *wchar2utf8(const wchar_t *wstr);
+FILE *utf8_fopen(const char *fname, const char *mode);
+int utf8_stat(const char *fname, struct _stat *fst);
+
+#else //not _WIN32
+#define utf8_fopen fopen
+#define utf8_stat stat
+#endif
+
 #ifdef __cplusplus
 }
 #endif

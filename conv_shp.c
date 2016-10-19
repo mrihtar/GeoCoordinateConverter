@@ -225,7 +225,7 @@ int convert_shp_file(TCHAR *inpurl, TCHAR *outurl, TCHAR *msg)
       proj = prj[EPSG_3787]; break; // D48/GK
   }
   // write selected projection to .prj file (for GIS programs)
-  out = fopen(prjname, "w");
+  out = utf8_fopen(prjname, "w");
   if (out == NULL) {
     errtxt = xstrerror();
     if (errtxt != NULL) {
