@@ -5,17 +5,17 @@ LD = link /nologo
 RM = del /q
 CP = copy /y
 
-#DEBUG = /O2
-DEBUG = /Zi /DEBUG
+DEBUG = /O2
+#DEBUG = /Zi /DEBUG
 CFLAGS = /Wall
 IPATH = /I..
-#LDFLAGS = /INCREMENTAL:no
-LDFLAGS = /INCREMENTAL:no /DEBUG
+LDFLAGS = /INCREMENTAL:no
+#LDFLAGS = /INCREMENTAL:no /DEBUG
 LPATH = 
 LIBS = 
 
 TGTS = ctt.exe triangle.exe
-WOBJS = wctt.obj ..\wutil.obj
+WOBJS = ctt.obj ..\util.obj
 INCL = ..\common.h ..\geo.h
 TRIOBJS = triangle.obj
 TRIINCL = triangle.h
@@ -36,9 +36,5 @@ clean:
 cleanall: clean
 	-$(RM) $(TGTS)
 
-wctt.obj: ctt.c
-	$(CC) $(DEBUG) /c $(CFLAGS) -D_WCHAR $(IPATH) ctt.c /Fo$@
-..\wutil.obj: ..\util.c
-	$(CC) $(DEBUG) /c $(CFLAGS) -D_WCHAR $(IPATH) ..\util.c /Fo$@
 .c.obj:
 	$(CC) $(DEBUG) /c $(CFLAGS) $(IPATH) $< /Fo$@

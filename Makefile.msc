@@ -1,37 +1,53 @@
 # For Microsoft nmake
 SHELL = %SystemRoot%/System32/cmd.exe
 CC = cl /nologo
+CXX = cl /nologo
 LD = link /nologo
+RC = windres
 RM = del /q
 CP = copy /y
 
 #DEBUG = /O2
 DEBUG = /Zi /DEBUG
 CFLAGS = /Wall
-IPATH = /Ishapelib
+CXXFLAGS = /Wall
+IPATH = /Ishapelib /Ifltk
 #LDFLAGS = /INCREMENTAL:no
 LDFLAGS = /INCREMENTAL:no /DEBUG
 LPATH = 
 LIBS = 
+#XLDFLAGS = /INCREMENTAL:no
+XLDFLAGS = /INCREMENTAL:no /DEBUG
+XLPATH = -Lfltk/lib
+XLIBS = -lfltk_images -lfltk -lfltk_png -lfltk_z -lfltk_jpeg -lpthread -lole32 -luuid -lcomctl32
 
-TGTS = gk-slo.exe gk-shp.exe
-WOBJS = wgk-slo.obj wutil.obj wgeo.obj
-OBJS = gk-shp.obj util.obj geo.obj
+TGTS = gk-slo.exe gk-shp.exe xgk-slo.exe
+WOBJS = gk-slo.obj util.obj geo.obj
+SOBJS = gk-shp.obj util.obj geo.obj
 INCL = common.h geo.h geoid_slo.h geoid_egm.h aft_gktm.h aft_tmgk.h
 SHPOBJS = shapelib\shpopen.obj shapelib\dbfopen.obj shapelib\safileio.obj shapelib\shptree.obj
 SHPINCL = shapelib\shapefil.h
+XOBJS = xgk-slo.obj conv_xyz.obj conv_shp.obj util.obj geo.obj
+XINCL = 
+
+.SUFFIXES: .cxx
 
 all: $(TGTS)
 
 gk-slo.exe: $(WOBJS)
 	$(LD) /OUT:$@ $(WOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
 
-gk-shp.exe: $(OBJS) $(SHPOBJS)
-	$(LD) /OUT:$@ $(OBJS) $(SHPOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
+gk-shp.exe: $(SOBJS) $(SHPOBJS)
+	$(LD) /OUT:$@ $(SOBJS) $(SHPOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
 
-$(OBJS): $(INCL)
+xgk-slo.exe: $(XOBJS) $(SHPOBJS) xgk-slo.rc
+	$(RC) $(basename $@).rc $(basename $@).res
+	$(LD) /OUT:$@ $(XOBJS) $(SHPOBJS) $(basename $@).res $(XLDFLAGS) $(XLPATH) $(XLIBS)
+
 $(WOBJS): $(INCL)
+$(SOBJS): $(INCL)
 $(SHPOBJS): $(SHPINCL)
+$(XOBJS): $(XINCL)
 
 test: $(TGTS)
 	gk-slo.exe -x > gk-slo.tmp
@@ -41,18 +57,14 @@ test: $(TGTS)
 	@$(RM) gk-slo.tmp > NUL
 
 install: $(TGTS)
-	@echo Copy gk-slo.exe and gk-shp.exe to a directory of your choice
+	@echo Copy gk-slo.exe, gk-shp.exe and xgk-slo.exe to a directory of your choice
 
 clean:
-	-$(RM) $(OBJS) $(WOBJS) $(SHPOBJS)
+	-$(RM) $(WOBJS) $(SOBJS) $(SHPOBJS) $(XOBJS) *.res
 cleanall: clean
 	-$(RM) $(TGTS)
 
-wgk-slo.obj: gk-slo.c
-	$(CC) $(DEBUG) /c $(CFLAGS) -D_WCHAR $(IPATH) gk-slo.c /Fo$@
-wutil.obj: util.c
-	$(CC) $(DEBUG) /c $(CFLAGS) -D_WCHAR $(IPATH) util.c /Fo$@
-wgeo.obj: geo.c
-	$(CC) $(DEBUG) /c $(CFLAGS) -D_WCHAR $(IPATH) geo.c /Fo$@
 .c.obj:
 	$(CC) $(DEBUG) /c $(CFLAGS) $(IPATH) $< /Fo$@
+.cxx.obj:
+	$(CXX) $(DEBUG) /c $(CXXFLAGS) $(IPATH) $< /Fo$@

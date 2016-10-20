@@ -68,37 +68,38 @@
 #define T(x) L##x
 #define TCHAR wchar_t
 #define TSIZE 0xFFFF
-#define tmain wmain
 #define DIRSEP T('\\')
 #define DIRSEP_S T("\\")
-#define strlen wcslen
+#define tmain wmain
+#define fgetc fgetwc
+#define fgets fgetws
+#define fopen _wfopen
+#define fprintf fwprintf
 #define isspace iswspace
 #define printf wprintf
-#define fprintf fwprintf
-#define strftime wcsftime
 #define snprintf _snwprintf
-#define vsnprintf _vsnwprintf
+#define sscanf swscanf
+#define strcasecmp _wcsicmp
+#define strcmp wcscmp
+#define strftime wcsftime
+#define strlen wcslen
+#define strncasecmp _wcsnicmp
 #define strrchr wcsrchr
 #define strstr wcsstr
-#define strcmp wcscmp
-#define strcasecmp _wcsicmp
-#define strncasecmp _wcsnicmp
 #define strtol wcstol
-#define sscanf swscanf
-#define fopen _wfopen
-#define fgets fgetws
-#define fgetc fgetwc
 #define tstat _wstat
+#define vsnprintf _vsnwprintf
 #undef FormatMessage
 #define FormatMessage FormatMessageW
 #define LPTSTR LPWSTR
-#else
+
+#else //not _WCHAR
 #define T(x) x
 #define TCHAR char
 #define TSIZE 0xFF
-#define tmain main
 #define DIRSEP T('\\')
 #define DIRSEP_S T("\\")
+#define tmain main
 #define snprintf _snprintf
 #define strcasecmp _stricmp
 #define strncasecmp _strnicmp
@@ -109,9 +110,9 @@
 #define T(x) x
 #define TCHAR char
 #define TSIZE 0xFF
-#define tmain main
 #define DIRSEP T('/')
 #define DIRSEP_S T("/")
+#define tmain main
 #define _stat stat
 #define tstat stat
 #endif
@@ -157,6 +158,7 @@ int xprintf(FILE *log, TCHAR *fmt, ...);
 int clock_gettime(int clk_id, struct timespec *tv);
 TCHAR *fefind(TCHAR *fname, TCHAR *ext, TCHAR *newname);
 
+// Windows UTF-8 functions
 #ifdef _WIN32
 wchar_t *utf82wchar(const char *str);
 char *wchar2utf8(const wchar_t *wstr);

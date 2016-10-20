@@ -20,11 +20,11 @@
 #include "common.h"
 #include "geo.h"
 
-#define SW_VERSION T("9.01")
-#define SW_BUILD   T("Oct 6, 2016")
+#define SW_VERSION "9.02"
+#define SW_BUILD   "Oct 19, 2016"
 
 // global variables
-TCHAR *prog; // program name
+char *prog; // program name
 int debug;
 int tr;      // transformation
 int rev;     // reverse xy/fila
@@ -36,8 +36,12 @@ extern int hsel;    // output height calculation (in geo.c, via cmd line)
 #ifdef __cplusplus
 extern "C" {
 #endif
+#ifdef __MINGW32__
+extern int _CRT_glob;
+void __wgetmainargs(int *, wchar_t ***, wchar_t ***, int, int *);
+#endif
 // External function prototypes
-int convert_xyz_file(TCHAR *url, int outf, FILE *out, TCHAR *msg);
+int convert_xyz_file(char *url, int outf, FILE *out, char *msg);
 #ifdef __cplusplus
 }
 #endif
@@ -61,167 +65,167 @@ void reftest()
   d96ref.x = 155370.642; d96ref.y = 523125.803; d96ref.H = -47.474;
   d48ref.x = 154885.259; d48ref.y = 523494.788; d48ref.H = -47.474;
 
-  printf(T("---------- Reference point\n"));
-  printf(T("WGS84 fi: %.10f,   la: %.10f,  h: %.3f\n"), flref.fi, flref.la, flref.h);
+  printf("---------- Reference point\n");
+  printf("WGS84 fi: %.10f,   la: %.10f,  h: %.3f\n", flref.fi, flref.la, flref.h);
   deg2dms(flref.fi, &lat); deg2dms(flref.la, &lon);
-  printf(T("     lat: %2.0f %2.0f %8.5f, lon: %2.0f %2.0f %8.5f, h: %.3f\n"),
+  printf("     lat: %2.0f %2.0f %8.5f, lon: %2.0f %2.0f %8.5f, h: %.3f\n",
          lat.deg, lat.min, lat.sec, lon.deg, lon.min, lon.sec, flref.h);
-  printf(T("D96/TM x: %.3f, y: %.3f, H: %.3f\n"), d96ref.x, d96ref.y, d96ref.H);
-  printf(T("D48/GK x: %.3f, y: %.3f, H: %.3f\n"), d48ref.x, d48ref.y, d48ref.H);
+  printf("D96/TM x: %.3f, y: %.3f, H: %.3f\n", d96ref.x, d96ref.y, d96ref.H);
+  printf("D48/GK x: %.3f, y: %.3f, H: %.3f\n", d48ref.x, d48ref.y, d48ref.H);
 
 
-  printf(T("---------- Conversion D48/GK --> WGS84 (result)\n"));
-  printf(T("<-- x: %.3f, y: %.3f, H: %.3f\n"), d48ref.x, d48ref.y, d48ref.H);
+  printf("---------- Conversion D48/GK --> WGS84 (result)\n");
+  printf("<-- x: %.3f, y: %.3f, H: %.3f\n", d48ref.x, d48ref.y, d48ref.H);
   gkxy2fila_wgs(d48ref, &fl);
   deg2dms(fl.fi, &lat); deg2dms(fl.la, &lon);
-  printf(T("--> fi: %.10f,   la: %.10f,  h: %.3f\n"), fl.fi, fl.la, fl.h);
-  printf(T("   lat: %2.0f %2.0f %8.5f, lon: %2.0f %2.0f %8.5f, h: %.3f\n"),
+  printf("--> fi: %.10f,   la: %.10f,  h: %.3f\n", fl.fi, fl.la, fl.h);
+  printf("   lat: %2.0f %2.0f %8.5f, lon: %2.0f %2.0f %8.5f, h: %.3f\n",
          lat.deg, lat.min, lat.sec, lon.deg, lon.min, lon.sec, fl.h);
 
-  printf(T("---------- result --> D96/TM\n"));
-  printf(T("<-- fi: %.10f, la: %.10f, h: %.3f\n"), fl.fi, fl.la, fl.h);
+  printf("---------- result --> D96/TM\n");
+  printf("<-- fi: %.10f, la: %.10f, h: %.3f\n", fl.fi, fl.la, fl.h);
   fila_wgs2tmxy(fl, &xy);
-  printf(T("--> x: %.3f, y: %.3f, H: %.3f\n"), xy.x, xy.y, xy.H);
+  printf("--> x: %.3f, y: %.3f, H: %.3f\n", xy.x, xy.y, xy.H);
 
-  printf(T("---------- result --> D48/GK (inverse)\n"));
-  printf(T("<-- fi: %.10f, la: %.10f, h: %.3f\n"), fl.fi, fl.la, fl.h);
+  printf("---------- result --> D48/GK (inverse)\n");
+  printf("<-- fi: %.10f, la: %.10f, h: %.3f\n", fl.fi, fl.la, fl.h);
   fila_wgs2gkxy(fl, &xy);
-  printf(T("--> x: %.3f, y: %.3f, H: %.3f\n"), xy.x, xy.y, xy.H);
+  printf("--> x: %.3f, y: %.3f, H: %.3f\n", xy.x, xy.y, xy.H);
 
-  printf(T("---------- Conversion WGS84 --> D48/GK (result)\n"));
-  printf(T("<-- fi: %.10f, la: %.10f, h: %.3f\n"), flref.fi, flref.la, flref.h);
+  printf("---------- Conversion WGS84 --> D48/GK (result)\n");
+  printf("<-- fi: %.10f, la: %.10f, h: %.3f\n", flref.fi, flref.la, flref.h);
   fila_wgs2gkxy(flref, &xy);
-  printf(T("--> x: %.3f, y: %.3f, H: %.3f\n"), xy.x, xy.y, xy.H);
+  printf("--> x: %.3f, y: %.3f, H: %.3f\n", xy.x, xy.y, xy.H);
 
 
-  printf(T("---------- Conversion D96/TM --> WGS84 (result)\n"));
-  printf(T("<-- x: %.3f, y: %.3f, H: %.3f\n"), d96ref.x, d96ref.y, d96ref.H);
+  printf("---------- Conversion D96/TM --> WGS84 (result)\n");
+  printf("<-- x: %.3f, y: %.3f, H: %.3f\n", d96ref.x, d96ref.y, d96ref.H);
   tmxy2fila_wgs(d96ref, &fl);
   deg2dms(fl.fi, &lat); deg2dms(fl.la, &lon);
-  printf(T("--> fi: %.10f,   la: %.10f,  h: %.3f\n"), fl.fi, fl.la, fl.h);
-  printf(T("   lat: %2.0f %2.0f %8.5f, lon: %2.0f %2.0f %8.5f, h: %.3f\n"),
+  printf("--> fi: %.10f,   la: %.10f,  h: %.3f\n", fl.fi, fl.la, fl.h);
+  printf("   lat: %2.0f %2.0f %8.5f, lon: %2.0f %2.0f %8.5f, h: %.3f\n",
          lat.deg, lat.min, lat.sec, lon.deg, lon.min, lon.sec, fl.h);
 
-  printf(T("---------- result --> D48/GK\n"));
-  printf(T("<-- fi: %.10f, la: %.10f, h: %.3f\n"), fl.fi, fl.la, fl.h);
+  printf("---------- result --> D48/GK\n");
+  printf("<-- fi: %.10f, la: %.10f, h: %.3f\n", fl.fi, fl.la, fl.h);
   fila_wgs2gkxy(fl, &xy);
-  printf(T("--> x: %.3f, y: %.3f, H: %.3f\n"), xy.x, xy.y, xy.H);
+  printf("--> x: %.3f, y: %.3f, H: %.3f\n", xy.x, xy.y, xy.H);
 
-  printf(T("---------- result --> D96/TM (inverse)\n"));
-  printf(T("<-- fi: %.10f, la: %.10f, h: %.3f\n"), fl.fi, fl.la, fl.h);
+  printf("---------- result --> D96/TM (inverse)\n");
+  printf("<-- fi: %.10f, la: %.10f, h: %.3f\n", fl.fi, fl.la, fl.h);
   fila_wgs2tmxy(fl, &xy);
-  printf(T("--> x: %.3f, y: %.3f, H: %.3f\n"), xy.x, xy.y, xy.H);
+  printf("--> x: %.3f, y: %.3f, H: %.3f\n", xy.x, xy.y, xy.H);
 
-  printf(T("---------- Conversion WGS84 --> D96/TM (result)\n"));
-  printf(T("<-- fi: %.10f, la: %.10f, h: %.3f\n"), flref.fi, flref.la, flref.h);
+  printf("---------- Conversion WGS84 --> D96/TM (result)\n");
+  printf("<-- fi: %.10f, la: %.10f, h: %.3f\n", flref.fi, flref.la, flref.h);
   fila_wgs2tmxy(flref, &xy);
-  printf(T("--> x: %.3f, y: %.3f, H: %.3f\n"), xy.x, xy.y, xy.H);
+  printf("--> x: %.3f, y: %.3f, H: %.3f\n", xy.x, xy.y, xy.H);
 
 
-  printf(T("---------- Conversion D96/TM --> D48/GK (result)\n"));
-  printf(T("<-- x: %.3f, y: %.3f, H: %.3f\n"), d96ref.x, d96ref.y, d96ref.H);
+  printf("---------- Conversion D96/TM --> D48/GK (result)\n");
+  printf("<-- x: %.3f, y: %.3f, H: %.3f\n", d96ref.x, d96ref.y, d96ref.H);
   tmxy2gkxy(d96ref, &xy);
-  printf(T("--> x: %.3f, y: %.3f, H: %.3f\n"), xy.x, xy.y, xy.H);
+  printf("--> x: %.3f, y: %.3f, H: %.3f\n", xy.x, xy.y, xy.H);
 
-  printf(T("---------- Conversion D96/TM --> D48/GK (affine trans.)\n"));
-  printf(T("<-- x: %.3f, y: %.3f, H: %.3f\n"), d96ref.x, d96ref.y, d96ref.H);
+  printf("---------- Conversion D96/TM --> D48/GK (affine trans.)\n");
+  printf("<-- x: %.3f, y: %.3f, H: %.3f\n", d96ref.x, d96ref.y, d96ref.H);
   tmxy2gkxy_aft(d96ref, &xy);
-  printf(T("--> x: %.3f, y: %.3f, H: %.3f\n"), xy.x, xy.y, xy.H);
+  printf("--> x: %.3f, y: %.3f, H: %.3f\n", xy.x, xy.y, xy.H);
 
-  printf(T("---------- Conversion D48/GK --> D96/TM (result)\n"));
-  printf(T("<-- x: %.3f, y: %.3f, H: %.3f\n"), d48ref.x, d48ref.y, d48ref.H);
+  printf("---------- Conversion D48/GK --> D96/TM (result)\n");
+  printf("<-- x: %.3f, y: %.3f, H: %.3f\n", d48ref.x, d48ref.y, d48ref.H);
   gkxy2tmxy(d48ref, &xy);
-  printf(T("--> x: %.3f, y: %.3f, H: %.3f\n"), xy.x, xy.y, xy.H);
+  printf("--> x: %.3f, y: %.3f, H: %.3f\n", xy.x, xy.y, xy.H);
 
-  printf(T("---------- Conversion D48/GK --> D96/TM (affine trans.)\n"));
-  printf(T("<-- x: %.3f, y: %.3f, H: %.3f\n"), d48ref.x, d48ref.y, d48ref.H);
+  printf("---------- Conversion D48/GK --> D96/TM (affine trans.)\n");
+  printf("<-- x: %.3f, y: %.3f, H: %.3f\n", d48ref.x, d48ref.y, d48ref.H);
   gkxy2tmxy_aft(d48ref, &xy);
-  printf(T("--> x: %.3f, y: %.3f, H: %.3f\n"), xy.x, xy.y, xy.H);
+  printf("--> x: %.3f, y: %.3f, H: %.3f\n", xy.x, xy.y, xy.H);
 
-  printf(T("---------- Conversion D48/GK --> WGS84 (affine trans.)\n"));
-  printf(T("<-- x: %.3f, y: %.3f, H: %.3f\n"), d48ref.x, d48ref.y, d48ref.H);
+  printf("---------- Conversion D48/GK --> WGS84 (affine trans.)\n");
+  printf("<-- x: %.3f, y: %.3f, H: %.3f\n", d48ref.x, d48ref.y, d48ref.H);
   gkxy2fila_wgs_aft(d48ref, &fl);
   deg2dms(fl.fi, &lat); deg2dms(fl.la, &lon);
-  printf(T("--> fi: %.10f,   la: %.10f,  h: %.3f\n"), fl.fi, fl.la, fl.h);
-  printf(T("   lat: %2.0f %2.0f %8.5f, lon: %2.0f %2.0f %8.5f, h: %.3f\n"),
+  printf("--> fi: %.10f,   la: %.10f,  h: %.3f\n", fl.fi, fl.la, fl.h);
+  printf("   lat: %2.0f %2.0f %8.5f, lon: %2.0f %2.0f %8.5f, h: %.3f\n",
          lat.deg, lat.min, lat.sec, lon.deg, lon.min, lon.sec, fl.h);
 
-  printf(T("---------- Conversion WGS84 --> D48/GK (affine trans.)\n"));
-  printf(T("<-- fi: %.10f, la: %.10f, h: %.3f\n"), flref.fi, flref.la, flref.h);
+  printf("---------- Conversion WGS84 --> D48/GK (affine trans.)\n");
+  printf("<-- fi: %.10f, la: %.10f, h: %.3f\n", flref.fi, flref.la, flref.h);
   fila_wgs2gkxy_aft(flref, &xy);
-  printf(T("--> x: %.3f, y: %.3f, H: %.3f\n"), xy.x, xy.y, xy.H);
+  printf("--> x: %.3f, y: %.3f, H: %.3f\n", xy.x, xy.y, xy.H);
 
 #if 1
-  printf(T("---------- Conversion D48/GK --> BESSEL (loop)\n"));
-  printf(T("<-- x: %.3f, y: %.3f, H: %.3f\n"), d48ref.x, d48ref.y, d48ref.H);
+  printf("---------- Conversion D48/GK --> BESSEL (loop)\n");
+  printf("<-- x: %.3f, y: %.3f, H: %.3f\n", d48ref.x, d48ref.y, d48ref.H);
   xy2fila_ellips_loop(d48ref, &fl, 0);
   if (hsel == 1) fl.h = fl.h - fl.Ng;
   deg2dms(fl.fi, &lat); deg2dms(fl.la, &lon);
-  printf(T("--> fi: %.10f,   la: %.10f,  h: %.3f (no geoid)\n"), fl.fi, fl.la, fl.h);
-  printf(T("   lat: %2.0f %2.0f %8.5f, lon: %2.0f %2.0f %8.5f, h: %.3f (no geoid)\n"),
+  printf("--> fi: %.10f,   la: %.10f,  h: %.3f (no geoid)\n", fl.fi, fl.la, fl.h);
+  printf("   lat: %2.0f %2.0f %8.5f, lon: %2.0f %2.0f %8.5f, h: %.3f (no geoid)\n",
          lat.deg, lat.min, lat.sec, lon.deg, lon.min, lon.sec, fl.h);
 
-  printf(T("---------- result --> D48/GK (loop, inverse)\n"));
-  printf(T("<-- fi: %.10f, la: %.10f, h: %.3f (no geoid)\n"), fl.fi, fl.la, fl.h);
+  printf("---------- result --> D48/GK (loop, inverse)\n");
+  printf("<-- fi: %.10f, la: %.10f, h: %.3f (no geoid)\n", fl.fi, fl.la, fl.h);
   fila_ellips2xy_loop(fl, &xy, 0);
   if (hsel == 1) xy.H = xy.H + xy.Ng;
-  printf(T("--> x: %.3f, y: %.3f, H: %.3f (no geoid)\n"), xy.x, xy.y, xy.H);
+  printf("--> x: %.3f, y: %.3f, H: %.3f (no geoid)\n", xy.x, xy.y, xy.H);
 #endif
 #if 0
 // Absolute geoid model limits
 // fi: 45°15' - 47°00'
 // la: 13°15' - 16°45'
-  printf(T("---------- Conversion fi_min,la_min --> D96/TM\n"));
+  printf("---------- Conversion fi_min,la_min --> D96/TM\n");
   lat.deg = 45; lat.min = 15; lat.sec = 0;
   lon.deg = 13; lon.min = 15; lon.sec = 0;
   dms2deg(lat, &fl.fi); dms2deg(lon, &fl.la); fl.h = 0.0;
-  printf(T("<-- fi: %.10f, la: %.10f, h: %.3f\n"), fl.fi, fl.la, fl.h);
+  printf("<-- fi: %.10f, la: %.10f, h: %.3f\n", fl.fi, fl.la, fl.h);
   fila_wgs2tmxy(fl, &xy);
-  printf(T("--> x: %.3f, y: %.3f, H: %.3f\n"), xy.x, xy.y, xy.H);
-  printf(T("---------- Conversion fi_max,la_max --> D96/TM\n"));
+  printf("--> x: %.3f, y: %.3f, H: %.3f\n", xy.x, xy.y, xy.H);
+  printf("---------- Conversion fi_max,la_max --> D96/TM\n");
   lat.deg = 47; lat.min =  0; lat.sec = 0;
   lon.deg = 16; lon.min = 45; lon.sec = 0;
   dms2deg(lat, &fl.fi); dms2deg(lon, &fl.la); fl.h = 0.0;
-  printf(T("<-- fi: %.10f, la: %.10f, h: %.3f\n"), fl.fi, fl.la, fl.h);
+  printf("<-- fi: %.10f, la: %.10f, h: %.3f\n", fl.fi, fl.la, fl.h);
   fila_wgs2tmxy(fl, &xy);
-  printf(T("--> x: %.3f, y: %.3f, H: %.3f\n"), xy.x, xy.y, xy.H);
-  printf(T("---------- Conversion fi_min,la_min --> D48/GK\n"));
+  printf("--> x: %.3f, y: %.3f, H: %.3f\n", xy.x, xy.y, xy.H);
+  printf("---------- Conversion fi_min,la_min --> D48/GK\n");
   lat.deg = 45; lat.min = 15; lat.sec = 0;
   lon.deg = 13; lon.min = 15; lon.sec = 0;
   dms2deg(lat, &fl.fi); dms2deg(lon, &fl.la); fl.h = 0.0;
-  printf(T("<-- fi: %.10f, la: %.10f, h: %.3f\n"), fl.fi, fl.la, fl.h);
+  printf("<-- fi: %.10f, la: %.10f, h: %.3f\n", fl.fi, fl.la, fl.h);
   fila_wgs2gkxy(fl, &xy);
-  printf(T("--> x: %.3f, y: %.3f, H: %.3f\n"), xy.x, xy.y, xy.H);
-  printf(T("---------- Conversion fi_max,la_max --> D48/GK\n"));
+  printf("--> x: %.3f, y: %.3f, H: %.3f\n", xy.x, xy.y, xy.H);
+  printf("---------- Conversion fi_max,la_max --> D48/GK\n");
   lat.deg = 47; lat.min =  0; lat.sec = 0;
   lon.deg = 16; lon.min = 45; lon.sec = 0;
   dms2deg(lat, &fl.fi); dms2deg(lon, &fl.la); fl.h = 0.0;
-  printf(T("<-- fi: %.10f, la: %.10f, h: %.3f\n"), fl.fi, fl.la, fl.h);
+  printf("<-- fi: %.10f, la: %.10f, h: %.3f\n", fl.fi, fl.la, fl.h);
   fila_wgs2gkxy(fl, &xy);
-  printf(T("--> x: %.3f, y: %.3f, H: %.3f\n"), xy.x, xy.y, xy.H);
+  printf("--> x: %.3f, y: %.3f, H: %.3f\n", xy.x, xy.y, xy.H);
 #endif
 #if 0
 // Area completely inside Slovenia
-  printf(T("---------- Conversion fi_min,la_min --> D96/TM\n"));
+  printf("---------- Conversion fi_min,la_min --> D96/TM\n");
   fl.fi = 45.676000; fl.la = 13.920000; fl.h = 0.0;
-  printf(T("<-- fi: %.10f, la: %.10f, h: %.3f\n"), fl.fi, fl.la, fl.h);
+  printf("<-- fi: %.10f, la: %.10f, h: %.3f\n", fl.fi, fl.la, fl.h);
   fila_wgs2tmxy(fl, &xy);
-  printf(T("--> x: %.3f, y: %.3f, H: %.3f\n"), xy.x, xy.y, xy.H);
-  printf(T("---------- Conversion fi_max,la_max --> D96/TM\n"));
+  printf("--> x: %.3f, y: %.3f, H: %.3f\n", xy.x, xy.y, xy.H);
+  printf("---------- Conversion fi_max,la_max --> D96/TM\n");
   fl.fi = 46.368000; fl.la = 15.235000; fl.h = 0.0;
-  printf(T("<-- fi: %.10f, la: %.10f, h: %.3f\n"), fl.fi, fl.la, fl.h);
+  printf("<-- fi: %.10f, la: %.10f, h: %.3f\n", fl.fi, fl.la, fl.h);
   fila_wgs2tmxy(fl, &xy);
-  printf(T("--> x: %.3f, y: %.3f, H: %.3f\n"), xy.x, xy.y, xy.H);
-  printf(T("---------- Conversion fi_min,la_min --> D48/GK\n"));
+  printf("--> x: %.3f, y: %.3f, H: %.3f\n", xy.x, xy.y, xy.H);
+  printf("---------- Conversion fi_min,la_min --> D48/GK\n");
   fl.fi = 45.676000; fl.la = 13.920000; fl.h = 0.0;
-  printf(T("<-- fi: %.10f, la: %.10f, h: %.3f\n"), fl.fi, fl.la, fl.h);
+  printf("<-- fi: %.10f, la: %.10f, h: %.3f\n", fl.fi, fl.la, fl.h);
   fila_wgs2gkxy(fl, &xy);
-  printf(T("--> x: %.3f, y: %.3f, H: %.3f\n"), xy.x, xy.y, xy.H);
-  printf(T("---------- Conversion fi_max,la_max --> D48/GK\n"));
+  printf("--> x: %.3f, y: %.3f, H: %.3f\n", xy.x, xy.y, xy.H);
+  printf("---------- Conversion fi_max,la_max --> D48/GK\n");
   fl.fi = 46.368000; fl.la = 15.235000; fl.h = 0.0;
-  printf(T("<-- fi: %.10f, la: %.10f, h: %.3f\n"), fl.fi, fl.la, fl.h);
+  printf("<-- fi: %.10f, la: %.10f, h: %.3f\n", fl.fi, fl.la, fl.h);
   fila_wgs2gkxy(fl, &xy);
-  printf(T("--> x: %.3f, y: %.3f, H: %.3f\n"), xy.x, xy.y, xy.H);
+  printf("--> x: %.3f, y: %.3f, H: %.3f\n", xy.x, xy.y, xy.H);
 #endif
 } /* reftest */
 
@@ -277,7 +281,7 @@ void gendata_xy(int oid)
       y += y_inc;
 
       if (x < x_max && y < y_max)
-        printf(T("%07d %.3f %.3f 0.000\n"), ii++, x, y);
+        printf("%07d %.3f %.3f 0.000\n", ii++, x, y);
     } // for y
   } // for x
 } /* gendata_xy */
@@ -350,7 +354,7 @@ void gendata_fila()
 
       dms2deg(lat, &dlat); dms2deg(lon, &dlon);
       if (dlat < dlat_max && dlon < dlon_max)
-        printf(T("%07d %.10f %.10f 0.000\n"), ii++, dlat, dlon);
+        printf("%07d %.10f %.10f 0.000\n", ii++, dlat, dlon);
     } // for lon
   } // for lat
 } /* gendata_fila */
@@ -359,89 +363,78 @@ void gendata_fila()
 // ----------------------------------------------------------------------------
 // usage
 // ----------------------------------------------------------------------------
-void usage(TCHAR *prog, int ver_only)
+void usage(char *prog, int ver_only)
 {
-  fprintf(stderr, T("%s %s  Copyright (c) 2014-2016 Matjaz Rihtar  (%s)\n"),
+  fprintf(stderr, "%s %s  Copyright (c) 2014-2016 Matjaz Rihtar  (%s)\n",
           prog, SW_VERSION, SW_BUILD);
   if (ver_only) return;
-  fprintf(stderr, T("Usage: %s [<options>] [<inpname> ...]\n"), prog);
-  fprintf(stderr, T("  -d                enable debug output\n"));
-  fprintf(stderr, T("  -x                print reference test and exit\n"));
-  fprintf(stderr, T("  -gd <n>           generate data (inside Slovenia) and exit\n"));
-  fprintf(stderr, T("                    1: generate xy   (d96tm)  data\n"));
-  fprintf(stderr, T("                    2: generate fila (etrs89) data\n"));
-  fprintf(stderr, T("                    3: generate xy   (d48gk)  data\n"));
-  fprintf(stderr, T("  -ht               calculate output height with 7-params Helmert trans.\n"));
-  fprintf(stderr, T("  -hc               copy input height unchanged to output\n"));
-  fprintf(stderr, T("  -hg               calculate output height from geoid model (default)\n"));
-  fprintf(stderr, T("  -g slo|egm        select geoid model (Slo2000 or EGM2008)\n"));
-  fprintf(stderr, T("                    default: Slo2000\n"));
-  fprintf(stderr, T("  -dms              display fila in DMS format after height\n"));
-  fprintf(stderr, T("  -t <n>            select transformation:\n"));
-  fprintf(stderr, T("                     1: xy   (d96tm)  --> fila (etrs89), hg?, default\n"));
-  fprintf(stderr, T("                     2: fila (etrs89) --> xy   (d96tm),  hg\n"));
-  fprintf(stderr, T("                     3: xy   (d48gk)  --> fila (etrs89), ht\n"));
-  fprintf(stderr, T("                     4: fila (etrs89) --> xy   (d48gk),  hg\n"));
-  fprintf(stderr, T("                     5: xy   (d48gk)  --> xy   (d96tm),  hg(hc)\n"));
-  fprintf(stderr, T("                     6: xy   (d96tm)  --> xy   (d48gk),  ht(hc)\n"));
-  fprintf(stderr, T("                     7: xy   (d48gk)  --> xy   (d96tm),  hc, affine trans.\n"));
-  fprintf(stderr, T("                     8: xy   (d96tm)  --> xy   (d48gk),  hc, affine trans.\n"));
-  fprintf(stderr, T("                     9: xy   (d48gk)  --> fila (etrs89), hg, affine trans.\n"));
-  fprintf(stderr, T("                    10: fila (etrs89) --> xy   (d48gk),  hg, affine trans.\n"));
-  fprintf(stderr, T("  -r                reverse parsing order of xy/fila\n"));
-  fprintf(stderr, T("                    (warning is displayed if y < 200000 or la > 17.0)\n"));
-  fprintf(stderr, T("  <inpname>         parse and convert input data from <inpname>\n"));
-  fprintf(stderr, T("                    <inpname> \"-\" means stdin, use \"--\" before\n"));
-  fprintf(stderr, T("  -o -|=|<outname>  write output data to:\n"));
-  fprintf(stderr, T("                    -: stdout (default)\n"));
-  fprintf(stderr, T("                    =: append \".out\" to each <inpname> and\n"));
-  fprintf(stderr, T("                       write output to these separate files\n"));
-  fprintf(stderr, T("                    <outname>: write all output to 1 file <outname>\n"));
-  fprintf(stderr, T("\n"));
-  fprintf(stderr, T("Typical input data format (SiTra .xyz or LIDAR .asc):\n"));
-  fprintf(stderr, T("[<label> ]<fi|x> <la|y> <h|H>\n"));
-  fprintf(stderr, T("[<label>;]<fi|x>;<la|y>;<h|H>\n"));
+  fprintf(stderr, "Usage: %s [<options>] [<inpname> ...]\n", prog);
+  fprintf(stderr, "  -d                enable debug output\n");
+  fprintf(stderr, "  -x                print reference test and exit\n");
+  fprintf(stderr, "  -gd <n>           generate data (inside Slovenia) and exit\n");
+  fprintf(stderr, "                    1: generate xy   (d96tm)  data\n");
+  fprintf(stderr, "                    2: generate fila (etrs89) data\n");
+  fprintf(stderr, "                    3: generate xy   (d48gk)  data\n");
+  fprintf(stderr, "  -ht               calculate output height with 7-params Helmert trans.\n");
+  fprintf(stderr, "  -hc               copy input height unchanged to output\n");
+  fprintf(stderr, "  -hg               calculate output height from geoid model (default)\n");
+  fprintf(stderr, "  -g slo|egm        select geoid model (Slo2000 or EGM2008)\n");
+  fprintf(stderr, "                    default: Slo2000\n");
+  fprintf(stderr, "  -dms              display fila in DMS format after height\n");
+  fprintf(stderr, "  -t <n>            select transformation:\n");
+  fprintf(stderr, "                     1: xy   (d96tm)  --> fila (etrs89), hg?, default\n");
+  fprintf(stderr, "                     2: fila (etrs89) --> xy   (d96tm),  hg\n");
+  fprintf(stderr, "                     3: xy   (d48gk)  --> fila (etrs89), ht\n");
+  fprintf(stderr, "                     4: fila (etrs89) --> xy   (d48gk),  hg\n");
+  fprintf(stderr, "                     5: xy   (d48gk)  --> xy   (d96tm),  hg(hc)\n");
+  fprintf(stderr, "                     6: xy   (d96tm)  --> xy   (d48gk),  ht(hc)\n");
+  fprintf(stderr, "                     7: xy   (d48gk)  --> xy   (d96tm),  hc, affine trans.\n");
+  fprintf(stderr, "                     8: xy   (d96tm)  --> xy   (d48gk),  hc, affine trans.\n");
+  fprintf(stderr, "                     9: xy   (d48gk)  --> fila (etrs89), hg, affine trans.\n");
+  fprintf(stderr, "                    10: fila (etrs89) --> xy   (d48gk),  hg, affine trans.\n");
+  fprintf(stderr, "  -r                reverse parsing order of xy/fila\n");
+  fprintf(stderr, "                    (warning is displayed if y < 200000 or la > 17.0)\n");
+  fprintf(stderr, "  <inpname>         parse and convert input data from <inpname>\n");
+  fprintf(stderr, "                    <inpname> \"-\" means stdin, use \"--\" before\n");
+  fprintf(stderr, "  -o -|=|<outname>  write output data to:\n");
+  fprintf(stderr, "                    -: stdout (default)\n");
+  fprintf(stderr, "                    =: append \".out\" to each <inpname> and\n");
+  fprintf(stderr, "                       write output to these separate files\n");
+  fprintf(stderr, "                    <outname>: write all output to 1 file <outname>\n");
+  fprintf(stderr, "\n");
+  fprintf(stderr, "Typical input data format (SiTra .xyz or LIDAR .asc):\n");
+  fprintf(stderr, "[<label> ]<fi|x> <la|y> <h|H>\n");
+  fprintf(stderr, "[<label>;]<fi|x>;<la|y>;<h|H>\n");
 } /* usage */
 
 
 // ----------------------------------------------------------------------------
-// main (mingw32 unicode wrapper)
+// main
 // ----------------------------------------------------------------------------
-#ifdef __MINGW32__
-extern int _CRT_glob;
-#ifdef __cplusplus
-extern "C"
-#endif
-void __wgetmainargs(int *, wchar_t ***, wchar_t ***, int, int *);
-#endif
-
-
-// ----------------------------------------------------------------------------
-// tmain
-// ----------------------------------------------------------------------------
-int tmain(int argc, TCHAR *argv[])
+int main(int argc, char *argv[])
 {
 #ifdef _WIN32
   wchar_t **wargv, **wenpv; int si = 0;
 #endif
   int ii, ac, opt;
-  TCHAR *s, *av[MAXC], *errtxt;
-  TCHAR geoid[MAXS+1];
+  char *s, *av[MAXC], *errtxt;
+  char geoid[MAXS+1];
   int value, test, gd;
-  TCHAR outname[MAXS+1];
+  char outname[MAXS+1];
   int inpf, outf;
   FILE *out;
 
 #ifdef _WIN32
   __wgetmainargs(&argc, &wargv, &wenpv, _CRT_glob, &si);
-  argv[0] = wchar2utf8(wargv[0]); // convert to UTF-8
+  s = wchar2utf8(wargv[0]); // convert to UTF-8
+  if (s != NULL) argv[0] = s;
 #endif
 
   // Get program name
   if ((prog = strrchr(argv[0], DIRSEP)) == NULL) prog = argv[0];
   else prog++;
-  if ((s = strstr(prog, T(".exe"))) != NULL) *s = T('\0');
-  if ((s = strstr(prog, T(".EXE"))) != NULL) *s = T('\0');
+  if ((s = strstr(prog, ".exe")) != NULL) *s = '\0';
+  if ((s = strstr(prog, ".EXE")) != NULL) *s = '\0';
 
   // Default global flags
   debug = 0;   // no debug
@@ -450,30 +443,31 @@ int tmain(int argc, TCHAR *argv[])
   tr = 1;      // default transformation: xy (d96tm) --> fila (etrs89)
   rev = 0;     // don't reverse xy/fila
   wdms = 0;    // don't write DMS
-  geoid[0] = T('\0');
+  geoid[0] = '\0';
   gid_wgs = 1; // slo2000
   inpf = 1;    // stdin
   outf = 1;    // stdout
-  outname[0] = T('\0');
+  outname[0] = '\0';
   hsel = -1;   // default height processing (use internal recommendations)
 
   // Parse command line
   ac = 0; opt = 1;
   for (ii = 1; ii < argc && ac < MAXC; ii++) {
 #ifdef _WIN32
-    argv[ii] = wchar2utf8(wargv[ii]); // convert to UTF-8
+    s = wchar2utf8(wargv[ii]); // convert to UTF-8
+    if (s != NULL) argv[ii] = s;
 #endif
-    if (opt && *argv[ii] == T('-')) {
-      if (strcasecmp(argv[ii], T("-g")) == 0) { // geoid
+    if (opt && *argv[ii] == '-') {
+      if (strcasecmp(argv[ii], "-g") == 0) { // geoid
         ii++; if (ii >= argc) goto usage;
         xstrncpy(geoid, argv[ii], MAXS);
         if (strlen(geoid) == 0) goto usage;
-        if (strncasecmp(geoid, T("slo"), 1) == 0) gid_wgs = 1;      // slo2000
-        else if (strncasecmp(geoid, T("egm"), 1) == 0) gid_wgs = 2; // egm2008
+        if (strncasecmp(geoid, "slo", 1) == 0) gid_wgs = 1;      // slo2000
+        else if (strncasecmp(geoid, "egm", 1) == 0) gid_wgs = 2; // egm2008
         else goto usage;
         continue;
       }
-      else if (strcasecmp(argv[ii], T("-t")) == 0) { // transformation
+      else if (strcasecmp(argv[ii], "-t") == 0) { // transformation
         ii++; if (ii >= argc) goto usage;
         if (strlen(argv[ii]) == 0) goto usage;
         errno = 0; value = strtol(argv[ii], &s, 10);
@@ -482,7 +476,7 @@ int tmain(int argc, TCHAR *argv[])
         tr = value;
         continue;
       }
-      else if (strcasecmp(argv[ii], T("-gd")) == 0) { // generate data
+      else if (strcasecmp(argv[ii], "-gd") == 0) { // generate data
         ii++; if (ii >= argc) goto usage;
         if (strlen(argv[ii]) == 0) goto usage;
         errno = 0; value = strtol(argv[ii], &s, 10);
@@ -491,48 +485,48 @@ int tmain(int argc, TCHAR *argv[])
         gd = value;
         continue;
       }
-      else if (strcasecmp(argv[ii], T("-o")) == 0) { // output
+      else if (strcasecmp(argv[ii], "-o") == 0) { // output
         ii++; if (ii >= argc) goto usage;
         xstrncpy(outname, argv[ii], MAXS);
         if (strlen(outname) == 0) goto usage;
-        if (strncasecmp(outname, T("-"), 1) == 0) outf = 1; // stdout
-        else if (strncasecmp(outname, T("="), 1) == 0) outf = 2; // separate files
+        if (strncasecmp(outname, "-", 1) == 0) outf = 1; // stdout
+        else if (strncasecmp(outname, "=", 1) == 0) outf = 2; // separate files
         else outf = 3; // specified file
         continue;
       }
-      else if (strcasecmp(argv[ii], T("-ht")) == 0) { // transformed height
+      else if (strcasecmp(argv[ii], "-ht") == 0) { // transformed height
         hsel = 0;
         continue;
       }
-      else if (strcasecmp(argv[ii], T("-hc")) == 0) { // copy height
+      else if (strcasecmp(argv[ii], "-hc") == 0) { // copy height
         hsel = 1;
         continue;
       }
-      else if (strcasecmp(argv[ii], T("-hg")) == 0) { // geoid height
+      else if (strcasecmp(argv[ii], "-hg") == 0) { // geoid height
         hsel = 2;
         continue;
       }
-      else if (strcasecmp(argv[ii], T("-dms")) == 0) { // write DMS
+      else if (strcasecmp(argv[ii], "-dms") == 0) { // write DMS
         wdms = 1;
         continue;
       }
-      else if (strcasecmp(argv[ii], T("--")) == 0) { // end of options
+      else if (strcasecmp(argv[ii], "--") == 0) { // end of options
         opt = 0;
         continue;
       }
       s = argv[ii];
       while (*++s) {
         switch (*s) {
-          case T('d'): // debug
+          case 'd': // debug
             debug++;
             break;
-          case T('r'): // reverse xy/fila
+          case 'r': // reverse xy/fila
             rev = 1;
             break;
-          case T('x'): // test
+          case 'x': // test
             test = 1;
             break;
-          case T('v'): // version
+          case 'v': // version
             usage(prog, 1); // show version only
             exit(0);
             break;
@@ -543,18 +537,18 @@ usage:      usage(prog, 0);
       }
       continue;
     } // if opt
-    av[ac] = (TCHAR *)malloc(MAXS+1);
+    av[ac] = (char *)malloc(MAXS+1);
     if (av[ac] == NULL) {
       errtxt = xstrerror();
       if (errtxt != NULL) {
-        fprintf(stderr, T("malloc(av): %s\n"), errtxt); free(errtxt);
+        fprintf(stderr, "malloc(av): %s\n", errtxt); free(errtxt);
       } else
-        fprintf(stderr, T("malloc(av): Unknown error\n"));
+        fprintf(stderr, "malloc(av): Unknown error\n");
       exit(3);
     }
     xstrncpy(av[ac++], argv[ii], MAXS);
   } // for each argc
-  av[ac] = NULL;
+//av[ac] = NULL;
 
   // geo.c initialization
   ellipsoid_init();
@@ -575,13 +569,13 @@ usage:      usage(prog, 0);
 
   out = stdout;
   if (outf == 3) { // specified file
-    out = fopen(outname, T("w"));
+    out = fopen(outname, "w");
     if (out == NULL) {
       errtxt = xstrerror();
       if (errtxt != NULL) {
-        fprintf(stderr, T("%s: %s\n"), outname, errtxt); free(errtxt);
+        fprintf(stderr, "%s: %s\n", outname, errtxt); free(errtxt);
       } else
-        fprintf(stderr, T("%s: Unknown error\n"), outname);
+        fprintf(stderr, "%s: Unknown error\n", outname);
       exit(2);
     }
   }

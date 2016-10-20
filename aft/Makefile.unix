@@ -16,7 +16,7 @@ LPATH =
 LIBS = -lm
 
 TGTS = ctt triangle showme
-WOBJS = wctt.o ../wutil.o
+WOBJS = ctt.o ../util.o
 INCL = ../common.h ../geo.h
 TRIOBJS = triangle.o
 TRIINCL = triangle.h
@@ -41,9 +41,5 @@ clean:
 cleanall: clean
 	-$(RM) $(TGTS)
 
-wctt.o: ctt.c
-	$(CC) $(DEBUG) -c $(CFLAGS) -D_WCHAR $(IPATH) ctt.c -o $@
-../wutil.o: ../util.c
-	$(CC) $(DEBUG) -c $(CFLAGS) -D_WCHAR $(IPATH) ../util.c -o $@
 .c.o:
 	$(CC) $(DEBUG) -c $(CFLAGS) $(IPATH) $< -o $@

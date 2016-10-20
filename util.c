@@ -564,7 +564,7 @@ int utf8_stat(const char *fname, struct _stat *fst)
 
   return rc;
 } /* utf8_stat */
-#endif
+#endif //not _WHCAR
 #endif //_WIN32
 
 #ifdef __cplusplus

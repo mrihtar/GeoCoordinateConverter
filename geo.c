@@ -349,7 +349,7 @@ void h7_precalc(HELMERT7 *h7)
   double alfa, beta, gama;
   double sinAlfa, cosAlfa, sinBeta, cosBeta, sinGama, cosGama;
   m33 R1, R2, R3, R12;
-  TCHAR *errtxt;
+  char *errtxt;
 
   // Angles specified in arc seconds, convert to radians
   alfa = (h7->alfa/3600.0)*PI/180.0;
@@ -379,9 +379,9 @@ void h7_precalc(HELMERT7 *h7)
   if (h7->R == NULL) {
     errtxt = xstrerror();
     if (errtxt != NULL) {
-      fprintf(stderr, T("malloc(m33): %s\n"), errtxt); free(errtxt);
+      fprintf(stderr, "malloc(m33): %s\n", errtxt); free(errtxt);
     } else
-      fprintf(stderr, T("malloc(m33): Unknown error\n"));
+      fprintf(stderr, "malloc(m33): Unknown error\n");
     exit(3);
   }
 
@@ -406,9 +406,9 @@ void h7_precalc(HELMERT7 *h7)
   if (h7->R == NULL) {
     errtxt = xstrerror();
     if (errtxt != NULL) {
-      fprintf(stderr, T("malloc(m33): %s\n"), errtxt); free(errtxt);
+      fprintf(stderr, "malloc(m33): %s\n", errtxt); free(errtxt);
     } else
-      fprintf(stderr, T("malloc(m33): Unknown error\n"));
+      fprintf(stderr, "malloc(m33): Unknown error\n");
     exit(3);
   }
 
@@ -742,7 +742,7 @@ void xy2fila_ellips(GEOUTM in, GEOGRA *out, int oid)
     + ellipsoid.C/4.0*sin(4.0*out->fi) - ellipsoid.D/6.0*sin(6.0*out->fi)
     + ellipsoid.E/8.0*sin(8.0*out->fi) - ellipsoid.F/10.0*sin(10.0*out->fi));
 #endif
-  printf(T(">> L: %.10f\n"), L);
+  printf(">> L: %.10f\n", L);
 #endif
 
 #if 1
@@ -1162,7 +1162,7 @@ void gkxy2fila_wgs(GEOUTM in, GEOGRA *out)
 
 #if 0 //xxx
   deg2dms(flb.fi, &lat); deg2dms(flb.la, &lon);
-  printf(T("> lat_b: %2.0f %2.0f %6.3f, lon_b: %2.0f %2.0f %6.3f\n"),
+  printf("> lat_b: %2.0f %2.0f %6.3f, lon_b: %2.0f %2.0f %6.3f\n",
          lat.deg, lat.min, lat.sec, lon.deg, lon.min, lon.sec);
 #endif
 
@@ -1212,7 +1212,7 @@ void fila_wgs2gkxy(GEOGRA in, GEOUTM *out)
 
 #if 0 //xxx
   deg2dms(flb.fi, &lat); deg2dms(flb.la, &lon);
-  printf(T("> lat_b: %2.0f %2.0f %6.3f, lon_b: %2.0f %2.0f %6.3f\n"),
+  printf("> lat_b: %2.0f %2.0f %6.3f, lon_b: %2.0f %2.0f %6.3f\n",
          lat.deg, lat.min, lat.sec, lon.deg, lon.min, lon.sec);
 #endif
 
@@ -1244,7 +1244,7 @@ void gkxy2tmxy(GEOUTM in, GEOUTM *out)
 
 #if 0 //xxx
   deg2dms(flb.fi, &lat); deg2dms(flb.la, &lon);
-  printf(T("> lat_b: %2.0f %2.0f %6.3f, lon_b: %2.0f %2.0f %6.3f\n"),
+  printf("> lat_b: %2.0f %2.0f %6.3f, lon_b: %2.0f %2.0f %6.3f\n",
          lat.deg, lat.min, lat.sec, lon.deg, lon.min, lon.sec);
 #endif
 
@@ -1298,7 +1298,7 @@ void tmxy2gkxy(GEOUTM in, GEOUTM *out)
 
 #if 0 //xxx
   deg2dms(flb.fi, &lat); deg2dms(flb.la, &lon);
-  printf(T("> lat_b: %2.0f %2.0f %6.3f, lon_b: %2.0f %2.0f %6.3f\n"),
+  printf("> lat_b: %2.0f %2.0f %6.3f, lon_b: %2.0f %2.0f %6.3f\n",
          lat.deg, lat.min, lat.sec, lon.deg, lon.min, lon.sec);
 #endif
 

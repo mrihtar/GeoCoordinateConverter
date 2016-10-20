@@ -1,34 +1,39 @@
 # For GNU make
 SHELL = %SystemRoot%/System32/cmd.exe
 CC = gcc
-LD = gcc
+CXX = g++
+LD = ld
 AR = ar
 RANLIB = ranlib
+RC = windres
 RM = del /q
 CP = copy /y
 
-#DEBUG = -O2
-DEBUG = -g
+DEBUG = -O2
+#DEBUG = -g
 CFLAGS = -Wall -msse2 -mfpmath=sse
+CXXFLAGS = -Wall -msse2 -mfpmath=sse
 IPATH = -I..
-#LDFLAGS = -s
-LDFLAGS = 
+LDFLAGS = -s
+#LDFLAGS = 
 LPATH = 
 LIBS = 
 
 TGTS = ctt.exe triangle.exe
-WOBJS = wctt.o ..\wutil.o
+WOBJS = ctt.o ..\util.o
 INCL = ..\common.h ..\geo.h
 TRIOBJS = triangle.o
 TRIINCL = triangle.h
 
+.SUFFIXES: .cxx
+
 all: $(TGTS)
 
 ctt.exe: $(WOBJS)
-	$(LD) -o $@ $(WOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
+	$(CC) -o $@ $(WOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
 
 triangle.exe: $(TRIOBJS)
-	$(LD) -o $@ $(TRIOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
+	$(CC) -o $@ $(TRIOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
 
 $(WOBJS): $(INCL)
 $(TRIOBJS): $(TRIINCL)
@@ -38,9 +43,7 @@ clean:
 cleanall: clean
 	-$(RM) $(TGTS)
 
-wctt.o: ctt.c
-	$(CC) $(DEBUG) -c $(CFLAGS) -D_WCHAR $(IPATH) ctt.c -o $@
-..\wutil.o: ..\util.c
-	$(CC) $(DEBUG) -c $(CFLAGS) -D_WCHAR $(IPATH) ..\util.c -o $@
 .c.o:
 	$(CC) $(DEBUG) -c $(CFLAGS) $(IPATH) $< -o $@
+.cxx.o:
+	$(CXX) $(DEBUG) -c $(CXXFLAGS) $(IPATH) $< -o $@
