@@ -2,5 +2,7 @@ gk-shp.exe
 gk-shp
 gk-slo.exe
 gk-slo
+xgk-slo.exe
+xgk-slo
 *.obj
 *.o
