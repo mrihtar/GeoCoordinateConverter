@@ -70,7 +70,7 @@ int convert_xyz_file(char *url, int outf, FILE *out, char *msg)
     if (errtxt != NULL) {
       snprintf(err, MAXS, "%s: %s\n", inpname, errtxt); free(errtxt);
     } else
-      snprintf(err, MAXS, "%s: Unknown error\n", inpname);
+      snprintf(err, MAXS, "%s: Can't open input file for reading\n", inpname);
     if (msg == NULL) fprintf(stderr, "%s", err);
     else xstrncat(msg, err, MAXL);
     return 2;
@@ -91,7 +91,7 @@ int convert_xyz_file(char *url, int outf, FILE *out, char *msg)
       if (errtxt != NULL) {
         snprintf(err, MAXS, "%s: %s\n", outname, errtxt); free(errtxt);
       } else
-        snprintf(err, MAXS, "%s: Unknown error\n", outname);
+        snprintf(err, MAXS, "%s: Can't open output file for writing\n", outname);
       if (msg == NULL) fprintf(stderr, "%s", err);
       else xstrncat(msg, err, MAXL);
       if (inpf == 2) fclose(inp);
@@ -111,7 +111,7 @@ int convert_xyz_file(char *url, int outf, FILE *out, char *msg)
       if (errtxt != NULL) {
         snprintf(err, MAXS, "%s: %s\n", inpname, errtxt); free(errtxt);
       } else
-        snprintf(err, MAXS, "%s: Unknown error\n", inpname);
+        snprintf(err, MAXS, "%s: Error reading from input file\n", inpname);
       if (msg == NULL) fprintf(stderr, "%s", err);
       else xstrncat(msg, err, MAXL);
       break;

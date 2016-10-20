@@ -86,7 +86,7 @@ void swapfila(GEOGRA *fl)
 // ----------------------------------------------------------------------------
 int convert_shp_file(char *inpurl, char *outurl, char *msg)
 {
-  char *s, err[MAXS+1], *errtxt;
+  char *s, err[MAXS+1], *errtxt, buf[BUFSIZ];
   int warn;
   char inpname[MAXS+1], outname[MAXS+1], prjname[MAXS+1];
   static GEOGRA ifl, ofl; static GEOUTM ixy, oxy;
@@ -124,30 +124,22 @@ int convert_shp_file(char *inpurl, char *outurl, char *msg)
   }
 
   // Open input files (shp, dbf)
+  setvbuf(stderr, buf, _IOFBF, sizeof(buf));
   iSHP = SHPOpen(inpname, "r+b");
   if (iSHP == NULL) {
-    // error already displayed???
-    errtxt = xstrerror();
-    if (errtxt != NULL) {
-      snprintf(err, MAXS, "%s: %s\n", inpname, errtxt); free(errtxt);
-    } else
-      snprintf(err, MAXS, "%s: Unknown error\n", inpname);
-    if (msg == NULL) fprintf(stderr, "%s", err);
-    else xstrncat(msg, err, MAXL);
+    if (msg == NULL) { /* error already displayed */ }
+    else xstrncat(msg, buf, MAXL);
+    setvbuf(stderr, NULL, _IONBF, 0);
     return 2;
   }
   iDBF = DBFOpen(inpname, "r+b");
   if (iDBF == NULL) {
-    // error already displayed???
-    errtxt = xstrerror();
-    if (errtxt != NULL) {
-      snprintf(err, MAXS, "%s: %s\n", inpname, errtxt); free(errtxt);
-    } else
-      snprintf(err, MAXS, "%s: Unknown error\n", inpname);
-    if (msg == NULL) fprintf(stderr, "%s", err);
-    else xstrncat(msg, err, MAXL);
+    if (msg == NULL) { /* error already displayed */ }
+    else xstrncat(msg, buf, MAXL);
+    setvbuf(stderr, NULL, _IONBF, 0);
     return 2;
   }
+  setvbuf(stderr, NULL, _IONBF, 0);
 
   if (debug) fprintf(stderr, "Processing %s\n", inpname);
   clock_gettime(CLOCK_REALTIME, &start);
@@ -163,30 +155,22 @@ int convert_shp_file(char *inpurl, char *outurl, char *msg)
             adfMaxBound[0], adfMaxBound[1], adfMaxBound[2], adfMaxBound[3]);
 
   // create output files (shp, dbf)
+  setvbuf(stderr, buf, _IOFBF, sizeof(buf));
   oSHP = SHPCreate(outname, nShapeType);
   if (oSHP == NULL) {
-    // error already displayed???
-    errtxt = xstrerror();
-    if (errtxt != NULL) {
-      snprintf(err, MAXS, "%s: %s\n", outname, errtxt); free(errtxt);
-    } else
-      snprintf(err, MAXS, "%s: Unknown error\n", outname);
-    if (msg == NULL) fprintf(stderr, "%s", err);
-    else xstrncat(msg, err, MAXL);
+    if (msg == NULL) { /* error already displayed */ }
+    else xstrncat(msg, buf, MAXL);
+    setvbuf(stderr, NULL, _IONBF, 0);
     return 2;
   }
   oDBF = DBFCloneEmpty(iDBF, outname);
   if (oDBF == NULL) {
-    // error already displayed???
-    errtxt = xstrerror();
-    if (errtxt != NULL) {
-      snprintf(err, MAXS, "%s: %s\n", outname, errtxt); free(errtxt);
-    } else
-      snprintf(err, MAXS, "%s: Unknown error\n", outname);
-    if (msg == NULL) fprintf(stderr, "%s", err);
-    else xstrncat(msg, err, MAXL);
+    if (msg == NULL) { /* error already displayed */ }
+    else xstrncat(msg, buf, MAXL);
+    setvbuf(stderr, NULL, _IONBF, 0);
     return 2;
   }
+  setvbuf(stderr, NULL, _IONBF, 0);
 
   oTuple = (char *)malloc(oDBF->nRecordLength + 15);
   if (oTuple == NULL) {
@@ -194,7 +178,7 @@ int convert_shp_file(char *inpurl, char *outurl, char *msg)
     if (errtxt != NULL) {
       snprintf(err, MAXS, "malloc(oTuple): %s\n", errtxt); free(errtxt);
     } else
-      snprintf(err, MAXS, "malloc(oTuple): Unknown error\n");
+      snprintf(err, MAXS, "malloc(oTuple): Can't allocate memory\n");
     if (msg == NULL) fprintf(stderr, "%s", err);
     else xstrncat(msg, err, MAXL);
     return 4;
@@ -231,7 +215,7 @@ int convert_shp_file(char *inpurl, char *outurl, char *msg)
     if (errtxt != NULL) {
       snprintf(err, MAXS, "%s: %s\n", prjname, errtxt); free(errtxt);
     } else
-      snprintf(err, MAXS, "%s: Unknown error\n", prjname);
+      snprintf(err, MAXS, "%s: Can't open PRJ file for writing\n", prjname);
     if (msg == NULL) fprintf(stderr, "%s", err);
     else xstrncat(msg, err, MAXL);
     // ignore
@@ -380,22 +364,18 @@ int convert_shp_file(char *inpurl, char *outurl, char *msg)
     SHPWriteObject(oSHP, -1, psShape);
     SHPDestroyObject(psShape);
 
+    setvbuf(stderr, buf, _IOFBF, sizeof(buf));
     iTuple = (char *)DBFReadTuple(iDBF, nEntity);
     if (iTuple == NULL) {
-      // error already displayed???
-      errtxt = xstrerror();
-      if (errtxt != NULL) {
-        snprintf(err, MAXS, "%s: %s\n", inpname, errtxt); free(errtxt);
-      } else
-        snprintf(err, MAXS, "%s: Unknown error\n", inpname);
-      if (msg == NULL) fprintf(stderr, "%s", err);
-      else xstrncat(msg, err, MAXL);
+      if (msg == NULL) { /* error already displayed */ }
+      else xstrncat(msg, buf, MAXL);
       // ignore
     }
     else {
       memcpy(oTuple, iTuple, iDBF->nRecordLength);
       DBFWriteTuple(oDBF, oDBF->nRecords, oTuple);
     }
+    setvbuf(stderr, NULL, _IONBF, 0);
   } // for each Entity
 
   clock_gettime(CLOCK_REALTIME, &stop);

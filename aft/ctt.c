@@ -20,8 +20,8 @@
 #include "common.h"
 #include "geo.h"
 
-#define SW_VERSION "2.06"
-#define SW_BUILD   "Oct 6, 2016"
+#define SW_VERSION "2.07"
+#define SW_BUILD   "Oct 20, 2016"
 
 typedef struct triang {
   int t1, t2, t3;
@@ -211,7 +211,7 @@ void print_header(FILE *out, char *outname)
     if (errtxt != NULL) {
       fprintf(stderr, "%s: %s\n", outname, errtxt); free(errtxt);
     } else
-      fprintf(stderr, "%s: Unknown error\n", outname);
+      fprintf(stderr, "%s: Error writing to output file\n", outname);
     exit(2);
   }
   fflush(out);
@@ -290,7 +290,7 @@ usage:      usage(prog, 0);
       if (errtxt != NULL) {
         fprintf(stderr, "malloc(av): %s\n", errtxt); free(errtxt);
       } else
-        fprintf(stderr, "malloc(av): Unknown error\n");
+        fprintf(stderr, "malloc(av): Can't allocate memory\n");
       exit(3);
     }
     xstrncpy(av[ac++], argv[ii], MAXS);
@@ -309,7 +309,7 @@ usage:      usage(prog, 0);
     if (errtxt != NULL) {
       fprintf(stderr, "%s: %s\n", gknodename, errtxt); free(errtxt);
     } else
-      fprintf(stderr, "%s: Unknown error\n", gknodename);
+      fprintf(stderr, "%s: Can't open GK nodes file for reading\n", gknodename);
     exit(2);
   }
 
@@ -319,7 +319,7 @@ usage:      usage(prog, 0);
     if (errtxt != NULL) {
       fprintf(stderr, "%s: %s\n", tmnodename, errtxt); free(errtxt);
     } else
-      fprintf(stderr, "%s: Unknown error\n", tmnodename);
+      fprintf(stderr, "%s: Can't open TM nodes file for reading\n", tmnodename);
     exit(2);
   }
 
@@ -329,7 +329,7 @@ usage:      usage(prog, 0);
     if (errtxt != NULL) {
       fprintf(stderr, "%s: %s\n", elename, errtxt); free(errtxt);
     } else
-      fprintf(stderr, "%s: Unknown error\n", elename);
+      fprintf(stderr, "%s: Can't open triangle elements file for reading\n", elename);
     exit(2);
   }
 
@@ -343,7 +343,7 @@ usage:      usage(prog, 0);
       if (errtxt != NULL) {
         fprintf(stderr, "%s: %s\n", gknodename, errtxt); free(errtxt);
       } else
-        fprintf(stderr, "%s: Unknown error\n", gknodename);
+        fprintf(stderr, "%s: Error reading from GK nodes file\n", gknodename);
       break;
     }
     if (feof(gknode)) break;
@@ -369,7 +369,7 @@ usage:      usage(prog, 0);
         if (errtxt != NULL) {
           fprintf(stderr, "malloc(gk): %s\n", errtxt); free(errtxt);
         } else
-          fprintf(stderr, "malloc(gk): Unknown error\n");
+          fprintf(stderr, "malloc(gk): Can't allocate memory\n");
         exit(3);
       }
       memset(gk, 0, gksize*sizeof(GEOUTM));
@@ -398,7 +398,7 @@ usage:      usage(prog, 0);
       if (errtxt != NULL) {
         fprintf(stderr, "%s: %s\n", tmnodename, errtxt); free(errtxt);
       } else
-        fprintf(stderr, "%s: Unknown error\n", tmnodename);
+        fprintf(stderr, "%s: Error reading from TM nodes file\n", tmnodename);
       break;
     }
     if (feof(tmnode)) break;
@@ -427,7 +427,7 @@ usage:      usage(prog, 0);
         if (errtxt != NULL) {
           fprintf(stderr, "malloc(tm): %s\n", errtxt); free(errtxt);
         } else
-          fprintf(stderr, "malloc(tm): Unknown error\n");
+          fprintf(stderr, "malloc(tm): Can't allocate memory\n");
         exit(3);
       }
       memset(tm, 0, tmsize*sizeof(GEOUTM));
@@ -456,7 +456,7 @@ usage:      usage(prog, 0);
       if (errtxt != NULL) {
         fprintf(stderr, "%s: %s\n", elename, errtxt); free(errtxt);
       } else
-        fprintf(stderr, "%s: Unknown error\n", elename);
+        fprintf(stderr, "%s: Error reading from triangle elements file\n", elename);
       break;
     }
     if (feof(ele)) break;
@@ -482,7 +482,7 @@ usage:      usage(prog, 0);
         if (errtxt != NULL) {
           fprintf(stderr, "malloc(tri): %s\n", errtxt); free(errtxt);
         } else
-          fprintf(stderr, "malloc(tri): Unknown error\n");
+          fprintf(stderr, "malloc(tri): Can't allocate memory\n");
         exit(3);
       }
       memset(tri, 0, trisize*sizeof(GEOUTM));
@@ -516,7 +516,7 @@ usage:      usage(prog, 0);
     if (errtxt != NULL) {
       fprintf(stderr, "malloc(aft): %s\n", errtxt); free(errtxt);
     } else
-      fprintf(stderr, "malloc(aft): Unknown error\n");
+      fprintf(stderr, "malloc(aft): Can't allocate memory\n");
     exit(3);
   }
 
@@ -549,7 +549,7 @@ usage:      usage(prog, 0);
     if (errtxt != NULL) {
       fprintf(stderr, "%s: %s\n", outname, errtxt); free(errtxt);
     } else
-      fprintf(stderr, "%s: Unknown error\n", outname);
+      fprintf(stderr, "%s: Can't open GK->TM include file for writing\n", outname);
     exit(2);
   }
   print_header(out, outname);
@@ -561,7 +561,7 @@ usage:      usage(prog, 0);
     if (errtxt != NULL) {
       fprintf(stderr, "%s: %s\n", outname, errtxt); free(errtxt);
     } else
-      fprintf(stderr, "%s: Unknown error\n", outname);
+      fprintf(stderr, "%s: Error writing to GK->TM include file\n", outname);
     exit(2);
   }
   for (ii = 0; ii < trisize; ) {
@@ -588,7 +588,7 @@ usage:      usage(prog, 0);
       if (errtxt != NULL) {
         fprintf(stderr, "%s: %s\n", outname, errtxt); free(errtxt);
       } else
-        fprintf(stderr, "%s: Unknown error\n", outname);
+        fprintf(stderr, "%s: Error writing to GK->TM include file\n", outname);
       exit(2);
     }
   }
@@ -598,7 +598,7 @@ usage:      usage(prog, 0);
     if (errtxt != NULL) {
       fprintf(stderr, "%s: %s\n", outname, errtxt); free(errtxt);
     } else
-      fprintf(stderr, "%s: Unknown error\n", outname);
+      fprintf(stderr, "%s: Error writing to GK->TM include file\n", outname);
     exit(2);
   }
   fclose(out);
@@ -634,7 +634,7 @@ usage:      usage(prog, 0);
     if (errtxt != NULL) {
       fprintf(stderr, "%s: %s\n", outname, errtxt); free(errtxt);
     } else
-      fprintf(stderr, "%s: Unknown error\n", outname);
+      fprintf(stderr, "%s: Can't open TM->GK include file for writing\n", outname);
     exit(2);
   }
   print_header(out, outname);
@@ -646,7 +646,7 @@ usage:      usage(prog, 0);
     if (errtxt != NULL) {
       fprintf(stderr, "%s: %s\n", outname, errtxt); free(errtxt);
     } else
-      fprintf(stderr, "%s: Unknown error\n", outname);
+      fprintf(stderr, "%s: Error writing to TM->GK include file\n", outname);
     exit(2);
   }
   for (ii = 0; ii < trisize; ) {
@@ -673,7 +673,7 @@ usage:      usage(prog, 0);
       if (errtxt != NULL) {
         fprintf(stderr, "%s: %s\n", outname, errtxt); free(errtxt);
       } else
-        fprintf(stderr, "%s: Unknown error\n", outname);
+        fprintf(stderr, "%s: Error writing to TM->GK include file\n", outname);
       exit(2);
     }
   }
@@ -683,7 +683,7 @@ usage:      usage(prog, 0);
     if (errtxt != NULL) {
       fprintf(stderr, "%s: %s\n", outname, errtxt); free(errtxt);
     } else
-      fprintf(stderr, "%s: Unknown error\n", outname);
+      fprintf(stderr, "%s: Error writing to TM->GK include file\n", outname);
     exit(2);
   }
   fclose(out);

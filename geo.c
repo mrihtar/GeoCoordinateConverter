@@ -381,7 +381,7 @@ void h7_precalc(HELMERT7 *h7)
     if (errtxt != NULL) {
       fprintf(stderr, "malloc(m33): %s\n", errtxt); free(errtxt);
     } else
-      fprintf(stderr, "malloc(m33): Unknown error\n");
+      fprintf(stderr, "malloc(m33): Can't allocate memory\n");
     exit(3);
   }
 
@@ -408,7 +408,7 @@ void h7_precalc(HELMERT7 *h7)
     if (errtxt != NULL) {
       fprintf(stderr, "malloc(m33): %s\n", errtxt); free(errtxt);
     } else
-      fprintf(stderr, "malloc(m33): Unknown error\n");
+      fprintf(stderr, "malloc(m33): Can't allocate memory\n");
     exit(3);
   }
 

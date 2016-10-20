@@ -38,8 +38,8 @@
 #include <FL/fl_ask.H>
 #include <FL/fl_draw.H>
 
-#define SW_VERSION "1.28"
-#define SW_BUILD   "Oct 15, 2016"
+#define SW_VERSION "1.29"
+#define SW_BUILD   "Oct 20, 2016"
 
 // global variables
 char *prog;  // program name

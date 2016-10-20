@@ -20,8 +20,8 @@
 #include "common.h"
 #include "geo.h"
 
-#define SW_VERSION "9.02"
-#define SW_BUILD   "Oct 19, 2016"
+#define SW_VERSION "9.03"
+#define SW_BUILD   "Oct 20, 2016"
 
 // global variables
 char *prog; // program name
@@ -543,7 +543,7 @@ usage:      usage(prog, 0);
       if (errtxt != NULL) {
         fprintf(stderr, "malloc(av): %s\n", errtxt); free(errtxt);
       } else
-        fprintf(stderr, "malloc(av): Unknown error\n");
+        fprintf(stderr, "malloc(av): Can't allocate memory\n");
       exit(3);
     }
     xstrncpy(av[ac++], argv[ii], MAXS);
@@ -575,7 +575,7 @@ usage:      usage(prog, 0);
       if (errtxt != NULL) {
         fprintf(stderr, "%s: %s\n", outname, errtxt); free(errtxt);
       } else
-        fprintf(stderr, "%s: Unknown error\n", outname);
+        fprintf(stderr, "%s: Can't open output file for writing\n", outname);
       exit(2);
     }
   }

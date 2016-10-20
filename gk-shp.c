@@ -21,8 +21,8 @@
 #include "geo.h"
 #include "shapefil.h"
 
-#define SW_VERSION "1.04"
-#define SW_BUILD   "Oct 19, 2016"
+#define SW_VERSION "1.05"
+#define SW_BUILD   "Oct 20, 2016"
 
 // global variables
 char *prog;  // program name
@@ -197,7 +197,7 @@ usage:      usage(prog, 0);
       if (errtxt != NULL) {
         fprintf(stderr, "malloc(av): %s\n", errtxt); free(errtxt);
       } else
-        fprintf(stderr, "malloc(av): Unknown error\n");
+        fprintf(stderr, "malloc(av): Can't allocate memory\n");
       exit(3);
     }
     xstrncpy(av[ac++], argv[ii], MAXS);
