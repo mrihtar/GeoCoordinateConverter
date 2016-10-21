@@ -9,6 +9,7 @@ CP = cp
 #DEBUG = -O2
 DEBUG = -g
 CFLAGS = -Wall -msse2 -mfpmath=sse
+CXXFLAGS = -Wall -msse2 -mfpmath=sse
 IPATH = -I..
 #LDFLAGS = -s
 LDFLAGS = 
@@ -36,6 +37,9 @@ showme: $(SHWOBJS)
 $(WOBJS): $(INCL)
 $(TRIOBJS): $(TRIINCL)
 
+install: $(TGTS)
+	@echo Copy ctt, triangle and showme to a directory of your choice
+
 clean:
 	-$(RM) $(WOBJS) $(TRIOBJS) $(SHWOBJS)
 cleanall: clean
@@ -43,3 +47,5 @@ cleanall: clean
 
 .c.o:
 	$(CC) $(DEBUG) -c $(CFLAGS) $(IPATH) $< -o $@
+.cxx.o:
+	$(CXX) $(DEBUG) -c $(CXXFLAGS) $(IPATH) $< -o $@

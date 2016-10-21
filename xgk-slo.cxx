@@ -17,9 +17,10 @@
 //
 // xgk-slo.cxx: Main GUI program for converting coordinates from XYZ files
 //
-#include <pthread.h> // must be included before common.h
 #include "common.h"
 #include "geo.h"
+
+#include <pthread.h>
 
 #include <FL/Fl.H>
 #include <FL/x.H>
@@ -38,8 +39,12 @@
 #include <FL/fl_ask.H>
 #include <FL/fl_draw.H>
 
-#define SW_VERSION "1.29"
-#define SW_BUILD   "Oct 20, 2016"
+#define SW_VERSION "1.30"
+#define SW_BUILD   "Oct 21, 2016"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // global variables
 char *prog;  // program name
@@ -51,6 +56,10 @@ extern int gid_wgs; // selected geoid on WGS 84 (in geo.c)
 extern int hsel;    // output height calculation (in geo.c)
 int ft;      // file type (XYZ/SHP)
 int ddms;    // display DMS
+
+#ifdef __cplusplus
+}
+#endif
 
 // thread variables
 typedef struct ptid {
@@ -482,9 +491,9 @@ int parse_dms(const char *str, double *val)
   DMS dms;
   int n;
 
+  dms.deg = 0.0; dms.min = 0.0; dms.sec = 0.0; // to keep compiler happy
   switch (ddms) {
     case 1: // Dec. Degrees
-      dms.min = 0.0; dms.sec = 0.0;
       n = sscanf(str, "%lf", &dms.deg);
       if (n != 1) {
         // error
@@ -492,7 +501,6 @@ int parse_dms(const char *str, double *val)
       }
       break;
     case 2: // Deg. Min.
-      dms.sec = 0.0;
       n = sscanf(str, "%lf%*[^0-9.-]%lf", &dms.deg, &dms.min);
       if (n != 2) {
         // error
@@ -545,6 +553,8 @@ void convert_cb(Fl_Widget *w, void *p)
   DMS lat, lon;
 
 //gtr = (Fl_Group *)p;
+  xy.x = 0.0; xy.y = 0.0; xy.H = 0.0; // to keep compiler happy
+  fl.fi = 0.0; fl.la = 0.0; fl.h = 0.0;
   switch (tr) {
     case  1: // gtr1, xy (D96/TM) ==> fila (ETRS89)
     case  3: // gtr1, xy (D48/GK) ==> fila (ETRS89)
@@ -890,6 +900,7 @@ void geoid_cb(Fl_Widget *w, void *p)
   int ii, bsel;
 
   b = (Fl_Radio_Round_Button *)w;
+  bsel = -1;
   for (ii = 0; ii < 2; ii++) {
     if (b == rb_geoid[ii]) {
       rb_geoid[ii]->labelfont(FL_BOLD);
@@ -1025,6 +1036,7 @@ void redisplay_dms(int gtrn, int new_ddms)
   double fi, la;
   DMS lat, lon;
 
+  fi = 0.0; la = 0.0; // to keep compiler happy
   switch (gtrn) {
     case 1: // gtr1: xy ==> fila
       parse_dms(output[0]->value(), &fi);

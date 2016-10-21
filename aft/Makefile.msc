@@ -1,16 +1,19 @@
 # For Microsoft nmake
 SHELL = %SystemRoot%/System32/cmd.exe
 CC = cl /nologo
+CXX = cl /nologo
 LD = link /nologo
+RC = rc /nologo
 RM = del /q
 CP = copy /y
 
 DEBUG = /O2
 #DEBUG = /Zi /DEBUG
-CFLAGS = /Wall
+CFLAGS = /Wall /fp:precise
+CXXFLAGS = /Wall /fp:precise /TP
 IPATH = /I..
-LDFLAGS = /INCREMENTAL:no
-#LDFLAGS = /INCREMENTAL:no /DEBUG
+LDFLAGS = /INCREMENTAL:no /DEFAULTLIB:msvcrt.lib /NODEFAULTLIB:libcmt.lib
+#LDFLAGS = /INCREMENTAL:no /DEBUG /DEFAULTLIB:msvcrtd.lib /NODEFAULTLIB:libcmt.lib
 LPATH = 
 LIBS = 
 
@@ -19,6 +22,8 @@ WOBJS = ctt.obj ..\util.obj
 INCL = ..\common.h ..\geo.h
 TRIOBJS = triangle.obj
 TRIINCL = triangle.h
+
+.SUFFIXES: .cxx
 
 all: $(TGTS)
 
@@ -31,6 +36,9 @@ triangle.exe: $(TRIOBJS)
 $(WOBJS): $(INCL)
 $(TRIOBJS): $(TRIINCL)
 
+install: $(TGTS)
+	@echo Copy ctt.exe and triangle.exe to a directory of your choice
+
 clean:
 	-$(RM) $(WOBJS) $(TRIOBJS)
 cleanall: clean
@@ -38,3 +46,5 @@ cleanall: clean
 
 .c.obj:
 	$(CC) $(DEBUG) /c $(CFLAGS) $(IPATH) $< /Fo$@
+.cxx.obj:
+	$(CXX) $(DEBUG) /c $(CXXFLAGS) $(IPATH) $< /Fo$@

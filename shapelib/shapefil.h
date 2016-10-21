@@ -140,16 +140,25 @@
  * try to improve SHPAPI_CALL docs
  */
 #ifdef _WIN32
-#define _WIN32_WINNT 0x0501  // Windows XP & Windows Server 2003 or greater
 #ifndef __MINGW32__
-#pragma warning (disable:4996)  // disable POSIX warnings
-#pragma warning (disable:4711)  // disable inline expansion warnings
-#pragma warning (disable:4127)  // disable cond. expr. is constant warnings
-#pragma warning (disable:4820)  // disable padding warnings
-#pragma warning (disable:4668)  // disable not defined macro warnings
-#pragma warning (disable:4255)  // disable no function prototype warnings
-#pragma warning (disable:4100)  // disable unreferenced formal parameter
-#pragma warning (disable:4101)  // disable unreferenced local variable
+#pragma warning (disable:4996)  // W3: deprecated declaration (_CRT_SECURE_NO_WARNINGS)
+#pragma warning (disable:4711)  // W1: function selected for inline expansion
+#pragma warning (disable:4127)  // W4: conditional expression is constant
+#pragma warning (disable:4820)  // W4: bytes padding added
+#pragma warning (disable:4668)  // W4: symbol not defined as a macro
+#pragma warning (disable:4255)  // W4: no function prototype given
+#pragma warning (disable:4100)  // W4: unreferenced formal parameter
+#pragma warning (disable:4101)  // W3: unreferenced local variable
+// fltk
+#pragma warning (disable:4365)  // W4: conversion -> signed/unsigned mismatch
+#pragma warning (disable:4244)  // W3,W4: conversion -> possible loss of data
+#pragma warning (disable:4625)  // W4: copy constructor could not be generated
+#pragma warning (disable:4626)  // W4: assignment operator could not be generated
+#pragma warning (disable:4266)  // W4: hidden function -> no override available
+// Windows SDK
+#pragma warning (disable:4917)  // W1: GUID can only be associated with a class
+#pragma warning (disable:4987)  // W4: nonstandard extension used
+#define _USE_MATH_DEFINES  // for M_PI
 #else
 #pragma GCC diagnostic ignored "-Wunknown-pragmas"
 #pragma GCC diagnostic ignored "-Wunused-variable"

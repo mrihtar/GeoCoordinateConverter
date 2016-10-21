@@ -38,6 +38,9 @@ triangle.exe: $(TRIOBJS)
 $(WOBJS): $(INCL)
 $(TRIOBJS): $(TRIINCL)
 
+install: $(TGTS)
+	@echo Copy ctt.exe and triangle.exe to a directory of your choice
+
 clean:
 	-$(RM) $(WOBJS) $(TRIOBJS)
 cleanall: clean

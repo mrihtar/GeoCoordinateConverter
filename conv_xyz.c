@@ -21,6 +21,10 @@
 #include "geo.h"
 #include "shapefil.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // global variables
 extern char *prog; // program name
 
@@ -31,10 +35,6 @@ extern int wdms;    // write DMS
 
 extern int gid_wgs; // selected geoid on WGS 84 (in geo.c)
 extern int hsel;    // output height calculation (in geo.c)
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 // ----------------------------------------------------------------------------
 // convert_xyz_file

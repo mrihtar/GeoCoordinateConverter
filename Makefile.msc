@@ -3,27 +3,28 @@ SHELL = %SystemRoot%/System32/cmd.exe
 CC = cl /nologo
 CXX = cl /nologo
 LD = link /nologo
-RC = windres
+RC = rc /nologo
 RM = del /q
 CP = copy /y
 
-#DEBUG = /O2
-DEBUG = /Zi /DEBUG
-CFLAGS = /Wall
-CXXFLAGS = /Wall
-IPATH = /Ishapelib /Ifltk
-#LDFLAGS = /INCREMENTAL:no
-LDFLAGS = /INCREMENTAL:no /DEBUG
+DEBUG = /O2
+#DEBUG = /Zi /DEBUG
+CFLAGS = /Wall /fp:precise
+CXXFLAGS = /Wall /fp:precise /TP
+IPATH = /Ishapelib /Ifltk /Ipthread/include
+LDFLAGS = /INCREMENTAL:no /DEFAULTLIB:msvcrt.lib /NODEFAULTLIB:libcmt.lib
+#LDFLAGS = /INCREMENTAL:no /DEBUG /DEFAULTLIB:msvcrtd.lib /NODEFAULTLIB:libcmt.lib
 LPATH = 
 LIBS = 
-#XLDFLAGS = /INCREMENTAL:no
-XLDFLAGS = /INCREMENTAL:no /DEBUG
-XLPATH = -Lfltk/lib
-XLIBS = -lfltk_images -lfltk -lfltk_png -lfltk_z -lfltk_jpeg -lpthread -lole32 -luuid -lcomctl32
+XLDFLAGS = /INCREMENTAL:no /SUBSYSTEM:windows /DEFAULTLIB:msvcrt.lib /NODEFAULTLIB:libcmt.lib
+#XLDFLAGS = /INCREMENTAL:no /DEBUG /SUBSYSTEM:windows /DEFAULTLIB:msvcrtd.lib /NODEFAULTLIB:libcmt.lib
+XLPATH = /LIBPATH:fltk/lib /LIBPATH:pthread/lib
+XLIBS = fltkimages.lib fltk.lib fltkpng.lib fltkzlib.lib fltkjpeg.lib pthreadVC2.lib ole32.lib comctl32.lib advapi32.lib comdlg32.lib gdi32.lib shell32.lib user32.lib
+#XLIBS = fltkimagesd.lib fltkd.lib fltkpngd.lib fltkzlibd.lib fltkjpegd.lib pthreadVC2.lib ole32.lib comctl32.lib advapi32.lib comdlg32.lib gdi32.lib shell32.lib user32.lib
 
 TGTS = gk-slo.exe gk-shp.exe xgk-slo.exe
-WOBJS = gk-slo.obj util.obj geo.obj
-SOBJS = gk-shp.obj util.obj geo.obj
+WOBJS = gk-slo.obj conv_xyz.obj util.obj geo.obj
+SOBJS = gk-shp.obj conv_shp.obj util.obj geo.obj
 INCL = common.h geo.h geoid_slo.h geoid_egm.h aft_gktm.h aft_tmgk.h
 SHPOBJS = shapelib\shpopen.obj shapelib\dbfopen.obj shapelib\safileio.obj shapelib\shptree.obj
 SHPINCL = shapelib\shapefil.h
@@ -41,8 +42,8 @@ gk-shp.exe: $(SOBJS) $(SHPOBJS)
 	$(LD) /OUT:$@ $(SOBJS) $(SHPOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
 
 xgk-slo.exe: $(XOBJS) $(SHPOBJS) xgk-slo.rc
-	$(RC) $(basename $@).rc $(basename $@).res
-	$(LD) /OUT:$@ $(XOBJS) $(SHPOBJS) $(basename $@).res $(XLDFLAGS) $(XLPATH) $(XLIBS)
+	$(RC) $(@:.exe=).rc
+	$(LD) /OUT:$@ $(XOBJS) $(SHPOBJS) $(@:.exe=).res $(XLDFLAGS) $(XLPATH) $(XLIBS)
 
 $(WOBJS): $(INCL)
 $(SOBJS): $(INCL)

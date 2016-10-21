@@ -35,15 +35,12 @@ AFT *aft;
 char *prog;  // program name
 int debug;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#ifdef _WIN32
 #ifdef __MINGW32__
 extern int _CRT_glob;
-void __wgetmainargs(int *, wchar_t ***, wchar_t ***, int, int *);
+#else
+int _CRT_glob = 1; // expand the wildcards in cmd line params
 #endif
-#ifdef __cplusplus
-}
 #endif
 
 // ----------------------------------------------------------------------------
@@ -239,6 +236,9 @@ void usage(char *prog, int ver_only)
 // ----------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
+#ifdef _WIN32
+  wchar_t **wargv, **wenv; int si = 0;
+#endif
   int ii, ac, opt;
   char *s, *av[MAXC], *errtxt;
   char gknodename[MAXS+1], tmnodename[MAXS+1], elename[MAXS+1];
@@ -249,6 +249,12 @@ int main(int argc, char *argv[])
   int gksize, tmsize, trisize;
   double x, y, xs, ys, xt, yt;
   int maxt, t1, t2, t3;
+
+#ifdef _WIN32
+  __wgetmainargs(&argc, &wargv, &wenv, _CRT_glob, &si);
+  s = wchar2utf8(wargv[0]); // convert to UTF-8
+  if (s != NULL) argv[0] = s;
+#endif
 
   // Get program name
   if ((prog = strrchr(argv[0], DIRSEP)) == NULL) prog = argv[0];
@@ -262,6 +268,10 @@ int main(int argc, char *argv[])
   // Parse command line
   ac = 0; opt = 1;
   for (ii = 1; ii < argc && ac < MAXC; ii++) {
+#ifdef _WIN32
+    s = wchar2utf8(wargv[ii]); // convert to UTF-8
+    if (s != NULL) argv[ii] = s;
+#endif
     if (opt && *argv[ii] == '-') {
       if (strcasecmp(argv[ii], "--") == 0) { // end of options
         opt = 0;
@@ -303,7 +313,7 @@ usage:      usage(prog, 0);
   xstrncpy(tmnodename, av[1], MAXS);
   xstrncpy(elename, av[2], MAXS);
 
-  gknode = fopen(gknodename, "r");
+  gknode = utf8_fopen(gknodename, "r");
   if (gknode == NULL) {
     errtxt = xstrerror();
     if (errtxt != NULL) {
@@ -313,7 +323,7 @@ usage:      usage(prog, 0);
     exit(2);
   }
 
-  tmnode = fopen(tmnodename, "r");
+  tmnode = utf8_fopen(tmnodename, "r");
   if (tmnode == NULL) {
     errtxt = xstrerror();
     if (errtxt != NULL) {
@@ -323,7 +333,7 @@ usage:      usage(prog, 0);
     exit(2);
   }
 
-  ele = fopen(elename, "r");
+  ele = utf8_fopen(elename, "r");
   if (ele == NULL) {
     errtxt = xstrerror();
     if (errtxt != NULL) {
@@ -543,7 +553,7 @@ usage:      usage(prog, 0);
 
   // write out GK-->TM AFT table
   xstrncpy(outname, "aft_gktm.h", MAXS);
-  out = fopen(outname, "w");
+  out = utf8_fopen(outname, "w");
   if (out == NULL) {
     errtxt = xstrerror();
     if (errtxt != NULL) {
@@ -628,7 +638,7 @@ usage:      usage(prog, 0);
 
   // write out TM-->GK AFT table
   xstrncpy(outname, "aft_tmgk.h", MAXS);
-  out = fopen(outname, "w");
+  out = utf8_fopen(outname, "w");
   if (out == NULL) {
     errtxt = xstrerror();
     if (errtxt != NULL) {

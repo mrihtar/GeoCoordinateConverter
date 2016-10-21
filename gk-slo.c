@@ -20,8 +20,8 @@
 #include "common.h"
 #include "geo.h"
 
-#define SW_VERSION "9.03"
-#define SW_BUILD   "Oct 20, 2016"
+#define SW_VERSION "9.04"
+#define SW_BUILD   "Oct 21, 2016"
 
 // global variables
 char *prog; // program name
@@ -33,12 +33,16 @@ int wdms;    // write DMS
 extern int gid_wgs; // selected geoid on WGS 84 (in geo.c, via cmd line)
 extern int hsel;    // output height calculation (in geo.c, via cmd line)
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#ifdef _WIN32
 #ifdef __MINGW32__
 extern int _CRT_glob;
-void __wgetmainargs(int *, wchar_t ***, wchar_t ***, int, int *);
+#else
+int _CRT_glob = 1; // expand the wildcards in cmd line params
+#endif
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 // External function prototypes
 int convert_xyz_file(char *url, int outf, FILE *out, char *msg);
@@ -414,7 +418,7 @@ void usage(char *prog, int ver_only)
 int main(int argc, char *argv[])
 {
 #ifdef _WIN32
-  wchar_t **wargv, **wenpv; int si = 0;
+  wchar_t **wargv, **wenv; int si = 0;
 #endif
   int ii, ac, opt;
   char *s, *av[MAXC], *errtxt;
@@ -425,7 +429,7 @@ int main(int argc, char *argv[])
   FILE *out;
 
 #ifdef _WIN32
-  __wgetmainargs(&argc, &wargv, &wenpv, _CRT_glob, &si);
+  __wgetmainargs(&argc, &wargv, &wenv, _CRT_glob, &si);
   s = wchar2utf8(wargv[0]); // convert to UTF-8
   if (s != NULL) argv[0] = s;
 #endif

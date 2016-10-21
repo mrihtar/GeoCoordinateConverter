@@ -98,7 +98,7 @@ GKLM gkzones[] = {
 #include "aft_gktm.h"
 //AFT aft_tmgk[MAXAFT];  // Affine transformation table from TM to GK for Slovenia
 #include "aft_tmgk.h"
-double last_tri = -1; // last found triangle
+int last_tri = -1; // last found triangle
 
 // Distance to triangle segment
 #define EPSILON  0.001

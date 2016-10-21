@@ -21,6 +21,10 @@
 #include "geo.h"
 #include "shapefil.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // global variables
 extern char *prog; // program name
 
@@ -53,10 +57,6 @@ char *prj[5] = {
   // prj[4] = EPSG:4326 (WGS84)
   "GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"Degree\",0.017453292519943295]]"
 };
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 // ----------------------------------------------------------------------------
 // swapxy

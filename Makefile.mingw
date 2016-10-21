@@ -13,15 +13,15 @@ DEBUG = -O2
 #DEBUG = -g
 CFLAGS = -Wall -msse2 -mfpmath=sse
 CXXFLAGS = -Wall -msse2 -mfpmath=sse -mwindows
-IPATH = -Ishapelib -Ifltk
+IPATH = -Ishapelib -Ifltk -Ipthread\include
 LDFLAGS = -s
 #LDFLAGS = 
 LPATH = 
 LIBS = 
 XLDFLAGS = -mwindows -s
 #XLDFLAGS = -mwindows
-XLPATH = -Lfltk\lib
-XLIBS = -lfltk_images -lfltk -lfltk_png -lfltk_z -lfltk_jpeg -lpthread -lole32 -luuid -lcomctl32
+XLPATH = -Lfltk\lib -Lpthread\lib
+XLIBS = -lfltk_images -lfltk -lfltk_png -lfltk_z -lfltk_jpeg -lpthreadGC2 -lole32 -luuid -lcomctl32
 
 TGTS = gk-slo.exe gk-shp.exe xgk-slo.exe
 WOBJS = gk-slo.o conv_xyz.o util.o geo.o
@@ -43,8 +43,8 @@ gk-shp.exe: $(SOBJS) $(SHPOBJS)
 	$(CC) -o $@ $(SOBJS) $(SHPOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
 
 xgk-slo.exe: $(XOBJS) $(SHPOBJS) xgk-slo.rc
-	$(RC) $(basename $@).rc $(basename $@).res.o
-	$(CXX) -o $@ $(XOBJS) $(SHPOBJS) $(basename $@).res.o $(XLDFLAGS) $(XLPATH) $(XLIBS)
+	$(RC) $(@:.exe=).rc $(@:.exe=).res.o
+	$(CXX) -o $@ $(XOBJS) $(SHPOBJS) $(@:.exe=).res.o $(XLDFLAGS) $(XLPATH) $(XLIBS)
 
 $(WOBJS): $(INCL)
 $(SOBJS): $(INCL)
