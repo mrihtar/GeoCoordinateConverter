@@ -11,7 +11,7 @@ CP = copy /y
 
 DEBUG = -O2
 #DEBUG = -g
-CFLAGS = -Wall -msse2 -mfpmath=sse
+CFLAGS = -Wall -Wshadow -msse2 -mfpmath=sse
 CXXFLAGS = -Wall -msse2 -mfpmath=sse -mwindows
 IPATH = -Ishapelib -Ifltk -Ipthread\include
 LDFLAGS = -s

@@ -20,8 +20,8 @@
 #include "common.h"
 #include "geo.h"
 
-#define SW_VERSION "9.04"
-#define SW_BUILD   "Oct 21, 2016"
+#define SW_VERSION "9.05"
+#define SW_BUILD   "Oct 25, 2016"
 
 // global variables
 char *prog; // program name
@@ -367,7 +367,7 @@ void gendata_fila()
 // ----------------------------------------------------------------------------
 // usage
 // ----------------------------------------------------------------------------
-void usage(char *prog, int ver_only)
+void usage(int ver_only)
 {
   fprintf(stderr, "%s %s  Copyright (c) 2014-2016 Matjaz Rihtar  (%s)\n",
           prog, SW_VERSION, SW_BUILD);
@@ -407,8 +407,8 @@ void usage(char *prog, int ver_only)
   fprintf(stderr, "                    <outname>: write all output to 1 file <outname>\n");
   fprintf(stderr, "\n");
   fprintf(stderr, "Typical input data format (SiTra .xyz or LIDAR .asc):\n");
-  fprintf(stderr, "[<label> ]<fi|x> <la|y> <h|H>\n");
-  fprintf(stderr, "[<label>;]<fi|x>;<la|y>;<h|H>\n");
+  fprintf(stderr, "[<label> ]<fi|y> <la|x> <h|H>\n");
+  fprintf(stderr, "[<label>;]<fi|y>;<la|x>;<h|H>\n");
 } /* usage */
 
 
@@ -531,11 +531,11 @@ int main(int argc, char *argv[])
             test = 1;
             break;
           case 'v': // version
-            usage(prog, 1); // show version only
+            usage(1); // show version only
             exit(0);
             break;
           default: // usage
-usage:      usage(prog, 0);
+usage:      usage(0);
             exit(1);
         }
       }

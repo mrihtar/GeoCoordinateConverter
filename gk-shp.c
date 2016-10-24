@@ -21,8 +21,8 @@
 #include "geo.h"
 #include "shapefil.h"
 
-#define SW_VERSION "1.06"
-#define SW_BUILD   "Oct 21, 2016"
+#define SW_VERSION "1.07"
+#define SW_BUILD   "Oct 25, 2016"
 
 // global variables
 char *prog;  // program name
@@ -53,7 +53,7 @@ int convert_shp_file(char *inpurl, char *outurl, char *msg);
 // ----------------------------------------------------------------------------
 // usage
 // ----------------------------------------------------------------------------
-void usage(char *prog, int ver_only)
+void usage(int ver_only)
 {
   fprintf(stderr, "%s %s  Copyright (c) 2014-2016 Matjaz Rihtar  (%s)\n",
           prog, SW_VERSION, SW_BUILD);
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
   int ii, ac, opt;
   char *s, *av[MAXC], *errtxt;
   char geoid[MAXS+1];
-  int value, tr, rev, warn;
+  int value, warn;
   char inpname[MAXS+1], outname[MAXS+1], prjname[MAXS+1];
   static GEOGRA ifl, ofl; static GEOUTM ixy, oxy;
   struct timespec start, stop;
@@ -185,11 +185,11 @@ int main(int argc, char *argv[])
             rev = 1;
             break;
           case 'v': // version
-            usage(prog, 1); // show version only
+            usage(1); // show version only
             exit(0);
             break;
           default: // usage
-usage:      usage(prog, 0);
+usage:      usage(0);
             exit(1);
         }
       }

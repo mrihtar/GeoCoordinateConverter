@@ -282,7 +282,7 @@ int convert_shp_file(char *inpurl, char *outurl, char *msg)
 
       // prepare data for transformation
       if (tr == 2 || tr == 4 || tr == 10) { // etrs89
-        ifl.la = psShape->padfX[nVertex]; ifl.fi = psShape->padfY[nVertex]; // reverse!
+        ifl.fi = psShape->padfY[nVertex]; ifl.la = psShape->padfX[nVertex]; // reverse!
         ifl.h = psShape->padfZ[nVertex];
         if (rev) swapfila(&ifl);
         if (ifl.la > 17.0) {
@@ -295,7 +295,7 @@ int convert_shp_file(char *inpurl, char *outurl, char *msg)
         }
       }
       else { // tr == 1,3,5,6,7,8,9 // d96tm/d48gk
-        ixy.y = psShape->padfX[nVertex]; ixy.x = psShape->padfY[nVertex]; // reverse!
+        ixy.x = psShape->padfY[nVertex]; ixy.y = psShape->padfX[nVertex]; // reverse!
         ixy.H = psShape->padfZ[nVertex];
         if (rev) swapxy(&ixy);
         if (ixy.y < 200000.0) {

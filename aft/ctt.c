@@ -27,10 +27,6 @@ typedef struct triang {
   int t1, t2, t3;
 } TRIANG;
 
-GEOUTM *gk, *tm;
-TRIANG *tri;
-AFT *aft;
-
 // global variables
 char *prog;  // program name
 int debug;
@@ -218,7 +214,7 @@ void print_header(FILE *out, char *outname)
 // ----------------------------------------------------------------------------
 // usage
 // ----------------------------------------------------------------------------
-void usage(char *prog, int ver_only)
+void usage(int ver_only)
 {
   fprintf(stderr, "%s %s  Copyright (c) 2014-2016 Matjaz Rihtar  (%s)\n",
           prog, SW_VERSION, SW_BUILD);
@@ -246,6 +242,9 @@ int main(int argc, char *argv[])
   FILE *gknode, *tmnode, *ele, *out;
   char line[MAXS+1], col1[MAXS+1];
   int ln, lnc, n;
+  GEOUTM *gk, *tm;
+  TRIANG *tri;
+  AFT *aft;
   int gksize, tmsize, trisize;
   double x, y, xs, ys, xt, yt;
   int maxt, t1, t2, t3;
@@ -284,11 +283,11 @@ int main(int argc, char *argv[])
             debug++;
             break;
           case 'v': // version
-            usage(prog, 1); // show version only
+            usage(1); // show version only
             exit(0);
             break;
           default: // usage
-usage:      usage(prog, 0);
+usage:      usage(0);
             exit(1);
         }
       }

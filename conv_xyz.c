@@ -168,18 +168,18 @@ int convert_xyz_file(char *url, int outf, FILE *out, char *msg)
     }
     else { // tr == 1,3,5,6,7,8,9 // d96tm/d48gk
       // try with blank (SiTra)
-      n = sscanf(s, "%10240s %lf %lf %lf", col1, &x, &y, &H);
+      n = sscanf(s, "%10240s %lf %lf %lf", col1, &y, &x, &H);
       if (n != 4) {
-	n = sscanf(s, "%lf %lf %lf", &x, &y, &H);
+	n = sscanf(s, "%lf %lf %lf", &y, &x, &H);
 	if (n != 3) n = 5;
 	else col1[0] = '\0';
       }
       else xstrncat(col1, " ", MAXS);
       if (n != 4 && n != 3) {
 	// try again with semicolon (LIDAR)
-	n = sscanf(s, "%10240[^;];%lf;%lf;%lf", col1, &x, &y, &H);
+	n = sscanf(s, "%10240[^;];%lf;%lf;%lf", col1, &y, &x, &H);
 	if (n != 4) {
-	  n = sscanf(s, "%lf;%lf;%lf", &x, &y, &H);
+	  n = sscanf(s, "%lf;%lf;%lf", &y, &x, &H);
 	  if (n != 3) n = 5;
 	  else col1[0] = '\0';
 	}
