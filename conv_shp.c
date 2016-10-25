@@ -186,7 +186,6 @@ int convert_shp_file(char *inpurl, char *outurl, char *msg)
 
   // determine output projection
   switch (tr) {
-    default:
     case 1: // xy (d96tm) --> fila (etrs89)
       proj = prj[EPSG_4326]; break; // WGS84
     case 2: // fila (etrs89) --> xy (d96tm)
@@ -207,6 +206,8 @@ int convert_shp_file(char *inpurl, char *outurl, char *msg)
       proj = prj[EPSG_4326]; break; // WGS84
     case 10: // fila (etrs89) --> xy (d48gk), affine trans.
       proj = prj[EPSG_3787]; break; // D48/GK
+    default: // xy (d96tm) --> fila (etrs89)
+      proj = prj[EPSG_4326]; break; // WGS84
   }
   // write selected projection to .prj file (for GIS programs)
   out = utf8_fopen(prjname, "w");
@@ -311,7 +312,6 @@ int convert_shp_file(char *inpurl, char *outurl, char *msg)
 
       // transform data
       switch (tr) {
-        default:
         case 1: // xy (d96tm) --> fila (etrs89)
           tmxy2fila_wgs(ixy, &ofl); break;
         case 2: // fila (etrs89) --> xy (d96tm)
@@ -332,6 +332,8 @@ int convert_shp_file(char *inpurl, char *outurl, char *msg)
           gkxy2fila_wgs_aft(ixy, &ofl); break;
         case 10: // fila (etrs89) --> xy (d48gk), affine trans.
           fila_wgs2gkxy_aft(ifl, &oxy); break;
+        default: // xy (d96tm) --> fila (etrs89)
+          tmxy2fila_wgs(ixy, &ofl); break;
       }
 
       // save transformed data

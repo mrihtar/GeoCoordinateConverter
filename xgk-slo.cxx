@@ -39,8 +39,11 @@
 #include <FL/fl_ask.H>
 #include <FL/fl_draw.H>
 
-#define SW_VERSION "1.30"
-#define SW_BUILD   "Oct 21, 2016"
+#define SW_VERSION "1.31"
+#define SW_BUILD   "Oct 25, 2016"
+
+// See https://en.wikipedia.org/wiki/Wikipedia:WikiProject_Geographical_coordinates#Parameters
+#define SCALE 5000
 
 #ifdef __cplusplus
 extern "C" {
@@ -83,6 +86,11 @@ typedef struct targ {
   Fl_Widget *w;
 } TARG;
 
+const char *browsers[] = { // Possible UNIX browsers
+  "chrome", "firefox", "opera", "epiphany", "mozilla",
+  "netscape", "konqueror", "nautilus", "safari"
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -104,20 +112,20 @@ void ftchoice_cb(Fl_Widget *w, void *p);
 // FLTK global variables
 Fl_Menu_Item menubar_entries[] = {
   {"&File", 0, 0, 0, FL_SUBMENU},
-    {"&Open",   FL_ALT+'o',  open_cb, 0, FL_MENU_DIVIDER},
-    {"&Quit",   FL_ALT+'q',  quit_cb},
+    {"&Open", FL_ALT+'o',  open_cb, 0, FL_MENU_DIVIDER},
+    {"&Quit", FL_ALT+'q',  quit_cb},
     {0},
   {"&Edit", 0, 0, 0, FL_SUBMENU},
-    {"Undo",    FL_CTRL+'z', 0},
-    {"Redo",    FL_CTRL+'r', 0, 0, FL_MENU_DIVIDER},
-    {"Cut",     FL_CTRL+'x', 0},
-    {"Copy",    FL_CTRL+'c', 0},
-    {"Paste",   FL_CTRL+'v', 0, 0, FL_MENU_DIVIDER},
-    {"Clear",   0,           clear_cb},
+    {"Undo",  FL_CTRL+'z', 0},
+    {"Redo",  FL_CTRL+'r', 0, 0, FL_MENU_DIVIDER},
+    {"Cut",   FL_CTRL+'x', 0},
+    {"Copy",  FL_CTRL+'c', 0},
+    {"Paste", FL_CTRL+'v', 0, 0, FL_MENU_DIVIDER},
+    {"Clear", 0,           clear_cb},
     {0},
   {"&Help", 0, 0, 0, FL_SUBMENU},
-    {"Help",    FL_ALT+'h',  help_cb, 0, FL_MENU_DIVIDER},
-    {"About",   0,           about_cb},
+    {"Help",  FL_ALT+'h',  help_cb, 0, FL_MENU_DIVIDER},
+    {"About", 0,           about_cb},
     {0},
   {0}
 }; /* menubar_entries */
@@ -559,8 +567,8 @@ void convert_cb(Fl_Widget *w, void *p)
     case  1: // gtr1, xy (D96/TM) ==> fila (ETRS89)
     case  3: // gtr1, xy (D48/GK) ==> fila (ETRS89)
     case  9: // gtr1, xy (D48/GK) ==> fila (ETRS89), AFT
-      parse_double(input[0]->value(), &x);
-      parse_double(input[1]->value(), &y);
+      parse_double(input[0]->value(), &y);
+      parse_double(input[1]->value(), &x);
       parse_double(input[2]->value(), &H);
       xlog("convert_cb: input(tr = %d): x = %g, y = %g, H = %g\n", tr, x, y, H);
       if (y < 200000.0) {
@@ -588,8 +596,8 @@ void convert_cb(Fl_Widget *w, void *p)
     case  6: // gtr3, xy (D96/TM) ==> xy (D48/GK)
     case  7: // gtr3, xy (D48/GK) ==> xy (D96/TM), AFT
     case  8: // gtr3, xy (D96/TM) ==> xy (D48/GK), AFT
-      parse_double(input[6]->value(), &x);
-      parse_double(input[7]->value(), &y);
+      parse_double(input[6]->value(), &y);
+      parse_double(input[7]->value(), &x);
       parse_double(input[8]->value(), &H);
       xlog("convert_cb: input(tr = %d): x = %g, y = %g, H = %g\n", tr, x, y, H);
       if (y < 200000.0) {
@@ -645,8 +653,8 @@ void convert_cb(Fl_Widget *w, void *p)
     case  4: // gtr2, fila (ETRS89) ==> xy (D48/GK)
     case 10: // gtr2, fila (ETRS89) ==> xy (D48/GK), AFT
       xlog("convert_cb: output(tr = %d): x = %.10f, y = %.10f, H = %.3f\n", tr, xy.x, xy.y, xy.H);
-      snprintf(value1, MAXS, "%.3f", xy.x);
-      snprintf(value2, MAXS, "%.3f", xy.y);
+      snprintf(value1, MAXS, "%.3f", xy.y);
+      snprintf(value2, MAXS, "%.3f", xy.x);
       snprintf(value3, MAXS, "%.3f", xy.H);
       output[3]->value(value1);
       output[4]->value(value2);
@@ -658,8 +666,8 @@ void convert_cb(Fl_Widget *w, void *p)
     case  7: // gtr3, xy (D48/GK) ==> xy (D96/TM), AFT
     case  8: // gtr3, xy (D96/TM) ==> xy (D48/GK), AFT
       xlog("convert_cb: output(tr = %d): x = %.10f, y = %.10f, H = %.3f\n", tr, xy.x, xy.y, xy.H);
-      snprintf(value1, MAXS, "%.3f", xy.x);
-      snprintf(value2, MAXS, "%.3f", xy.y);
+      snprintf(value1, MAXS, "%.3f", xy.y);
+      snprintf(value2, MAXS, "%.3f", xy.x);
       snprintf(value3, MAXS, "%.3f", xy.H);
       output[6]->value(value1);
       output[7]->value(value2);
@@ -667,6 +675,129 @@ void convert_cb(Fl_Widget *w, void *p)
       break;
   } // switch (tr)
 } /* convert_cb */
+
+
+// ----------------------------------------------------------------------------
+// locate_exe
+// Works on UNIX only!
+// ----------------------------------------------------------------------------
+char *locate_exe(const char *exe, char *path, int len)
+{
+  FILE *fd;
+  int ii;
+  char *rv = NULL;
+
+  snprintf(path, len, "which \"%s\" 2>/dev/null", exe);
+
+  fd = popen(path, "r");
+  if (fd != NULL) {
+    *path = '\0';
+    fgets(path, len, fd);
+    pclose(fd);
+
+    ii = strlen(path) - 1;
+    while (ii >= 0 && isspace(path[ii]))
+      path[ii--] = '\0';
+
+    if (strlen(path)) rv = path;
+  }
+
+  return rv;
+} /* locate_exe */
+
+
+// ----------------------------------------------------------------------------
+// open_url
+// ----------------------------------------------------------------------------
+int open_url(const char *url)
+{
+  int rc, ii, blen;
+  char buf[MAXS+1], cmd[MAXS+1], *path;
+
+#ifdef _WIN32
+  rc = (int)ShellExecute(HWND_DESKTOP, "open", url, NULL, NULL, SW_SHOWDEFAULT);
+  if (rc > 32) rc = 0;
+  else if (rc == 0) rc = ENOMEM;
+#else
+  rc = 1;
+  blen = sizeof(browsers)/sizeof(*browsers);
+  for (ii = 0; ii < blen; ii++) {
+    if ((path = locate_exe(browsers[ii], buf, MAXS)) == NULL)
+      continue;
+    snprintf(cmd, MAXS, "\"%s\" '%s' >/dev/null 2>&1 &", path, url);
+    rc = system(cmd);
+    break;
+  }
+#endif
+  return rc;
+} /* open_url */
+
+
+// ----------------------------------------------------------------------------
+// show_cb
+// ----------------------------------------------------------------------------
+void show_cb(Fl_Widget *w, void *p)
+{
+  double fi, la, h, x, y, H;
+  GEOGRA fl; GEOUTM xy;
+  char fip, lap, url[MAXS+1];
+
+  fi = 0.0; la = 0.0;
+  switch (tr) {
+    case  1: // gtr1, xy (D96/TM) ==> fila (ETRS89)
+    case  3: // gtr1, xy (D48/GK) ==> fila (ETRS89)
+    case  9: // gtr1, xy (D48/GK) ==> fila (ETRS89), AFT
+      parse_dms(output[0]->value(), &fi);
+      if (fi > 90.0 || fi < -90.0) fi = 0.0;
+      parse_dms(output[1]->value(), &la);
+      if (la > 180.0 || la < -180.0) la = 0.0;
+
+      if (fi == 0.0 || la == 0.0) {
+        parse_double(input[0]->value(), &y);
+        parse_double(input[1]->value(), &x);
+        xy.x = x; xy.y = y; xy.H = 0;
+        switch (tr) {
+          case  1: tmxy2fila_wgs(xy, &fl); break;              // gtr1, xy (D96/TM) ==> fila (ETRS89)
+          case  3: gkxy2fila_wgs(xy, &fl); break;              // gtr1, xy (D48/GK) ==> fila (ETRS89)
+          case  9: gkxy2fila_wgs_aft(xy, &fl); break;          // gtr1, xy (D48/GK) ==> fila (ETRS89), AFT
+        } // switch (tr)
+        fi = fl.fi; la = fl.la;
+      }
+      break;
+
+    case  2: // gtr2, fila (ETRS89) ==> xy (D96/TM)
+    case  4: // gtr2, fila (ETRS89) ==> xy (D48/GK)
+    case 10: // gtr2, fila (ETRS89) ==> xy (D48/GK), AFT
+      parse_dms(input[3]->value(), &fi);
+      if (fi > 90.0 || fi < -90.0) fi = 0.0;
+      parse_dms(input[4]->value(), &la);
+      if (la > 180.0 || la < -180.0) la = 0.0;
+      break;
+
+    case  5: // gtr3, xy (D48/GK) ==> xy (D96/TM)
+    case  6: // gtr3, xy (D96/TM) ==> xy (D48/GK)
+    case  7: // gtr3, xy (D48/GK) ==> xy (D96/TM), AFT
+    case  8: // gtr3, xy (D96/TM) ==> xy (D48/GK), AFT
+      parse_double(input[6]->value(), &y);
+      parse_double(input[7]->value(), &x);
+      xy.x = x; xy.y = y; xy.H = 0;
+      switch (tr) {
+        case  5: gkxy2fila_wgs_aft(xy, &fl); break;          // gtr3, xy (D48/GK) ==> fila (ETRS89), AFT
+        case  6: tmxy2fila_wgs(xy, &fl); break;              // gtr3, xy (D96/TM) ==> fila (ETRS89)
+        case  7: gkxy2fila_wgs_aft(xy, &fl); break;          // gtr3, xy (D48/GK) ==> fila (ETRS89), AFT
+        case  8: tmxy2fila_wgs(xy, &fl); break;              // gtr3, xy (D96/TM) ==> fila (ETRS89)
+      } // switch (tr)
+      fi = fl.fi; la = fl.la;
+      break;
+  } // switch (tr)
+
+  fip = 'N'; if (fi < 0.0) fip = 'S';
+  lap = 'E'; if (la < 0.0) lap = 'W';
+  snprintf(url, MAXS, "https://tools.wmflabs.org/geohack/geohack.php?params=%.10f_%c_%.10f_%c_scale:%d\n",
+    fabs(fi), fip, fabs(la), lap, SCALE);
+
+  open_url(url);
+} /* show_cb */
 
 
 // ----------------------------------------------------------------------------
@@ -1295,8 +1426,8 @@ int main(int argc, char *argv[])
   help_tb = new Fl_Text_Buffer();
   help->buffer(help_tb);
   help->textsize(11); help->textcolor(FL_BLUE);
-  help_tb->text("x = Easting\n"
-                "y = Northing\n"
+  help_tb->text("y = Northing\n"
+                "x = Easting\n"
                 "H = Ortometric (above sea level) height\n"
                 "\xCF\x86 = phi, Latitude (N/S)\n"
                 "\xCE\xBB = lambda, Longitude (E/W)\n"
@@ -1357,10 +1488,10 @@ int main(int argc, char *argv[])
 //gtr1->box(FL_DOWN_BOX);
 //gtr1->clip_children(1);
 
-  input[0] = new Fl_Input(tab2->x()+30, tab2->y()+20, 150, 25, "X:");
-  input[0]->tooltip("Enter X");
-  input[1] = new Fl_Input(tab2->x()+30, tab2->y()+55, 150, 25, "Y:");
-  input[1]->tooltip("Enter Y");
+  input[0] = new Fl_Input(tab2->x()+30, tab2->y()+20, 150, 25, "Y:");
+  input[0]->tooltip("Enter northing (Y)");
+  input[1] = new Fl_Input(tab2->x()+30, tab2->y()+55, 150, 25, "X:");
+  input[1]->tooltip("Enter easting (X)");
   input[2] = new Fl_Input(tab2->x()+30, tab2->y()+90, 150, 25, "H:");
   input[2]->tooltip("Enter ortometric (above sea level) height (H)");
 
@@ -1388,6 +1519,9 @@ int main(int argc, char *argv[])
   rb = new Fl_Radio_Round_Button(x0, y0+2*yinc, w0, h0, "Deg. Min. Sec.");
   rb->callback(ddms_cb, NULL); rb_dms[ii++] = rb;
   g1->end();
+
+  bt = new Fl_Button(g1->x()+g1->w()+20, output[1]->y(), 100, 25, "Show on map");
+  bt->callback(show_cb, gtr1);
 
   gtr1->end();
 //gtr1->hide();
@@ -1421,12 +1555,15 @@ int main(int argc, char *argv[])
   bt->callback(convert_cb, gtr2);
   ar = new Fl_Arrow_Box(bt->x(), bt->y()+bt->h(), bt->w(), 30);
 
-  output[3] = new Fl_Output(bt->x()+bt->w()+35, bt->y()-35, 150, 25, "X:");
-  output[3]->tooltip("X");
-  output[4] = new Fl_Output(bt->x()+bt->w()+35, bt->y(), 150, 25, "Y:");
-  output[4]->tooltip("Y");
+  output[3] = new Fl_Output(bt->x()+bt->w()+35, bt->y()-35, 150, 25, "Y:");
+  output[3]->tooltip("Northing (Y)");
+  output[4] = new Fl_Output(bt->x()+bt->w()+35, bt->y(), 150, 25, "X:");
+  output[4]->tooltip("Easting (X)");
   output[5] = new Fl_Output(bt->x()+bt->w()+35, bt->y()+35, 150, 25, "H:");
   output[5]->tooltip("Ortometric (above sea level) height (H)");
+
+  bt = new Fl_Button(output[4]->x()+output[4]->w()+20, output[4]->y(), 100, 25, "Show on map");
+  bt->callback(show_cb, gtr2);
 
   gtr2->end();
   gtr2->hide();
@@ -1435,10 +1572,10 @@ int main(int argc, char *argv[])
 //gtr3->box(FL_DOWN_BOX);
 //gtr3->clip_children(1);
 
-  input[6] = new Fl_Input(tab2->x()+30, tab2->y()+20, 150, 25, "X:");
-  input[6]->tooltip("Enter X");
-  input[7] = new Fl_Input(tab2->x()+30, tab2->y()+55, 150, 25, "Y:");
-  input[7]->tooltip("Enter Y");
+  input[6] = new Fl_Input(tab2->x()+30, tab2->y()+20, 150, 25, "Y:");
+  input[6]->tooltip("Enter northing (Y)");
+  input[7] = new Fl_Input(tab2->x()+30, tab2->y()+55, 150, 25, "X:");
+  input[7]->tooltip("Enter easting (X)");
   input[8] = new Fl_Input(tab2->x()+30, tab2->y()+90, 150, 25, "H:");
   input[8]->tooltip("Enter ortometric (above sea level) height (H)");
 
@@ -1446,12 +1583,15 @@ int main(int argc, char *argv[])
   bt->callback(convert_cb, gtr3);
   ar = new Fl_Arrow_Box(bt->x(), bt->y()+bt->h(), bt->w(), 30);
 
-  output[6] = new Fl_Output(bt->x()+bt->w()+35, bt->y()-35, 150, 25, "X:");
-  output[6]->tooltip("X");
-  output[7] = new Fl_Output(bt->x()+bt->w()+35, bt->y(), 150, 25, "Y:");
-  output[7]->tooltip("Y");
+  output[6] = new Fl_Output(bt->x()+bt->w()+35, bt->y()-35, 150, 25, "Y:");
+  output[6]->tooltip("Northing (Y)");
+  output[7] = new Fl_Output(bt->x()+bt->w()+35, bt->y(), 150, 25, "X:");
+  output[7]->tooltip("Easting (X)");
   output[8] = new Fl_Output(bt->x()+bt->w()+35, bt->y()+35, 150, 25, "H:");
   output[8]->tooltip("Ortometric (above sea level) height (H)");
+
+  bt = new Fl_Button(output[7]->x()+output[7]->w()+20, output[7]->y(), 100, 25, "Show on map");
+  bt->callback(show_cb, gtr3);
 
   gtr3->end();
   gtr3->hide();
