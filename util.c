@@ -324,18 +324,18 @@ TCHAR *xstrerror(void)
 // xprintf
 // Writes an entry in previously opened log file, prepended by time of entry.
 // ----------------------------------------------------------------------------
-int xprintf(FILE *log, TCHAR *fmt, ...)
+int xprintf(FILE *out, TCHAR *fmt, ...)
 {
   va_list ap;
   time_t now;
   struct tm *tmnow;
-  TCHAR stime[MAXS+1];
+  TCHAR ftime[MAXS+1];
   TCHAR *msg;
 
   now = time(NULL);
   tmnow = localtime(&now);
-//strftime(stime, MAXS, T("%y-%m-%d %H:%M:%S"), tmnow);
-  strftime(stime, MAXS, T("%H:%M:%S"), tmnow);
+//strftime(ftime, MAXS, T("%y-%m-%d %H:%M:%S"), tmnow);
+  strftime(ftime, MAXS, T("%H:%M:%S"), tmnow);
 
   msg = (TCHAR *)calloc(MAXL+1, sizeof(TCHAR));
 
@@ -343,7 +343,7 @@ int xprintf(FILE *log, TCHAR *fmt, ...)
   vsnprintf(msg, MAXL, fmt, ap);
   va_end(ap);
 
-  fprintf(log, T("%s %s"), stime, msg);
+  fprintf(out, T("%s %s"), ftime, msg);
 //fflush(NULL);
 
   free(msg);

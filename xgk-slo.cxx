@@ -42,6 +42,8 @@
 #define SW_VERSION "1.31"
 #define SW_BUILD   "Oct 25, 2016"
 
+#define HELP "xgk-help.html"
+
 // See https://en.wikipedia.org/wiki/Wikipedia:WikiProject_Geographical_coordinates#Parameters
 #define SCALE 5000
 
@@ -59,6 +61,9 @@ extern int gid_wgs; // selected geoid on WGS 84 (in geo.c)
 extern int hsel;    // output height calculation (in geo.c)
 int ft;      // file type (XYZ/SHP)
 int ddms;    // display DMS
+
+char argv0[MAXS+1]; // original argv[0]
+char path0[MAXS+1]; // path of argv[0], len > PATH_MAX
 
 #ifdef __cplusplus
 }
@@ -678,6 +683,107 @@ void convert_cb(Fl_Widget *w, void *p)
 
 
 // ----------------------------------------------------------------------------
+// search_path
+// Input:  argv0 (just exe name)
+// Output: path0 or NULL, if not found
+// ----------------------------------------------------------------------------
+char *search_path(void)
+{
+  char *envp, *sysdir, *s;
+  char syspath[MAXS+1], cwd[MAXS+1];
+  struct _stat fst;
+
+  envp = getenv("PATH");
+#ifdef _WIN32
+  strncpy(syspath, ";", MAXS);
+  if (envp != NULL) strncat(syspath, envp, MAXS);
+#else
+  if (envp == NULL) return NULL;
+  strncpy(syspath, envp, MAXS);
+#endif
+
+  s = syspath;
+  sysdir = xstrsep(&s, PATHSEP_S);
+  while (sysdir != NULL) {
+    if (strlen(sysdir) > 0) {
+      xstrncpy(path0, sysdir, MAXS);
+      xstrncat(path0, DIRSEP_S, MAXS);
+      xstrncat(path0, argv0, MAXS);
+    }
+    else { // empty token = current dir
+      if (getcwd(cwd, MAXS) != NULL)
+        xstrncpy(path0, cwd, MAXS);
+      else
+        xstrncpy(path0, ".", MAXS);
+      xstrncat(path0, DIRSEP_S, MAXS);
+      xstrncat(path0, argv0, MAXS);
+    }
+
+    xlog("search_path: Checking |%s|\n", path0);
+    if (utf8_stat(path0, &fst) == 0) { // file found
+      return path0;
+    }
+
+    sysdir = xstrsep(&s, PATHSEP_S);
+  }
+
+  return NULL;
+} /* search_path */
+
+
+// ----------------------------------------------------------------------------
+// locate_self
+// Input:  argv0 (full exe path)
+// Output: path0 (always)
+// ----------------------------------------------------------------------------
+char *locate_self()
+{
+  char cwd[MAXS+1], *s;
+
+  path0[0] = '\0';
+#ifdef _WIN32
+  GetModuleFileName(NULL, path0, MAXS);
+#else
+  if (readlink("/proc/self/exe", path0, MAXS) < 0) { // Linux
+    if (readlink("/proc/curproc/file", path0, MAXS) < 0) { // FreeBSD
+      if (argv0[0] == DIRSEP) { // absolute path
+        xstrncpy(path0, argv0, MAXS);
+      }
+      else if (strchr(argv0, DIRSEP) != NULL) { // relative path
+        if (realpath(argv0, path0) == NULL) {
+          if (getcwd(cwd, MAXS) != NULL)
+            xstrncpy(path0, cwd, MAXS);
+          else
+            xstrncpy(path0, ".", MAXS);
+          xstrncat(path0, DIRSEP_S, MAXS);
+          xstrncat(path0, argv0, MAXS);
+          // this will include ./ or ../
+        }
+      }
+      else { // just exe name
+        if (search_path() == NULL) { // search PATH
+          if (getcwd(cwd, MAXS) != NULL)
+            xstrncpy(path0, cwd, MAXS);
+          else
+            xstrncpy(path0, ".", MAXS);
+          xstrncat(path0, DIRSEP_S, MAXS);
+          xstrncat(path0, argv0, MAXS);
+          // this is probably wrong
+        }
+      }
+    }
+  }
+#endif
+  path0[MAXS] = '\0';
+
+  if ((s = strrchr(path0, DIRSEP)) != NULL) *s = '\0';
+
+  xlog("locate_self: path0 = |%s|\n", path0);
+  return path0;
+} /* locate_self */
+
+
+// ----------------------------------------------------------------------------
 // locate_exe
 // Works on UNIX only!
 // ----------------------------------------------------------------------------
@@ -905,13 +1011,18 @@ void help_cb(Fl_Widget *w, void *p)
 {
   Fl_Menu_ *m;
   struct _stat fst;
-  char fname[] = "xgk-help.html";
+  char fname[MAXS+1];
   Fl_Help_Dialog *help;
 
   m = (Fl_Menu_ *)w;
   xlog("help_cb\n");
 
-  if (tstat(fname, &fst) < 0) { // help file not found
+  if (strlen(path0) > 0)
+    snprintf(fname, MAXS, "%s%c%s", path0, DIRSEP, HELP);
+  else 
+    xstrncpy(fname, HELP, MAXS);
+
+  if (utf8_stat(fname, &fst) < 0) { // help file not found
     fl_message_title("Help");
     fl_message("Help file \"%s\" not found\n"
                "See http://geocoordinateconverter.tk for help\n",
@@ -1292,10 +1403,20 @@ int main(int argc, char *argv[])
   PTID *pt;
 
   // Get program name
+  xstrncpy(argv0, argv[0], MAXS); // save original argv[0]
   if ((prog = strrchr(argv[0], DIRSEP)) == NULL) prog = argv[0];
   else prog++;
   if ((s = strstr(prog, ".exe")) != NULL) *s = '\0';
   if ((s = strstr(prog, ".EXE")) != NULL) *s = '\0';
+
+  // Initialize xlog mutex
+  pthread_mutex_init(&xlog_mutex, NULL);
+
+#ifdef _WIN32
+  if (strstr(argv0, ".exe") == NULL && strstr(argv0, ".EXE") == NULL)
+    xstrncat(argv0, ".exe", MAXS);
+#endif
+  locate_self();
 
   // Default global flags
   debug = 0;   // no debug
@@ -1317,8 +1438,6 @@ int main(int argc, char *argv[])
   pthread_attr_init(&pattr);
 //pthread_attr_setdetachstate(&pattr, PTHREAD_CREATE_JOINABLE);
   pthread_attr_setdetachstate(&pattr, PTHREAD_CREATE_DETACHED);
-  // Initialize xlog mutex
-  pthread_mutex_init(&xlog_mutex, NULL);
   pthread_mutex_init(&tn_mutex, NULL);
   tn = 0;
 

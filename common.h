@@ -88,6 +88,8 @@
 #define TSIZE 0xFFFF
 #define DIRSEP T('\\')
 #define DIRSEP_S T("\\")
+#define PATHSEP T(';')
+#define PATHSEP_S T(";")
 #define tmain wmain
 #define fgetc fgetwc
 #define fgets fgetws
@@ -117,6 +119,8 @@
 #define TSIZE 0xFF
 #define DIRSEP T('\\')
 #define DIRSEP_S T("\\")
+#define PATHSEP T(';')
+#define PATHSEP_S T(";")
 #define tmain main
 #define snprintf _snprintf
 #define strcasecmp _stricmp
@@ -130,6 +134,8 @@
 #define TSIZE 0xFF
 #define DIRSEP T('/')
 #define DIRSEP_S T("/")
+#define PATHSEP T(':')
+#define PATHSEP_S T(":")
 #define tmain main
 #define _stat stat
 #define tstat stat
