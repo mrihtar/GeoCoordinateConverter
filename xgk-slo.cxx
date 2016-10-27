@@ -39,7 +39,12 @@
 #include <FL/fl_ask.H>
 #include <FL/fl_draw.H>
 
-#define SW_VERSION "1.32"
+#ifndef _WIN32
+#include <X11/xpm.h>
+#include "globe.xpm"
+#endif
+
+#define SW_VERSION "1.33"
 #define SW_BUILD   "Oct 27, 2016"
 
 #define HELP "xgk-help.html"
@@ -1277,6 +1282,11 @@ int main(int argc, char *argv[])
   int x0, y0, xinc, yinc, w0, h0, x1;
   int ii, jj, rc, sts;
   PTID *pt;
+#ifdef _WIN32
+  HICON iconp;
+#else
+  Pixmap iconp, mask;
+#endif
 
   xstrncpy(argv0, argv[0], MAXS); // save original argv[0]
 #ifdef _WIN32
@@ -1608,8 +1618,12 @@ int main(int argc, char *argv[])
   Fl::scheme("gtk+");
   Fl::visual(FL_DOUBLE | FL_INDEX);
 #ifdef _WIN32
-  mainwin->icon((const void *)LoadIcon(fl_display, "IDI_ICON1"));
+  iconp = LoadIcon(fl_display, "IDI_ICON1");
+#else
+  XpmCreatePixmapFromData(fl_display, DefaultRootWindow(fl_display),
+                          globe_xpm, &iconp, &mask, NULL);
 #endif
+  mainwin->icon((const void *)iconp);
   mainwin->show(argc, argv);
 
 //Fl::add_timeout(0.5, join_threads); // join finished threads every 0.5 sec

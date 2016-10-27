@@ -20,10 +20,11 @@ XLDFLAGS = -s
 #XLDFLAGS = 
 ifeq ($(shell uname),FreeBSD)
 XLPATH = -Lfltk/lib -L/usr/local/lib -L/usr/local/lib/fltk-devel
-XLIBS = -lfltk_images -lfltk -lX11 -lXft -lXcursor -lXinerama -lfontconfig -lXfixes -lXext -lpng -lz -ljpeg -lpthread -lm -lrt
+XLIBS = -lfltk_images -lfltk -lX11 -lXft -lXcursor -lXinerama -lfontconfig -lXfixes -lXext -lXpm -lpng -lz -ljpeg -lpthread -lm -lrt
 else
 XLPATH = -Lfltk/lib -L/usr/local/lib
-XLIBS = -lfltk_images -lfltk -lX11 -lXft -lXcursor -lXinerama -lpng -lz -ljpeg -lpthread -lm -lrt
+XLIBS = -lfltk_images -lfltk -lX11 -lXft -lXcursor -lXinerama -lXpm -lpng -lz -ljpeg -lpthread -lm -lrt
+#XLIBS = -lfltk_images -lfltk -lfltk_png -lfltk_jpeg -lX11 -lXpm -lz -lpthread -ldl -lm -lrt
 endif
 
 TGTS = gk-slo gk-shp xgk-slo
@@ -45,7 +46,7 @@ gk-slo: $(WOBJS)
 gk-shp: $(SOBJS) $(SHPOBJS)
 	$(CC) -o $@ $(SOBJS) $(SHPOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
 
-xgk-slo: $(XOBJS) $(SHPOBJS)
+xgk-slo: $(XOBJS) $(SHPOBJS) globe.xpm
 	$(CXX) -o $@ $(XOBJS) $(SHPOBJS) $(XLDFLAGS) $(XLPATH) $(XLIBS)
 
 $(WOBJS): $(INCL)

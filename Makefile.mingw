@@ -42,7 +42,7 @@ gk-slo.exe: $(WOBJS)
 gk-shp.exe: $(SOBJS) $(SHPOBJS)
 	$(CC) -o $@ $(SOBJS) $(SHPOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
 
-xgk-slo.exe: $(XOBJS) $(SHPOBJS) xgk-slo.rc
+xgk-slo.exe: $(XOBJS) $(SHPOBJS) xgk-slo.rc globe.ico
 	$(RC) $(@:.exe=).rc $(@:.exe=).res.o
 	$(CXX) -o $@ $(XOBJS) $(SHPOBJS) $(@:.exe=).res.o $(XLDFLAGS) $(XLPATH) $(XLIBS)
 

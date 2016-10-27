@@ -16,8 +16,8 @@ IDI_ICON1 ICON DISCARDABLE "globe.ico"
 // Version
 
 1 VERSIONINFO
-  FILEVERSION 1,32,0,0
-  PRODUCTVERSION 1,32,0,0
+  FILEVERSION 1,33,0,0
+  PRODUCTVERSION 1,33,0,0
   FILEFLAGSMASK 0x17L  // all bits are valid
 // DEBUG: 0x01L, PRERELEASE: 0x02L, PRIVATEBUILD: 0x08L, SPECIALBUILD: 0x20L
 #ifdef _DEBUG
@@ -39,7 +39,7 @@ IDI_ICON1 ICON DISCARDABLE "globe.ico"
         VALUE "LegalCopyright", "Copyright © 2014-2016 Matjaz Rihtar"
         VALUE "Comments", "Converter between GK/TM and ETRS89 coordinates for Slovenia"
         VALUE "CompanyName", "Matjaz Rihtar"
-        VALUE "FileVersion", "1.32"
+        VALUE "FileVersion", "1.33"
 //*     VALUE "Language", "English (United States)"
 #ifdef _WIN64
         VALUE "InternalName", "xgk-slo64"
@@ -49,7 +49,7 @@ IDI_ICON1 ICON DISCARDABLE "globe.ico"
         VALUE "OriginalFilename", "xgk-slo.exe"
 #endif
         VALUE "ProductName", "Geo Coordinate Converter"
-        VALUE "ProductVersion", "1.32"
+        VALUE "ProductVersion", "1.33"
 //      VALUE "PrivateBuild", "Private build"
 //      VALUE "SpecialBuild", "Special build"
       END
