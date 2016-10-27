@@ -683,136 +683,6 @@ void convert_cb(Fl_Widget *w, void *p)
 
 
 // ----------------------------------------------------------------------------
-// search_path
-// Input:  argv0 (just exe name)
-// Output: path0 or NULL, if not found
-// ----------------------------------------------------------------------------
-char *search_path(void)
-{
-  char *envp, *sysdir, *s;
-  char syspath[MAXS+1], cwd[MAXS+1];
-  struct _stat fst;
-
-  envp = getenv("PATH");
-#ifdef _WIN32
-  strncpy(syspath, ";", MAXS);
-  if (envp != NULL) strncat(syspath, envp, MAXS);
-#else
-  if (envp == NULL) return NULL;
-  strncpy(syspath, envp, MAXS);
-#endif
-
-  s = syspath;
-  sysdir = xstrsep(&s, PATHSEP_S);
-  while (sysdir != NULL) {
-    if (strlen(sysdir) > 0) {
-      xstrncpy(path0, sysdir, MAXS);
-      xstrncat(path0, DIRSEP_S, MAXS);
-      xstrncat(path0, argv0, MAXS);
-    }
-    else { // empty token = current dir
-      if (getcwd(cwd, MAXS) != NULL)
-        xstrncpy(path0, cwd, MAXS);
-      else
-        xstrncpy(path0, ".", MAXS);
-      xstrncat(path0, DIRSEP_S, MAXS);
-      xstrncat(path0, argv0, MAXS);
-    }
-
-    xlog("search_path: Checking |%s|\n", path0);
-    if (utf8_stat(path0, &fst) == 0) { // file found
-      return path0;
-    }
-
-    sysdir = xstrsep(&s, PATHSEP_S);
-  }
-
-  return NULL;
-} /* search_path */
-
-
-// ----------------------------------------------------------------------------
-// locate_self
-// Input:  argv0 (full exe path)
-// Output: path0 (always)
-// ----------------------------------------------------------------------------
-char *locate_self()
-{
-  char cwd[MAXS+1], *s;
-
-  path0[0] = '\0';
-#ifdef _WIN32
-  GetModuleFileName(NULL, path0, MAXS);
-#else
-  if (readlink("/proc/self/exe", path0, MAXS) < 0) { // Linux
-    if (readlink("/proc/curproc/file", path0, MAXS) < 0) { // FreeBSD
-      if (argv0[0] == DIRSEP) { // absolute path
-        xstrncpy(path0, argv0, MAXS);
-      }
-      else if (strchr(argv0, DIRSEP) != NULL) { // relative path
-        if (realpath(argv0, path0) == NULL) {
-          if (getcwd(cwd, MAXS) != NULL)
-            xstrncpy(path0, cwd, MAXS);
-          else
-            xstrncpy(path0, ".", MAXS);
-          xstrncat(path0, DIRSEP_S, MAXS);
-          xstrncat(path0, argv0, MAXS);
-          // this will include ./ or ../
-        }
-      }
-      else { // just exe name
-        if (search_path() == NULL) { // search PATH
-          if (getcwd(cwd, MAXS) != NULL)
-            xstrncpy(path0, cwd, MAXS);
-          else
-            xstrncpy(path0, ".", MAXS);
-          xstrncat(path0, DIRSEP_S, MAXS);
-          xstrncat(path0, argv0, MAXS);
-          // this is probably wrong
-        }
-      }
-    }
-  }
-#endif
-  path0[MAXS] = '\0';
-
-  if ((s = strrchr(path0, DIRSEP)) != NULL) *s = '\0';
-
-  xlog("locate_self: path0 = |%s|\n", path0);
-  return path0;
-} /* locate_self */
-
-
-// ----------------------------------------------------------------------------
-// locate_exe
-// Works on UNIX only!
-// ----------------------------------------------------------------------------
-char *locate_exe(const char *exe, char *path, int len)
-{
-  FILE *fd;
-  int ii;
-  char *rv = NULL;
-
-  snprintf(path, len, "which \"%s\" 2>/dev/null", exe);
-
-  fd = popen(path, "r");
-  if (fd != NULL) {
-    *path = '\0';
-    fgets(path, len, fd);
-    pclose(fd);
-
-    ii = strlen(path) - 1;
-    while (ii >= 0 && isspace(path[ii]))
-      path[ii--] = '\0';
-
-    if (strlen(path)) rv = path;
-  }
-
-  return rv;
-} /* locate_exe */
-
-
-// ----------------------------------------------------------------------------
 // open_url
 // ----------------------------------------------------------------------------
 int open_url(const char *url)
@@ -1402,8 +1272,13 @@ int main(int argc, char *argv[])
   int ii, jj, rc, sts;
   PTID *pt;
 
-  // Get program name
   xstrncpy(argv0, argv[0], MAXS); // save original argv[0]
+#ifdef _WIN32
+  if (strstr(argv0, ".exe") == NULL && strstr(argv0, ".EXE") == NULL)
+    xstrncat(argv0, ".exe", MAXS);
+#endif
+
+  // Get program name
   if ((prog = strrchr(argv[0], DIRSEP)) == NULL) prog = argv[0];
   else prog++;
   if ((s = strstr(prog, ".exe")) != NULL) *s = '\0';
@@ -1412,11 +1287,8 @@ int main(int argc, char *argv[])
   // Initialize xlog mutex
   pthread_mutex_init(&xlog_mutex, NULL);
 
-#ifdef _WIN32
-  if (strstr(argv0, ".exe") == NULL && strstr(argv0, ".EXE") == NULL)
-    xstrncat(argv0, ".exe", MAXS);
-#endif
-  locate_self();
+  locate_self(argv0, path0, MAXS);
+  xlog("locate_self: path0 = |%s|\n", path0);
 
   // Default global flags
   debug = 0;   // no debug

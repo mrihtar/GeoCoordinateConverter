@@ -567,6 +567,135 @@ int utf8_stat(const char *fname, struct _stat *fst)
 #endif //not _WHCAR
 #endif //_WIN32
 
+
+// ----------------------------------------------------------------------------
+// search_path
+// Input:  argv0 (just exe name)
+// Output: path0 or NULL, if not found
+// ----------------------------------------------------------------------------
+TCHAR *search_path(const TCHAR *argv0, TCHAR *path0, int len)
+{
+  TCHAR *envp, *sysdir, *s;
+  TCHAR syspath[MAXS+1], cwd[MAXS+1];
+  struct _stat fst;
+
+  envp = getenv(T("PATH"));
+#ifdef _WIN32
+  strncpy(syspath, PATHSEP_S, MAXS);
+  if (envp != NULL) strncat(syspath, envp, MAXS);
+#else
+  if (envp == NULL) return NULL;
+  strncpy(syspath, envp, MAXS);
+#endif
+
+  s = syspath;
+  sysdir = xstrsep(&s, PATHSEP_S);
+  while (sysdir != NULL) {
+    if (strlen(sysdir) > 0) {
+      xstrncpy(path0, sysdir, len-1);
+      xstrncat(path0, DIRSEP_S, len-1);
+      xstrncat(path0, argv0, len-1);
+    }
+    else { // empty token = current dir
+      if (getcwd(cwd, MAXS) != NULL)
+        xstrncpy(path0, cwd, len-1);
+      else
+        xstrncpy(path0, T("."), len-1);
+      xstrncat(path0, DIRSEP_S, len-1);
+      xstrncat(path0, argv0, len-1);
+    }
+
+    if (utf8_stat(path0, &fst) == 0) // file found
+      return path0;
+
+    sysdir = xstrsep(&s, PATHSEP_S);
+  }
+
+  *path0 = T('\0');
+  return NULL;
+} /* search_path */
+
+
+// ----------------------------------------------------------------------------
+// locate_self
+// Input:  argv0 (full exe path)
+// Output: path0 (always)
+// ----------------------------------------------------------------------------
+TCHAR *locate_self(const TCHAR *argv0, TCHAR *path0, int len)
+{
+  TCHAR cwd[MAXS+1], *s;
+
+  *path0 = T('\0');
+#ifdef _WIN32
+  GetModuleFileName(NULL, path0, len);
+#else
+  if (readlink(T("/proc/self/exe"), path0, len) < 0) { // Linux
+    if (readlink(T("/proc/curproc/file"), path0, len) < 0) { // FreeBSD
+      if (argv0[0] == DIRSEP) { // absolute path
+        xstrncpy(path0, argv0, len-1);
+      }
+      else if (strchr(argv0, DIRSEP) != NULL) { // relative path
+        if (realpath(argv0, path0) == NULL) {
+          if (getcwd(cwd, MAXS) != NULL)
+            xstrncpy(path0, cwd, len-1);
+          else
+            xstrncpy(path0, T("."), len-1);
+          xstrncat(path0, DIRSEP_S, len-1);
+          xstrncat(path0, argv0, len-1);
+          // this will include ./ or ../
+        }
+      }
+      else { // just exe name
+        if (search_path(argv0, path0, len) == NULL) { // search PATH
+          if (getcwd(cwd, MAXS) != NULL)
+            xstrncpy(path0, cwd, len-1);
+          else
+            xstrncpy(path0, T("."), len-1);
+          xstrncat(path0, DIRSEP_S, len-1);
+          xstrncat(path0, argv0, len-1);
+          // this is probably wrong
+        }
+      }
+    }
+  }
+#endif
+  path0[len-1] = T('\0');
+
+  if ((s = strrchr(path0, DIRSEP)) != NULL) *s = T('\0');
+
+  return path0;
+} /* locate_self */
+
+
+// ----------------------------------------------------------------------------
+// locate_exe
+// Works on UNIX only!
+// ----------------------------------------------------------------------------
+TCHAR *locate_exe(const TCHAR *exe, TCHAR *path, int len)
+{
+  FILE *fd;
+  int ii;
+  TCHAR *rv = NULL;
+
+  snprintf(path, len, T("which \"%s\" 2>/dev/null"), exe);
+
+  fd = popen(path, T("r"));
+  if (fd != NULL) {
+    *path = T('\0');
+    fgets(path, len, fd);
+    pclose(fd);
+
+    ii = strlen(path) - 1;
+    while (ii >= 0 && isspace(path[ii]))
+      path[ii--] = T('\0');
+
+    if (strlen(path)) rv = path;
+  }
+  else *path = T('\0');
+
+  return rv;
+} /* locate_exe */
+
 #ifdef __cplusplus
 }
 #endif

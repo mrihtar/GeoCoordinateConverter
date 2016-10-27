@@ -76,6 +76,7 @@
 #include <sys/stat.h>
 #ifdef _WIN32
 #include <windows.h>
+#include <direct.h>
 #else
 #include <unistd.h>
 #endif
@@ -95,6 +96,7 @@
 #define fgets fgetws
 #define fopen _wfopen
 #define fprintf fwprintf
+#define getcwd _wgetcwd
 #define isspace iswspace
 #define printf wprintf
 #define snprintf _snwprintf
@@ -122,6 +124,7 @@
 #define PATHSEP T(';')
 #define PATHSEP_S T(";")
 #define tmain main
+#define getcwd _getcwd
 #define snprintf _snprintf
 #define strcasecmp _stricmp
 #define strncasecmp _strnicmp
@@ -172,6 +175,7 @@ int xround(double d);
 long long int xllround(double d);
 double xfmin(double d1, double d2);
 double xfmax(double d1, double d2);
+
 TCHAR *xstrncpy(TCHAR *s1, const TCHAR *s2, size_t n);
 TCHAR *xstrncat(TCHAR *s1, const TCHAR *s2, size_t n);
 TCHAR *xstrtrim(TCHAR *str);
@@ -179,9 +183,16 @@ TCHAR *xstrtok_r(TCHAR *str, const TCHAR *delim, TCHAR **savep);
 TCHAR *xstrsep(TCHAR **strp, const TCHAR *delim);
 TCHAR *xstrstr(TCHAR *s1, size_t n1, const TCHAR *s2, size_t n2);
 TCHAR *xstrerror(void);
+
 int xprintf(FILE *log, TCHAR *fmt, ...);
+
 int clock_gettime(int clk_id, struct timespec *tv);
+
 TCHAR *fefind(TCHAR *fname, TCHAR *ext, TCHAR *newname);
+
+TCHAR *search_path(const TCHAR *argv0, TCHAR *path0, int len);
+TCHAR *locate_self(const TCHAR *argv0, TCHAR *path0, int len);
+TCHAR *locate_exe(const TCHAR *exe, TCHAR *path, int len);
 
 // Windows UTF-8 functions
 #ifdef _WIN32
