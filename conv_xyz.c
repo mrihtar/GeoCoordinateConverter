@@ -214,7 +214,7 @@ int convert_xyz_file(char *url, int outf, FILE *out, char *msg)
     if (tr == 1) { // xy (d96tm) --> fila (etrs89)
       xy.x = x; xy.y = y; xy.H = H;
       tmxy2fila_wgs(xy, &fl);
-      fprintf(out, "%s%.10f %.10f %.3f", col1, fl.fi, fl.la, fl.h);
+      fprintf(out, "%s%.9f %.9f %.3f", col1, fl.fi, fl.la, fl.h);
       if (wdms) {
 	deg2dms(fl.fi, &lat); deg2dms(fl.la, &lon);
 	fprintf(out, " %.0f %2.0f %8.5f %.0f %2.0f %8.5f\n",
@@ -235,7 +235,7 @@ int convert_xyz_file(char *url, int outf, FILE *out, char *msg)
       // SiTra: h=0,H=0/H(tr)=h-N, gk-slo: hsel = hg ==> 40-70cm razlike
       xy.x = x; xy.y = y; xy.H = H;
       gkxy2fila_wgs(xy, &fl);
-      fprintf(out, "%s%.10f %.10f %.3f", col1, fl.fi, fl.la, fl.h);
+      fprintf(out, "%s%.9f %.9f %.3f", col1, fl.fi, fl.la, fl.h);
       if (wdms) {
 	deg2dms(fl.fi, &lat); deg2dms(fl.la, &lon);
 	fprintf(out, " %.0f %2.0f %8.5f %.0f %2.0f %8.5f\n",
@@ -280,7 +280,7 @@ int convert_xyz_file(char *url, int outf, FILE *out, char *msg)
     else if (tr == 9) { // xy (d48gk) --> fila (etrs89), affine trans.
       xy.x = x; xy.y = y; xy.H = H;
       gkxy2fila_wgs_aft(xy, &fl);
-      fprintf(out, "%s%.10f %.10f %.3f", col1, fl.fi, fl.la, fl.h);
+      fprintf(out, "%s%.9f %.9f %.3f", col1, fl.fi, fl.la, fl.h);
       if (wdms) {
 	deg2dms(fl.fi, &lat); deg2dms(fl.la, &lon);
 	fprintf(out, " %.0f %2.0f %8.5f %.0f %2.0f %8.5f\n",

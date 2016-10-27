@@ -184,15 +184,17 @@ TCHAR *xstrsep(TCHAR **strp, const TCHAR *delim);
 TCHAR *xstrstr(TCHAR *s1, size_t n1, const TCHAR *s2, size_t n2);
 TCHAR *xstrerror(void);
 
-int xprintf(FILE *log, TCHAR *fmt, ...);
+int xprintf(FILE *out, TCHAR *fmt, ...);
 
 int clock_gettime(int clk_id, struct timespec *tv);
 
 TCHAR *fefind(TCHAR *fname, TCHAR *ext, TCHAR *newname);
 
-TCHAR *search_path(const TCHAR *argv0, TCHAR *path0, int len);
+TCHAR *search_path(const TCHAR *exe, TCHAR *path, int len);
 TCHAR *locate_self(const TCHAR *argv0, TCHAR *path0, int len);
 TCHAR *locate_exe(const TCHAR *exe, TCHAR *path, int len);
+
+TCHAR *uri2path(const TCHAR *uri);
 
 // Windows UTF-8 functions
 #ifdef _WIN32

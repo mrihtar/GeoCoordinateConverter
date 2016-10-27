@@ -19,6 +19,23 @@
 //
 #include "common.h"
 
+// Hex encoded disallowed URI characters
+// See https://url.spec.whatwg.org/#percent-encoded-bytes
+const char *hexc[] = {
+  // simple encode set: space " # < > ? ` { }
+  "%20",        // space
+  "%22",        // "
+  "%23",        // #
+  "%3c", "%3C", // <
+  "%3e", "%3E", // >
+  "%3f", "%3F", // ?
+  "%60",        // `
+  "%7b", "%7B", // {
+  "%7d", "%7D", // }
+  "%25"         // %
+  // default encode set: / : ; = @ [ \ ] ^ |
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -474,7 +491,7 @@ wchar_t *utf82wchar(const char *str)
   wlen = MultiByteToWideChar(CP_UTF8, 0, str, -1, 0, 0);
   if (wlen == 0) return NULL;
 
-  wstr = (wchar_t *)malloc(wlen * sizeof(wchar_t));
+  wstr = (wchar_t *)calloc(wlen, sizeof(wchar_t));
   if (wstr == NULL) return NULL;
 
   if (MultiByteToWideChar(CP_UTF8, 0, str, -1, wstr, wlen) == 0) {
@@ -498,7 +515,7 @@ char *wchar2utf8(const wchar_t *wstr)
   len = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, 0, 0, NULL, NULL);
   if (len == 0) return NULL;
 
-  str = (char *)malloc(len);
+  str = (char *)calloc(len, sizeof(char));
   if (str == NULL) return NULL;
 
   if (WideCharToMultiByte(CP_UTF8, 0, wstr, -1, str, len, NULL, NULL) == 0) {
@@ -570,12 +587,12 @@ int utf8_stat(const char *fname, struct _stat *fst)
 
 // ----------------------------------------------------------------------------
 // search_path
-// Input:  argv0 (just exe name)
-// Output: path0 or NULL, if not found
+// Input:  exe (just exe name)
+// Output: path or NULL, if not found
 // ----------------------------------------------------------------------------
-TCHAR *search_path(const TCHAR *argv0, TCHAR *path0, int len)
+TCHAR *search_path(const TCHAR *exe, TCHAR *path, int len)
 {
-  TCHAR *envp, *sysdir, *s;
+  TCHAR *envp, *sysdir, *sp;
   TCHAR syspath[MAXS+1], cwd[MAXS+1];
   struct _stat fst;
 
@@ -588,30 +605,30 @@ TCHAR *search_path(const TCHAR *argv0, TCHAR *path0, int len)
   strncpy(syspath, envp, MAXS);
 #endif
 
-  s = syspath;
-  sysdir = xstrsep(&s, PATHSEP_S);
+  sp = syspath;
+  sysdir = xstrsep(&sp, PATHSEP_S);
   while (sysdir != NULL) {
     if (strlen(sysdir) > 0) {
-      xstrncpy(path0, sysdir, len-1);
-      xstrncat(path0, DIRSEP_S, len-1);
-      xstrncat(path0, argv0, len-1);
+      xstrncpy(path, sysdir, len-1);
+      xstrncat(path, DIRSEP_S, len-1);
+      xstrncat(path, exe, len-1);
     }
     else { // empty token = current dir
       if (getcwd(cwd, MAXS) != NULL)
-        xstrncpy(path0, cwd, len-1);
+        xstrncpy(path, cwd, len-1);
       else
-        xstrncpy(path0, T("."), len-1);
-      xstrncat(path0, DIRSEP_S, len-1);
-      xstrncat(path0, argv0, len-1);
+        xstrncpy(path, T("."), len-1);
+      xstrncat(path, DIRSEP_S, len-1);
+      xstrncat(path, exe, len-1);
     }
 
-    if (utf8_stat(path0, &fst) == 0) // file found
-      return path0;
+    if (utf8_stat(path, &fst) == 0) // file found
+      return path;
 
-    sysdir = xstrsep(&s, PATHSEP_S);
+    sysdir = xstrsep(&sp, PATHSEP_S);
   }
 
-  *path0 = T('\0');
+  *path = T('\0');
   return NULL;
 } /* search_path */
 
@@ -695,6 +712,45 @@ TCHAR *locate_exe(const TCHAR *exe, TCHAR *path, int len)
 
   return rv;
 } /* locate_exe */
+
+
+// ----------------------------------------------------------------------------
+// uri2path
+// ----------------------------------------------------------------------------
+TCHAR *uri2path(const TCHAR *uri)
+{
+  int len, hclen, ii, v;
+  TCHAR *path, *tmp, *s, *p;
+
+  len = strlen(uri);
+  path = (TCHAR *)calloc(len+1, sizeof(TCHAR));
+  if (path == NULL) return NULL;
+  tmp = (TCHAR *)calloc(len+1, sizeof(TCHAR));
+  if (tmp == NULL) return NULL;
+
+  // strip URI part
+  while ((s = strstr(uri, T("://"))) != NULL) {
+    uri = s+3;
+    if (*uri != T('/')) uri--;
+  }
+  xstrncpy(path, uri, len);
+
+  // replace hex encoded disallowed URI characters
+  hclen = sizeof(hexc)/sizeof(*hexc);
+  for (ii = 0; ii < hclen; ii++) {
+    while ((s = strstr(path, hexc[ii])) != NULL) {
+      *s = T('\0');
+      xstrncpy(tmp, s+1, 2);
+      errno = 0; v = strtol(tmp, &p, 16);
+      if (errno || *p) v = T('?');
+      snprintf(tmp, len, T("%s%c%s"), path, v, s+3);
+      xstrncpy(path, tmp, len);
+    }
+  }
+
+  free(tmp);
+  return path;
+} /* uri2path */
 
 #ifdef __cplusplus
 }

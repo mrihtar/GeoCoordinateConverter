@@ -39,8 +39,8 @@
 #include <FL/fl_ask.H>
 #include <FL/fl_draw.H>
 
-#define SW_VERSION "1.31"
-#define SW_BUILD   "Oct 25, 2016"
+#define SW_VERSION "1.32"
+#define SW_BUILD   "Oct 27, 2016"
 
 #define HELP "xgk-help.html"
 
@@ -441,7 +441,7 @@ void *convert(void *arg)
 // ----------------------------------------------------------------------------
 void *convert_all(void *arg)
 {
-  char *urls, *url, *s;
+  char *urls, *url, *sp, *s;
   unsigned int tid;
   int ii, len, rc;
   TARG *targs, *targ;
@@ -464,7 +464,7 @@ void *convert_all(void *arg)
   brow->clear();
 
   ii = 0; sts = 0;
-  url = xstrtok_r(urls, "\r\n", &s);
+  url = xstrtok_r(urls, "\r\n", &sp);
   while (url != NULL) {
     while (tn > MAXTN) { // wait until some of the threads finish
 #ifdef _WIN32
@@ -475,6 +475,8 @@ void *convert_all(void *arg)
 #endif
     }
 
+    url = uri2path(url); // check drag&drop file syntax on Unix (URI)
+
     ii++;
     xlog("URL %d: %s\n", ii, url);
  // brow->add(url); brow->bottomline(brow->size());
@@ -482,10 +484,11 @@ void *convert_all(void *arg)
 
     targ = new TARG;
     xstrncpy(targ->text, url, MAXL);
+    if (url != NULL) free(url);
 
     sts += xpthread_create(convert, (void *)targ);
 
-    url = xstrtok_r(NULL, "\r\n", &s);
+    url = xstrtok_r(NULL, "\r\n", &sp);
   }
 
   delete targs;
@@ -520,6 +523,7 @@ int parse_dms(const char *str, double *val)
         dms.min = 0.0;
         if (n != 1) dms.deg = 0.0;
       }
+      dms.min = fabs(dms.min);
       break;
     case 3: // Deg. Min. Sec.
       n = sscanf(str, "%lf%*[^0-9.-]%lf%*[^0-9.-]%lf", &dms.deg, &dms.min, &dms.sec);
@@ -529,6 +533,8 @@ int parse_dms(const char *str, double *val)
         if (n != 2) dms.min = 0.0;
         if (n != 1) dms.deg = 0.0;
       }
+      dms.min = fabs(dms.min);
+      dms.sec = fabs(dms.sec);
       break;
   } // switch (ddms)
 
@@ -629,11 +635,11 @@ void convert_cb(Fl_Widget *w, void *p)
     case  1: // gtr1, xy (D96/TM) ==> fila (ETRS89)
     case  3: // gtr1, xy (D48/GK) ==> fila (ETRS89)
     case  9: // gtr1, xy (D48/GK) ==> fila (ETRS89), AFT
-      xlog("convert_cb: output(tr = %d): fi = %.10f, la = %.10f, h = %.3f\n", tr, fl.fi, fl.la, fl.h);
+      xlog("convert_cb: output(tr = %d): fi = %.9f, la = %.9f, h = %.3f\n", tr, fl.fi, fl.la, fl.h);
       switch (ddms) {
         case 1: // Dec. Degrees
-          snprintf(value1, MAXS, "%.10f", fl.fi);
-          snprintf(value2, MAXS, "%.10f", fl.la);
+          snprintf(value1, MAXS, "%.9f", fl.fi);
+          snprintf(value2, MAXS, "%.9f", fl.la);
           snprintf(value3, MAXS, "%.3f", fl.h);
           break;
         case 2: // Deg. Min.
@@ -657,7 +663,7 @@ void convert_cb(Fl_Widget *w, void *p)
     case  2: // gtr2, fila (ETRS89) ==> xy (D96/TM)
     case  4: // gtr2, fila (ETRS89) ==> xy (D48/GK)
     case 10: // gtr2, fila (ETRS89) ==> xy (D48/GK), AFT
-      xlog("convert_cb: output(tr = %d): x = %.10f, y = %.10f, H = %.3f\n", tr, xy.x, xy.y, xy.H);
+      xlog("convert_cb: output(tr = %d): x = %.9f, y = %.9f, H = %.3f\n", tr, xy.x, xy.y, xy.H);
       snprintf(value1, MAXS, "%.3f", xy.y);
       snprintf(value2, MAXS, "%.3f", xy.x);
       snprintf(value3, MAXS, "%.3f", xy.H);
@@ -670,7 +676,7 @@ void convert_cb(Fl_Widget *w, void *p)
     case  6: // gtr3, xy (D96/TM) ==> xy (D48/GK)
     case  7: // gtr3, xy (D48/GK) ==> xy (D96/TM), AFT
     case  8: // gtr3, xy (D96/TM) ==> xy (D48/GK), AFT
-      xlog("convert_cb: output(tr = %d): x = %.10f, y = %.10f, H = %.3f\n", tr, xy.x, xy.y, xy.H);
+      xlog("convert_cb: output(tr = %d): x = %.9f, y = %.9f, H = %.3f\n", tr, xy.x, xy.y, xy.H);
       snprintf(value1, MAXS, "%.3f", xy.y);
       snprintf(value2, MAXS, "%.3f", xy.x);
       snprintf(value3, MAXS, "%.3f", xy.H);
@@ -769,7 +775,7 @@ void show_cb(Fl_Widget *w, void *p)
 
   fip = 'N'; if (fi < 0.0) fip = 'S';
   lap = 'E'; if (la < 0.0) lap = 'W';
-  snprintf(url, MAXS, "https://tools.wmflabs.org/geohack/geohack.php?params=%.10f_%c_%.10f_%c_scale:%d\n",
+  snprintf(url, MAXS, "https://tools.wmflabs.org/geohack/geohack.php?params=%.9f_%c_%.9f_%c_scale:%d\n",
     fabs(fi), fip, fabs(la), lap, SCALE);
 
   open_url(url);
@@ -1164,8 +1170,8 @@ void redisplay_dms(int gtrn, int new_ddms)
 
   switch (new_ddms) {
     case 1: // Dec. Degrees
-      snprintf(value1, MAXS, "%.10f", fi);
-      snprintf(value2, MAXS, "%.10f", la);
+      snprintf(value1, MAXS, "%.9f", fi);
+      snprintf(value2, MAXS, "%.9f", la);
       break;
     case 2: // Deg. Min.
       deg2dm(fi, &lat); deg2dm(la, &lon);
