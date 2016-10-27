@@ -1286,6 +1286,7 @@ int main(int argc, char *argv[])
   HICON iconp;
 #else
   Pixmap iconp, mask;
+  XWMHints *hints;
 #endif
 
   xstrncpy(argv0, argv[0], MAXS); // save original argv[0]
@@ -1617,14 +1618,24 @@ int main(int argc, char *argv[])
   // Show main window
   Fl::scheme("gtk+");
   Fl::visual(FL_DOUBLE | FL_INDEX);
+
 #ifdef _WIN32
+  // Add window icon
   iconp = LoadIcon(fl_display, "IDI_ICON1");
+  mainwin->icon((const void *)iconp);
+  mainwin->show(argc, argv);
 #else
   XpmCreatePixmapFromData(fl_display, DefaultRootWindow(fl_display),
                           globe_xpm, &iconp, &mask, NULL);
-#endif
-  mainwin->icon((const void *)iconp);
   mainwin->show(argc, argv);
+
+  // Add window icon with transparent background (using mask)
+  hints = XGetWMHints(fl_display, fl_xid(mainwin));
+  hints->icon_pixmap = iconp;
+  hints->icon_mask = mask;
+  hints->flags = IconPixmapHint | IconMaskHint;
+  XSetWMHints(fl_display, fl_xid(mainwin), hints);
+#endif
 
 //Fl::add_timeout(0.5, join_threads); // join finished threads every 0.5 sec
 
