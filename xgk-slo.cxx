@@ -44,8 +44,8 @@
 #include "globe.xpm"
 #endif
 
-#define SW_VERSION "1.33"
-#define SW_BUILD   "Oct 27, 2016"
+#define SW_VERSION "1.34"
+#define SW_BUILD   "Oct 28, 2016"
 
 #define HELP "xgk-help.html"
 
@@ -1618,6 +1618,7 @@ int main(int argc, char *argv[])
   // Show main window
   Fl::scheme("gtk+");
   Fl::visual(FL_DOUBLE | FL_INDEX);
+  mainwin->xclass("XGkSlo"); // no non-alphanumeric chars!
 
 #ifdef _WIN32
   // Add window icon
@@ -1627,13 +1628,14 @@ int main(int argc, char *argv[])
 #else
   XpmCreatePixmapFromData(fl_display, DefaultRootWindow(fl_display),
                           globe_xpm, &iconp, &mask, NULL);
+//mainwin->icon((const void *)iconp); // This creates non-transparent window icon!
   mainwin->show(argc, argv);
 
   // Add window icon with transparent background (using mask)
   hints = XGetWMHints(fl_display, fl_xid(mainwin));
   hints->icon_pixmap = iconp;
   hints->icon_mask = mask;
-  hints->flags = IconPixmapHint | IconMaskHint;
+  hints->flags |= IconPixmapHint | IconMaskHint;
   XSetWMHints(fl_display, fl_xid(mainwin), hints);
 #endif
 
