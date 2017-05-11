@@ -361,7 +361,7 @@ void *worker(void *arg)
   pthread_mutex_lock(&tn_mutex);
   tn--;
   pthread_mutex_unlock(&tn_mutex);
-  pthread_exit((void *)now);
+  pthread_exit((void *)(intptr_t)now);
   return NULL;
 } /* worker */
 
@@ -374,7 +374,7 @@ void *convert(void *arg)
   char *url, orig_url[MAXS+1];
   char line[MAXS+1], *linep;
   char *msg, *msgp, *s;
-  long sts;
+  int sts;
 
   targ = (TARG *)arg;
   url = targ->text;
@@ -437,7 +437,7 @@ void *convert(void *arg)
   pthread_mutex_lock(&tn_mutex);
   tn--;
   pthread_mutex_unlock(&tn_mutex);
-  pthread_exit((void *)sts);
+  pthread_exit((void *)(intptr_t)sts);
   return NULL;
 } /* convert */
 
@@ -451,8 +451,8 @@ void *convert_all(void *arg)
   int ii, len, rc;
   TARG *targs, *targ;
   struct timespec req, rem;
-  long sts;
-  unsigned long tid;
+  int sts;
+  unsigned int tid;
 
   targs = (TARG *)arg;
   urls = targs->text;
@@ -501,7 +501,7 @@ void *convert_all(void *arg)
   pthread_mutex_lock(&tn_mutex);
   tn--;
   pthread_mutex_unlock(&tn_mutex);
-  pthread_exit((void *)sts);
+  pthread_exit((void *)(intptr_t)sts);
   return NULL;
 } /* convert_all */
 
