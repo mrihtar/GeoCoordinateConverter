@@ -694,6 +694,7 @@ TCHAR *locate_exe(const TCHAR *exe, TCHAR *path, int len)
   int ii;
   TCHAR *rv = NULL;
 
+#ifndef _WIN32
   snprintf(path, len, T("which \"%s\" 2>/dev/null"), exe);
 
   fd = popen(path, T("r"));
@@ -709,6 +710,7 @@ TCHAR *locate_exe(const TCHAR *exe, TCHAR *path, int len)
     if (strlen(path)) rv = path;
   }
   else *path = T('\0');
+#endif
 
   return rv;
 } /* locate_exe */

@@ -22,18 +22,31 @@
 #define _COMMON_H_DEFINED
 
 #ifdef _WIN32
+//ifdef _MSC_VER = Microsoft Compiler
+//ifdef __MINGW32__ = MinGW Compiler
+//ifdef __MINGW64__ = MinGW-w64 64-bit Compiler
+// 0x0501 = Windows XP / Windows Server 2003 (minimum supported version)
+// 0x0502 = Windows XP SP2 / Windows Server 2003 SP1
+// 0x0600 = Windows Vista / Windows Server 2008
+// 0x0601 = Windows 7 / Windows Server 2008 R2
+#undef WINVER
+#undef _WIN32_WINNT
+#undef _WIN32_WINDOWS
+#define _WINVER        0x0502  // Windows XP SP2 & Windows Server 2003 SP1 or greater
+#define _WIN32_WINNT   0x0502
+#define _WIN32_WINDOWS 0x0502
+
+// exclude MFC stuff from headers
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRA_LEAN
 #define WIN32_EXTRA_LEAN
 
-#undef _WIN32_WINNT
-#define _WIN32_WINNT 0x0502  // Windows XP SP2 & Windows Server 2003 SP1 or greater
-#undef WINVER
-#define _WINVER      0x0502  // Windows XP SP2 & Windows Server 2003 SP1 or greater
-
-#ifndef __MINGW32__
+#define _CRT_NON_CONFORMING_SWPRINTFS
+#ifndef __MINGW32__ // Microsoft C
+#pragma warning (disable:4995)  // W3: name was marked as #pragma deprecated
 #pragma warning (disable:4996)  // W3: deprecated declaration (_CRT_SECURE_NO_WARNINGS)
 #pragma warning (disable:4711)  // W1: function selected for inline expansion
+#pragma warning (disable:4710)  // W4: function not inlined
 #pragma warning (disable:4127)  // W4: conditional expression is constant
 #pragma warning (disable:4820)  // W4: bytes padding added
 #pragma warning (disable:4668)  // W4: symbol not defined as a macro
@@ -42,20 +55,24 @@
 #pragma warning (disable:4101)  // W3: unreferenced local variable
 // fltk
 #pragma warning (disable:4365)  // W4: conversion -> signed/unsigned mismatch
+#pragma warning (disable:4242)  // W4: conversion -> possible loss of data
 #pragma warning (disable:4244)  // W3,W4: conversion -> possible loss of data
 #pragma warning (disable:4625)  // W4: copy constructor could not be generated
 #pragma warning (disable:4626)  // W4: assignment operator could not be generated
 #pragma warning (disable:4266)  // W4: hidden function -> no override available
+// deelx
+#pragma warning (disable:4505)  // W4: unreferenced local function removed
 // Windows SDK
 #pragma warning (disable:4917)  // W1: GUID can only be associated with a class
 #pragma warning (disable:4987)  // W4: nonstandard extension used
 #define _USE_MATH_DEFINES  // for M_PI
-#else
+#else // MinGW32
 #pragma GCC diagnostic ignored "-Wunknown-pragmas"
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #pragma GCC diagnostic ignored "-Wunused-result"
 #pragma GCC diagnostic ignored "-Wwrite-strings"
+#pragma GCC diagnostic ignored "-Wmisleading-indentation"
 #endif
 
 #else //not _WIN32
@@ -74,6 +91,7 @@
 #include <time.h>
 #include <stdarg.h>
 #include <math.h>
+// math.h includes mathcalls.h (on Unix), which defines y1()
 #include <sys/types.h>
 #include <sys/stat.h>
 #ifdef _WIN32
@@ -155,13 +173,15 @@
 #define CLOCK_REALTIME  0
 #define CLOCK_MONOTONIC 1
 
+#ifdef _MSC_VER // Microsoft C is missing timespec, but not if pthreads.h is included
 #ifndef HAVE_STRUCT_TIMESPEC
-#define HAVE_STRUCT_TIMESPEC 1
+#define HAVE_STRUCT_TIMESPEC
 struct timespec {
   time_t tv_sec;
 //long   tv_usec; // microseconds
   long   tv_nsec; // nanoseconds
 };
+#endif
 #endif
 #endif
 #define MICROSEC 1000000L

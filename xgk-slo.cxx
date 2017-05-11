@@ -21,6 +21,9 @@
 #include "geo.h"
 
 #include <pthread.h>
+#ifdef _MSC_VER // Microsoft C
+#define OLD_PTHREADS
+#endif
 
 #include <FL/Fl.H>
 #include <FL/x.H>
@@ -39,13 +42,15 @@
 #include <FL/fl_ask.H>
 #include <FL/fl_draw.H>
 
-#ifndef _WIN32
+#ifdef _WIN32
+#include <Shellapi.h>
+#else
 #include <X11/xpm.h>
 #include "globe.xpm"
 #endif
 
-#define SW_VERSION "1.34"
-#define SW_BUILD   "Oct 28, 2016"
+#define SW_VERSION "1.36"
+#define SW_BUILD   "May 11, 2016"
 
 #define HELP "xgk-help.html"
 
@@ -76,7 +81,7 @@ char path0[MAXS+1]; // path of argv[0], len > PATH_MAX
 
 // thread variables
 typedef struct ptid {
-  // WIN32 { void *p; unsigned int x; }, UNIX: unsigned long
+  // WIN32, OLD_PTHREADS { void *p; unsigned int x; }, UNIX: unsigned long
   pthread_t tid;
   int done;
   int sts;
@@ -327,10 +332,10 @@ int xpthread_create(void *(*worker)(void *), void *arg)
       xlog("Thread creation failed, max. number of threads exceeded\n");
     else xlog("Thread creation failed, rc = %d\n", rc);
   else
-#ifdef _WIN32
-    xlog("Created thread %08x\n", (unsigned int)threads->tid.p);
+#ifdef OLD_PTHREADS
+    xlog("Created thread %08x\n", threads->tid.p);
 #else
-    xlog("Created thread %08x\n", (unsigned long)threads->tid);
+    xlog("Created thread %08x\n", threads->tid);
 #endif
   return rc;
 } /* xpthread_create */
@@ -342,16 +347,14 @@ int xpthread_create(void *(*worker)(void *), void *arg)
 void *worker(void *arg)
 {
   Fl_Menu_Item *mi;
-  unsigned int tid;
   time_t now;
 
   mi = (Fl_Menu_Item *)arg;
-#ifdef _WIN32
-  tid = (unsigned int)pthread_self().p;
+#ifdef OLD_PTHREADS
+  xlog("THREAD %08x: worker: menu %s\n", pthread_self().p, mi->label());
 #else
-  tid = (unsigned long)pthread_self();
+  xlog("THREAD %08x: worker: menu %s\n", pthread_self(), mi->label());
 #endif
-  xlog("THREAD %08x: worker: menu %s\n", tid, mi->label());
 
   now = time(NULL);
 
@@ -370,18 +373,16 @@ void *convert(void *arg)
   TARG *targ;
   char *url, orig_url[MAXS+1];
   char line[MAXS+1], *linep;
-  unsigned int tid;
   char *msg, *msgp, *s;
   long sts;
 
   targ = (TARG *)arg;
   url = targ->text;
-#ifdef _WIN32
-  tid = (unsigned int)pthread_self().p;
+#ifdef OLD_PTHREADS
+  xlog("THREAD %08x: convert: url %s\n", pthread_self().p, url);
 #else
-  tid = (unsigned long)pthread_self();
+  xlog("THREAD %08x: convert: url %s\n", pthread_self(), url);
 #endif
-  xlog("THREAD %08x: convert: url %s\n", tid, url);
 
   linep = line;
 
@@ -447,20 +448,20 @@ void *convert(void *arg)
 void *convert_all(void *arg)
 {
   char *urls, *url, *sp, *s;
-  unsigned int tid;
   int ii, len, rc;
   TARG *targs, *targ;
   struct timespec req, rem;
   long sts;
+  unsigned long tid;
 
   targs = (TARG *)arg;
   urls = targs->text;
-#ifdef _WIN32
-  tid = (unsigned int)pthread_self().p;
-#else
-  tid = (unsigned long)pthread_self();
-#endif
   len = strlen(urls);
+#ifdef OLD_PTHREADS
+  tid = PtrToInt(pthread_self().p);
+#else
+  tid = pthread_self();
+#endif
   if (len > 256)
     xlog("THREAD %08x: convert_all: urls %.256s...\n", tid, urls);
   else
@@ -700,9 +701,13 @@ int open_url(const char *url)
 {
   int rc, ii, blen;
   char buf[MAXS+1], cmd[MAXS+1], *path;
+#ifdef _WIN32
+  HINSTANCE hi;
+#endif
 
 #ifdef _WIN32
-  rc = (int)ShellExecute(HWND_DESKTOP, "open", url, NULL, NULL, SW_SHOWDEFAULT);
+  hi = ShellExecute(HWND_DESKTOP, "open", url, NULL, NULL, SW_SHOWDEFAULT);
+  rc = PtrToInt(hi);
   if (rc > 32) rc = 0;
   else if (rc == 0) rc = ENOMEM;
 #else
@@ -730,6 +735,7 @@ void show_cb(Fl_Widget *w, void *p)
   char fip, lap, url[MAXS+1];
 
   fi = 0.0; la = 0.0;
+  fl.fi = 0.0; fl.la = 0.0;
   switch (tr) {
     case  1: // gtr1, xy (D96/TM) ==> fila (ETRS89)
     case  3: // gtr1, xy (D48/GK) ==> fila (ETRS89)
@@ -1246,12 +1252,10 @@ void join_threads(void *p)
     rc = pthread_join(pt->tid, (void **)&sts);
     if (!rc) {
       pt->done = 1; pt->sts = sts;
-#ifdef _WIN32
-      xlog("Completed join with thread %08x, status = %d\n",
-           (unsigned int)pt->tid.p, pt->sts);
+#ifdef OLD_PTHREADS
+      xlog("Completed join with thread %08x, status = %d\n", pt->tid.p, pt->sts);
 #else
-      xlog("Completed join with thread %08x, status = %d\n",
-           (unsigned long)pt->tid, pt->sts);
+      xlog("Completed join with thread %08x, status = %d\n", pt->tid, pt->sts);
 #endif
     }
   }
@@ -1342,6 +1346,7 @@ int main(int argc, char *argv[])
   menubar->menu(menubar_entries);
   menubar->callback(menu_cb, NULL);
 
+  // ==========================================================================
   // Top window
   subwin1 = new Fl_Double_Window(0, menubar->y()+menubar->h(), mainwin->w(), 233);
   subwin1->box(FL_DOWN_BOX);
@@ -1446,6 +1451,7 @@ int main(int argc, char *argv[])
   subwin1->resizable(subwin1);
   subwin1->end();
 
+  // ==========================================================================
   // Bottom window
   subwin2 = new Fl_Double_Window(0, menubar->y()+menubar->h()+subwin1->h(), mainwin->w(), mainwin->h()-subwin1->h()-6);
 //subwin2->box(FL_DOWN_BOX);
@@ -1458,6 +1464,7 @@ int main(int argc, char *argv[])
   // get available size for children tabs
   tabs->client_area((int &)x0, (int &)y0, (int &)w0, (int &)h0, 25);
 
+  // --------------------------------------------------------------------------
   // Create drag & drop area tab
   tab1 = new Fl_Group(x0+5, y0, w0-10, h0-5, "Drag && drop files");
   tab1->labelsize(16); tab1->labelfont(FL_BOLD);
@@ -1486,6 +1493,7 @@ int main(int argc, char *argv[])
 
   tab1->end();
 
+  // --------------------------------------------------------------------------
   // Create interactive area tab
   tab2 = new Fl_Group(x0+5, y0, w0-10, h0-5, "Interactive");
   tab2->labelsize(16); tab2->labelfont(FL_BOLD);
@@ -1612,6 +1620,7 @@ int main(int argc, char *argv[])
   subwin2->resizable(subwin2);
   subwin2->end();
 
+  // ==========================================================================
   // No more widgets in mainwin
   mainwin->end();
 
@@ -1651,12 +1660,10 @@ int main(int argc, char *argv[])
     rc = pthread_join(pt->tid, (void **)&sts);
     if (!rc) {
       pt->done = 1; pt->sts = sts;
-#ifdef _WIN32
-      xlog("Completed join with thread %08x, status = %d\n",
-           (unsigned int)pt->tid.p, pt->sts);
+#ifdef OLD_PTHREADS
+      xlog("Completed join with thread %08x, status = %d\n", pt->tid.p, pt->sts);
 #else
-      xlog("Completed join with thread %08x, status = %d\n",
-           (unsigned int)pt->tid, pt->sts);
+      xlog("Completed join with thread %08x, status = %d\n", pt->tid, pt->sts);
 #endif
     }
   }
