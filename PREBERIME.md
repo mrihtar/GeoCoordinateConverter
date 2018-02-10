@@ -1,4 +1,6 @@
 ## Geo Coordinate Converter http://geocoordinateconverter.tk
+ [![Build Status](https://travis-ci.org/mrihtar/GeoCoordinateConverter.svg?branch=master)](https://travis-ci.org/mrihtar/GeoCoordinateConverter) [![codecov](https://codecov.io/gh/mrihtar/GeoCoordinateConverter/branch/master/graph/badge.svg)](https://codecov.io/gh/mrihtar/GeoCoordinateConverter)
+
 For English version of this file see [README.md].
 
 **gk-slo** je konverter med geografskimi kartezičnimi koordinatami
@@ -93,6 +95,8 @@ ali
 &nbsp;&nbsp;&nbsp;```shapelib\shpopen.c shapelib\dbfopen.c shapelib\safileio.c shapelib\shptree.c```  
 ali  
 ```$ nmake -f Makefile.msc```
+#### MacOS (10.12 Sierra in novejši)
+```$ make -f Makefile.macos gk-slo gk-shp test```
 
 Opciji ```-msse2 -mfpmath=sse``` sta potrebni, ker drugače dobimo različne
 rezultate na različnih sistemih (za podrobnejšo razlago glej [StackOverflow]).
