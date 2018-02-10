@@ -73,7 +73,7 @@ When/if such triangle is found, a simple transformation using parameters
 ```a..f``` is applied (see **Theory** above).
 
 
-[PREBERIME.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/aft/PREBERIME.md
+[PREBERIME.md]: PREBERIME.md
 [virtual tie points]: http://www.e-prostor.gov.si/si/zbirke_prostorskih_podatkov/drzavni_koordinatni_sistem/horizontalni_drzavni_koordinatni_sistem_d96tm/d96tm/transformacijski_parametri/
 [triangle]: http://www.cs.cmu.edu/~quake/triangle.html
-[geo_api.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo_api.md
+[geo_api.md]: ../geo_api.md
