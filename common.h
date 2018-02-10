@@ -208,7 +208,10 @@ TCHAR *xstrerror(void);
 
 int xprintf(FILE *out, TCHAR *fmt, ...);
 
+// avoid error: conflicting types for 'clock_gettime' on MacOS:
+#ifndef __APPLE__
 int clock_gettime(int clk_id, struct timespec *tv);
+#endif
 
 TCHAR *fefind(TCHAR *fname, TCHAR *ext, TCHAR *newname);
 

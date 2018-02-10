@@ -1,0 +1,75 @@
+# For GNU make
+CC = cc
+CXX = c++
+LD = ld
+AR = ar
+RANLIB = ranlib
+RM = rm -f
+CP = cp
+
+DEBUG = -O2
+#DEBUG = -g
+CFLAGS = -Wall -Wshadow -msse2 -mfpmath=sse
+CXXFLAGS = -Wall -msse2 -mfpmath=sse
+IPATH = -Ishapelib -Ifltk -I/usr/local/include -I/opt/X11/include
+LDFLAGS = -s
+#LDFLAGS = 
+LPATH = 
+LIBS = -lm #-lrt
+XLDFLAGS = -s
+#XLDFLAGS = 
+ifeq ($(shell uname),FreeBSD)
+XLPATH = -Lfltk/lib -L/usr/local/lib -L/usr/local/lib/fltk-devel
+XLIBS = -lfltk_images -lfltk -lX11 -lXft -lXcursor -lXinerama -lfontconfig -lXfixes -lXext -lXpm -lpng -lz -ljpeg -lpthread -lm -lrt
+else
+XLPATH = -Lfltk/lib -L/usr/local/lib
+XLIBS = -lfltk_images -lfltk -lX11 -lXft -lXcursor -lXinerama -lXpm -lpng -lz -ljpeg -lpthread -lm -lrt -lstdc++
+#XLIBS = -lfltk_images -lfltk -lfltk_png -lfltk_jpeg -lX11 -lXpm -lz -lpthread -ldl -lm -lrt
+endif
+
+TGTS = gk-slo gk-shp #TODO: xgk-slo
+WOBJS = gk-slo.o conv_xyz.o util.o geo.o
+SOBJS = gk-shp.o conv_shp.o util.o geo.o
+INCL = common.h geo.h geoid_slo.h geoid_egm.h aft_gktm.h aft_tmgk.h
+SHPOBJS = shapelib/shpopen.o shapelib/dbfopen.o shapelib/safileio.o shapelib/shptree.o
+SHPINCL = shapelib/shapefil.h
+XOBJS = xgk-slo.o conv_xyz.o conv_shp.o util.o geo.o
+XINCL = 
+
+.SUFFIXES: .cxx
+
+all: $(TGTS)
+
+gk-slo: $(WOBJS)
+	$(CC) -o $@ $(WOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
+
+gk-shp: $(SOBJS) $(SHPOBJS)
+	$(CC) -o $@ $(SOBJS) $(SHPOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
+
+xgk-slo: $(XOBJS) $(SHPOBJS) globe.xpm
+	$(CXX) -o $@ $(XOBJS) $(SHPOBJS) $(XLDFLAGS) $(XLPATH) $(XLIBS)
+
+$(WOBJS): $(INCL)
+$(SOBJS): $(INCL)
+$(SHPOBJS): $(SHPINCL)
+$(XOBJS): $(XINCL)
+
+test: $(TGTS)
+	./gk-slo -x > gk-slo.tmp
+	diff gk-slo.tmp refout-slo.txt
+	./gk-slo -x -g egm > gk-slo.tmp
+	diff gk-slo.tmp refout-egm.txt
+	@$(RM) gk-slo.tmp
+
+install: $(TGTS)
+	@echo Copy gk-slo, gk-shp and xgk-slo to a directory of your choice
+
+clean:
+	-$(RM) $(WOBJS) $(SOBJS) $(SHPOBJS) $(XOBJS)
+cleanall: clean
+	-$(RM) $(TGTS)
+
+.c.o:
+	$(CC) $(DEBUG) -c $(CFLAGS) $(IPATH) $< -o $@
+.cxx.o:
+	$(CXX) $(DEBUG) -c $(CXXFLAGS) $(IPATH) $< -o $@
