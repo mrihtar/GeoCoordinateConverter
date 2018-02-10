@@ -322,28 +322,28 @@ In file raba_conv.prj an output projection (WGS84) is stored, so converted
 files can be easily opened by GIS programs.
 
 [Geo Coordinate Converter]: http://geocoordinateconverter.tk
-[PREBERIME.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/PREBERIME.md
+[PREBERIME.md]: PREBERIME.md
 [SiTra]: http://sitra.sitranet.si
 [SiTraNet]: http://sitranet.si
 [LIDAR]: http://evode.arso.gov.si/indexd022.html?q=node/12
 [virtual tie points v3.0]: http://www.e-prostor.gov.si/si/zbirke_prostorskih_podatkov/drzavni_koordinatni_sistem/horizontalni_drzavni_koordinatni_sistem_d96tm/d96tm/transformacijski_parametri/
-[AFT.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/aft/README.md
+[AFT.md]: aft/README.md
 [ESRI shapefile]: https://en.wikipedia.org/wiki/Shapefile
 [EGM2008]: http://earth-info.nga.mil/GandG/wgs84/gravitymod/egm2008/egm08_wgs84.html
-[geo_api.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo_api.md
-[literature.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/literature.md
+[geo_api.md]: geo_api.md
+[literature.md]: literature.md
 [gk-slo-8.02.zip]: https://app.box.com/s/0blewuzbumx9q2iau6j2hal26dkg4ky9
-[common.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/common.h
-[util.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/util.c
-[geoid_slo.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geoid_slo.h
-[geoid_egm.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geoid_egm.h
-[aft_gktm.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/aft_gktm.h
-[aft_tmgk.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/aft_tmgk.h
-[geo.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo.h
-[geo.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo.c
-[gk-slo.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/gk-slo.c
-[gk-shp.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/gk-shp.c
-[shapelib]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/shapelib/
+[common.h]: common.h
+[util.c]: util.c
+[geoid_slo.h]: geoid_slo.h
+[geoid_egm.h]: geoid_egm.h
+[aft_gktm.h]: aft_gktm.h
+[aft_tmgk.h]: aft_tmgk.h
+[geo.h]: geo.h
+[geo.c]: geo.c
+[gk-slo.c]: gk-slo.c
+[gk-shp.c]: gk-shp.c
+[shapelib]: shapelib/
 [Shapefile C Library]: http://shapelib.maptools.org
 [StackOverflow]: http://stackoverflow.com/questions/13571073/how-to-ensure-same-float-numbers-on-different-systems
 [GERK]: http://rkg.gov.si/GERK/
