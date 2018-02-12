@@ -54,7 +54,7 @@ $(SOBJS): $(INCL)
 $(SHPOBJS): $(SHPINCL)
 $(XOBJS): $(XINCL)
 
-test: $(TGTS)
+test: gk-slo.exe # TODO add tests for all $(TGTS)
 	gk-slo.exe -x > gk-slo.tmp
 	fc /l gk-slo.tmp refout-slo.txt
 	gk-slo.exe -x -g egm > gk-slo.tmp

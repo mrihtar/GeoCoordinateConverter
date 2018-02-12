@@ -1,0 +1,38 @@
+#version: "{build}"
+image: Visual Studio 2015
+
+platform:
+#- x64
+- x86
+
+shallow_clone: true
+
+environment:
+  matrix:
+    - BUILD_TYPE: Debug
+      MINGW_PATH: C:\MinGW
+      TOOLCHAIN: "MinGW Makefiles"
+
+    - BUILD_TYPE: nmake
+
+install:
+  - if "%TOOLCHAIN%"=="MinGW Makefiles" set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
+  - if "%TOOLCHAIN%"=="MinGW Makefiles" set PATH=%MINGW_PATH%\bin;%PATH%
+
+build_script:
+  - echo build_script
+  #- if "%TOOLCHAIN%"=="MinGW Makefiles" ( mingw32-make -f Makefile.mingw all )
+  - if "%TOOLCHAIN%"=="MinGW Makefiles" ( mingw32-make -f Makefile.mingw gk-slo.exe gk-shp.exe )
+
+  # https://msdn.microsoft.com/en-us/library/f2ccy3wt.aspx
+  # - if "%BUILD_TYPE%" == "nmake" if "%platform%" == "x86" ( cd  "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\" && call "vcvarsall.bat" x86 )
+  - if "%BUILD_TYPE%" == "nmake" if "%platform%" == "x86" ( call  "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86 )
+  # - if "%BUILD_TYPE%" == "nmake" ( nmake /f Makefile.msc all )
+  - if "%BUILD_TYPE%" == "nmake" ( nmake /f Makefile.msc gk-slo.exe gk-shp.exe )
+
+test_script:
+  - echo test_script
+  - if "%TOOLCHAIN%"=="MinGW Makefiles" ( mingw32-make -f Makefile.mingw test )
+  - if "%BUILD_TYPE%" == "nmake" ( nmake /f Makefile.msc test )
+
+deploy: off
