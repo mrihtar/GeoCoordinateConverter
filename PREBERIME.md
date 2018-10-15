@@ -9,7 +9,8 @@ For English version of this file see [README.md].
 nadomestilo za uradni program za konverzijo [SiTra] &#40;s Helmertovimi
 parametri za vso Slovenijo, brez regionalnih parametrov&#41; ali natančnejši,
 če se uporabi vgrajena afina/trikotniška transformacija z referenčnimi
-[virtualnimi veznimi točkami v3.0] &#40;za natančen opis glej [AFT.md]&#41;.
+[virtualnimi veznimi točkami v3.0] &#40;za natančen opis glej [AFT.md]&#41;,
+kar je podobno kot pri uradnem programu za konverzijo [3Tra].
 
 <img src="images/GCC-Cover-Image.gif" width="660px">
 
@@ -325,9 +326,10 @@ lažje odpiranje v GIS programih.
 [README.md]: README.md
 [SiTra]: http://sitra.sitranet.si
 [SiTraNet]: http://sitranet.si
-[LIDAR]: http://evode.arso.gov.si/indexd022.html?q=node/12
-[virtualnimi veznimi točkami v3.0]: http://www.e-prostor.gov.si/si/zbirke_prostorskih_podatkov/drzavni_koordinatni_sistem/horizontalni_drzavni_koordinatni_sistem_d96tm/d96tm/transformacijski_parametri/
+[LIDAR]: http://www.evode.gov.si/podatki/lidar-podatki/
+[virtualnimi veznimi točkami v3.0]: http://www.e-prostor.gov.si/zbirke-prostorskih-podatkov/drzavni-koordinatni-sistem/horizontalni-drzavni-koordinatni-sistem-d48gk/#tab2-1025
 [AFT.md]: aft/PREBERIME.md
+[3Tra]: http://www.e-prostor.gov.si/zbirke-prostorskih-podatkov/drzavni-koordinatni-sistem/transformacija-v-novi-koordinatni-sistem/#tab2-1177
 [ESRI shapefile]: https://en.wikipedia.org/wiki/Shapefile
 [EGM2008]: http://earth-info.nga.mil/GandG/wgs84/gravitymod/egm2008/egm08_wgs84.html
 [geo_api.md]: geo_api.md

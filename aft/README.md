@@ -74,6 +74,6 @@ When/if such triangle is found, a simple transformation using parameters
 
 
 [PREBERIME.md]: PREBERIME.md
-[virtual tie points]: http://www.e-prostor.gov.si/si/zbirke_prostorskih_podatkov/drzavni_koordinatni_sistem/horizontalni_drzavni_koordinatni_sistem_d96tm/d96tm/transformacijski_parametri/
+[virtual tie points]: http://www.e-prostor.gov.si/zbirke-prostorskih-podatkov/drzavni-koordinatni-sistem/horizontalni-drzavni-koordinatni-sistem-d48gk/#tab2-1025
 [triangle]: http://www.cs.cmu.edu/~quake/triangle.html
 [geo_api.md]: ../geo_api.md
