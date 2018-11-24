@@ -36,7 +36,7 @@ Ta sistem lahko rešimo z eliminacijsko metodo (operacije nad vrsticami ⇒
 identična matrika) ali z drugimi metodami (Jacobi, Gauss-Seidel, ...).
 
 ### Predizračun
-Za Slovenijo imamo 899 referenčnih [virtualih veznih točk] &#40;v3.0&#41; v
+Za Slovenijo imamo 899 referenčnih [virtualih veznih točk] &#40;v4.0&#41; v
 obeh koordinatnih systemih (GK in TM), ki formirajo 1776 trikotnikov:
 
 <img src="../images/Slovenia-tie-points.gif" width="400px">
@@ -51,7 +51,7 @@ natančne Delaunayeve triangulacije.
 
 #### Natančen opis procesa
 - pridobi referenčne [virtualne vezne točke] &#40;že priložene&#41;:  
-  ⇒ datoteka ```virtualne_vezne_tocke_v3.0.txt```
+  ⇒ datoteka ```virtualne_vezne_tocke_v4.0.txt```
 - ekstraktaj GK in TM koordinate iz referenčne datoteke
 - uporabi program [triangle] za kreiranje trikotnikov
 - uporabi priložen program ```ctt``` za kreiranje tabel, ki se bodo vključile v program:  
@@ -72,7 +72,7 @@ s parametri ```a..f``` (glej **Teorija** zgoraj).
 
 
 [README.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/aft/README.md
-[virtualih veznih točk]: http://www.e-prostor.gov.si/zbirke-prostorskih-podatkov/drzavni-koordinatni-sistem/horizontalni-drzavni-koordinatni-sistem-d48gk/#tab2-1025
-[virtualne vezne točke]: http://www.e-prostor.gov.si/zbirke-prostorskih-podatkov/drzavni-koordinatni-sistem/horizontalni-drzavni-koordinatni-sistem-d48gk/#tab2-1025
+[virtualih veznih točk]: http://www.e-prostor.gov.si/zbirke-prostorskih-podatkov/drzavni-koordinatni-sistem/transformacija-v-novi-koordinatni-sistem/#tab2-1177
+[virtualne vezne točke]: http://www.e-prostor.gov.si/zbirke-prostorskih-podatkov/drzavni-koordinatni-sistem/transformacija-v-novi-koordinatni-sistem/#tab2-1177
 [triangle]: http://www.cs.cmu.edu/~quake/triangle.html
 [geo_api.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo_api.md

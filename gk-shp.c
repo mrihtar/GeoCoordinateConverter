@@ -1,5 +1,5 @@
 // GK - Converter between Gauss-Krueger/TM and WGS84 coordinates for Slovenia
-// Copyright (c) 2014-2016 Matjaz Rihtar <matjaz@eunet.si>
+// Copyright (c) 2014-2018 Matjaz Rihtar <matjaz@eunet.si>
 // All rights reserved.
 //
 // This program is free software: you can redistribute it and/or modify
@@ -21,8 +21,13 @@
 #include "geo.h"
 #include "shapefil.h"
 
-#define SW_VERSION "1.07"
-#define SW_BUILD   "Oct 25, 2016"
+#include <pthread.h>
+#ifdef _MSC_VER // Microsoft C
+#define OLD_PTHREADS
+#endif
+
+#define SW_VERSION "1.08"
+#define SW_BUILD   "Nov 24, 2018"
 
 // global variables
 char *prog;  // program name
@@ -32,6 +37,9 @@ int rev;     // reverse xy/fila
 
 extern int gid_wgs; // selected geoid on WGS 84 (in geo.c, via cmd line)
 extern int hsel;    // output height calculation (in geo.c, via cmd line)
+
+pthread_once_t tid_once = PTHREAD_ONCE_INIT;
+pthread_key_t tid_key; // thread-specific data key
 
 #ifdef _WIN32
 #ifdef __MINGW32__
@@ -55,7 +63,7 @@ int convert_shp_file(char *inpurl, char *outurl, char *msg);
 // ----------------------------------------------------------------------------
 void usage(int ver_only)
 {
-  fprintf(stderr, "%s %s  Copyright (c) 2014-2016 Matjaz Rihtar  (%s)\n",
+  fprintf(stderr, "%s %s  Copyright (c) 2014-2018 Matjaz Rihtar  (%s)\n",
           prog, SW_VERSION, SW_BUILD);
   if (ver_only) return;
   fprintf(stderr, "Usage: %s [<options>] <inpname> <outname>\n", prog);

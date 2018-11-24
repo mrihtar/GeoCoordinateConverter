@@ -1,5 +1,5 @@
 // GK - Converter between Gauss-Krueger/TM and WGS84 coordinates for Slovenia
-// Copyright (c) 2014-2016 Matjaz Rihtar <matjaz@eunet.si>
+// Copyright (c) 2014-2018 Matjaz Rihtar <matjaz@eunet.si>
 // All rights reserved.
 //
 // This program is free software: you can redistribute it and/or modify
@@ -21,6 +21,11 @@
 #include "geo.h"
 #include "shapefil.h"
 
+#include <pthread.h>
+#ifdef _MSC_VER // Microsoft C
+#define OLD_PTHREADS
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -34,6 +39,9 @@ extern int rev;     // reverse xy/fila
 
 extern int gid_wgs; // selected geoid on WGS 84 (in geo.c)
 extern int hsel;    // output height calculation (in geo.c)
+
+extern pthread_once_t tid_once;
+extern pthread_key_t tid_key; // thread-specific data key
 
 #define EPSG_3787 0 // D48/GK
 #define EPSG_3912 1 // D48/GK
@@ -81,6 +89,16 @@ void swapfila(GEOGRA *fl)
 
 
 // ----------------------------------------------------------------------------
+// THREAD_ONCE: make_shp_key
+// Create thread-specific data key (need to be done only once!).
+// ----------------------------------------------------------------------------
+void make_shp_key(void)
+{
+  pthread_key_create(&tid_key, NULL);
+} /* make_shp_key */
+
+
+// ----------------------------------------------------------------------------
 // convert_shp_file
 // ellipsoid_init() and params_init() must be called before this!
 // ----------------------------------------------------------------------------
@@ -102,6 +120,7 @@ int convert_shp_file(char *inpurl, char *outurl, char *msg)
   char *iTuple, *oTuple;
   FILE *out; char *proj;
   int nPercentBefore, nPercent;
+  void *aft;
 
   if (inpurl == NULL) return 1;
   if (msg != NULL) msg[0] = '\0';
@@ -140,6 +159,14 @@ int convert_shp_file(char *inpurl, char *outurl, char *msg)
     return 2;
   }
   setvbuf(stderr, NULL, _IONBF, 0);
+
+  // create thread-specific data storage
+  pthread_once(&tid_once, make_shp_key);
+  aft = pthread_getspecific(tid_key);
+  if (aft == NULL) {
+    aft = malloc(sizeof(int));
+    pthread_setspecific(tid_key, aft);
+  }
 
   if (debug) fprintf(stderr, "Processing %s\n", inpname);
   clock_gettime(CLOCK_REALTIME, &start);
@@ -325,13 +352,13 @@ int convert_shp_file(char *inpurl, char *outurl, char *msg)
         case 6: // xy (d96tm) --> xy (d48gk)
           tmxy2gkxy(ixy, &oxy); break;
         case 7: // xy (d48gk) --> xy (d96tm), affine trans.
-          gkxy2tmxy_aft(ixy, &oxy); break;
+          gkxy2tmxy_aft(ixy, &oxy, (int *)aft); break;
         case 8: // xy (d96tm) --> xy (d48gk), affine trans.
-          tmxy2gkxy_aft(ixy, &oxy); break;
+          tmxy2gkxy_aft(ixy, &oxy, (int *)aft); break;
         case 9: // xy (d48gk) --> fila (etrs89), affine trans.
-          gkxy2fila_wgs_aft(ixy, &ofl); break;
+          gkxy2fila_wgs_aft(ixy, &ofl, (int *)aft); break;
         case 10: // fila (etrs89) --> xy (d48gk), affine trans.
-          fila_wgs2gkxy_aft(ifl, &oxy); break;
+          fila_wgs2gkxy_aft(ifl, &oxy, (int *)aft); break;
         default: // xy (d96tm) --> fila (etrs89)
           tmxy2fila_wgs(ixy, &ofl); break;
       }

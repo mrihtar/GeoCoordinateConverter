@@ -1,13 +1,14 @@
 # For GNU make
-SHELL = %SystemRoot%/System32/cmd.exe
+# Use //switch instead of /switch for Windows commands' switches
+#SHELL = %SystemRoot%/System32/cmd.exe
 CC = gcc
 CXX = g++
 LD = ld
 AR = ar
 RANLIB = ranlib
 RC = windres
-RM = del /q
-CP = copy /y
+RM = rm -f
+CP = cp
 
 DEBUG = -O2
 #DEBUG = -g
@@ -20,34 +21,38 @@ LPATH =
 LIBS = 
 XLDFLAGS = -mwindows -s
 #XLDFLAGS = -mwindows
-XLPATH = -Lfltk\lib
+XLPATH = -Lfltk/lib
 XLIBS = -lfltk_images -lfltk -lfltk_png -lfltk_z -lfltk_jpeg -lpthread -lole32 -luuid -lcomctl32
 
 TGTS = gk-slo.exe gk-shp.exe xgk-slo.exe
 WOBJS = gk-slo.o conv_xyz.o util.o geo.o
 SOBJS = gk-shp.o conv_shp.o util.o geo.o
 INCL = common.h geo.h geoid_slo.h geoid_egm.h aft_gktm.h aft_tmgk.h
-SHPOBJS = shapelib\shpopen.o shapelib\dbfopen.o shapelib\safileio.o shapelib\shptree.o
-SHPINCL = shapelib\shapefil.h
+SHPOBJS = shapelib/shpopen.o shapelib/dbfopen.o shapelib/safileio.o shapelib/shptree.o
+SHPINCL = shapelib/shapefil.h
 XOBJS = xgk-slo.o conv_xyz.o conv_shp.o util.o geo.o
-XINCL = 
+XINCL = deelx.h
+YOBJS = flo.o
 
 .SUFFIXES: .cxx
 
 all: $(TGTS)
 
 gk-slo.exe: $(WOBJS)
-	-taskkill /F /IM $@
+	-taskkill //F //IM $@ //T
 	$(CC) -o $@ $(WOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
 
 gk-shp.exe: $(SOBJS) $(SHPOBJS)
-	-taskkill /F /IM $@
+	-taskkill //F //IM $@ //T
 	$(CC) -o $@ $(SOBJS) $(SHPOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
 
 xgk-slo.exe: $(XOBJS) $(SHPOBJS) xgk-slo.rc globe.ico
-	-taskkill /F /IM $@
+	-taskkill //F //IM $@ //T
 	$(RC) $(@:.exe=).rc $(@:.exe=).res.o
 	$(CXX) -o $@ $(XOBJS) $(SHPOBJS) $(@:.exe=).res.o $(XLDFLAGS) $(XLPATH) $(XLIBS)
+flo.exe: $(YOBJS)
+	-taskkill //F //IM $@ //T
+	$(CXX) -o $@ $(YOBJS) $(XLDFLAGS) $(XLPATH) $(XLIBS)
 
 $(WOBJS): $(INCL)
 $(SOBJS): $(INCL)
@@ -56,18 +61,18 @@ $(XOBJS): $(XINCL)
 
 test: $(TGTS)
 	gk-slo.exe -x > gk-slo.tmp
-	fc /l gk-slo.tmp refout-slo.txt
+	fc //l gk-slo.tmp refout-slo.txt
 	gk-slo.exe -x -g egm > gk-slo.tmp
-	fc /l gk-slo.tmp refout-egm.txt
+	fc //l gk-slo.tmp refout-egm.txt
 	@$(RM) gk-slo.tmp > NUL
 
 install: $(TGTS)
 	@echo Copy gk-slo.exe, gk-shp.exe and xgk-slo.exe to a directory of your choice
 
 clean:
-	-$(RM) $(WOBJS) $(SOBJS) $(SHPOBJS) $(XOBJS) *.res.o 2> NUL
+	-$(RM) $(WOBJS) $(SOBJS) $(SHPOBJS) $(XOBJS) *.res.o
 cleanall: clean
-	-$(RM) $(TGTS) 2> NUL
+	-$(RM) $(TGTS)
 
 .c.o:
 	$(CC) $(DEBUG) -c $(CFLAGS) $(IPATH) $< -o $@

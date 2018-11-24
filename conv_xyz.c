@@ -1,5 +1,5 @@
 // GK - Converter between Gauss-Krueger/TM and WGS84 coordinates for Slovenia
-// Copyright (c) 2014-2016 Matjaz Rihtar <matjaz@eunet.si>
+// Copyright (c) 2014-2018 Matjaz Rihtar <matjaz@eunet.si>
 // All rights reserved.
 //
 // This program is free software: you can redistribute it and/or modify
@@ -21,6 +21,11 @@
 #include "geo.h"
 #include "shapefil.h"
 
+#include <pthread.h>
+#ifdef _MSC_VER // Microsoft C
+#define OLD_PTHREADS
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -35,6 +40,19 @@ extern int wdms;    // write DMS
 
 extern int gid_wgs; // selected geoid on WGS 84 (in geo.c)
 extern int hsel;    // output height calculation (in geo.c)
+
+extern pthread_once_t tid_once;
+extern pthread_key_t tid_key; // thread-specific data key
+
+// ----------------------------------------------------------------------------
+// THREAD_ONCE: make_xyz_key
+// Create thread-specific data key (need to be done only once!).
+// ----------------------------------------------------------------------------
+void make_xyz_key(void)
+{
+  pthread_key_create(&tid_key, NULL);
+} /* make_xyz_key */
+
 
 // ----------------------------------------------------------------------------
 // convert_xyz_file
@@ -52,6 +70,7 @@ int convert_xyz_file(char *url, int outf, FILE *out, char *msg)
   DMS lat, lon;
   struct timespec start, stop;
   double tdif;
+  void *aft;
 
   if (url == NULL) return 1;
   if (msg != NULL) msg[0] = '\0';
@@ -97,6 +116,14 @@ int convert_xyz_file(char *url, int outf, FILE *out, char *msg)
       if (inpf == 2) fclose(inp);
       return 2;
     }
+  }
+
+  // create thread-specific data storage
+  pthread_once(&tid_once, make_xyz_key);
+  aft = pthread_getspecific(tid_key);
+  if (aft == NULL) {
+    aft = malloc(sizeof(int));
+    pthread_setspecific(tid_key, aft);
   }
 
   if (debug) fprintf(stderr, "Processing %s\n", inpname);
@@ -267,19 +294,19 @@ int convert_xyz_file(char *url, int outf, FILE *out, char *msg)
 
     else if (tr == 7) { // xy (d48gk) --> xy (d96tm), affine trans.
       xy.x = x; xy.y = y; xy.H = H;
-      gkxy2tmxy_aft(xy, &tmxy);
+      gkxy2tmxy_aft(xy, &tmxy, (int *)aft);
       fprintf(out, "%s%.3f %.3f %.3f\n", col1, tmxy.x, tmxy.y, tmxy.H);
     }
 
     else if (tr == 8) { // xy (d96tm) --> xy (d48gk), affine trans.
       xy.x = x; xy.y = y; xy.H = H;
-      tmxy2gkxy_aft(xy, &gkxy);
+      tmxy2gkxy_aft(xy, &gkxy, (int *)aft);
       fprintf(out, "%s%.3f %.3f %.3f\n", col1, gkxy.x, gkxy.y, gkxy.H);
     }
 
     else if (tr == 9) { // xy (d48gk) --> fila (etrs89), affine trans.
       xy.x = x; xy.y = y; xy.H = H;
-      gkxy2fila_wgs_aft(xy, &fl);
+      gkxy2fila_wgs_aft(xy, &fl, (int *)aft);
       fprintf(out, "%s%.9f %.9f %.3f", col1, fl.fi, fl.la, fl.h);
       if (wdms) {
 	deg2dms(fl.fi, &lat); deg2dms(fl.la, &lon);
@@ -291,7 +318,7 @@ int convert_xyz_file(char *url, int outf, FILE *out, char *msg)
 
     else if (tr == 10) { // fila (etrs89) --> xy (d48gk), affine trans.
       fl.fi = fi; fl.la = la; fl.h = h;
-      fila_wgs2gkxy_aft(fl, &xy);
+      fila_wgs2gkxy_aft(fl, &xy, (int *)aft);
       fprintf(out, "%s%.3f %.3f %.3f\n", col1, xy.x, xy.y, xy.H);
     }
   } // while !eof

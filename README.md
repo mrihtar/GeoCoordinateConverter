@@ -7,7 +7,7 @@ Za slovensko verzijo te datoteke glej [PREBERIME.md].
 as a replacement for the official conversion program [SiTra] &#40;with
 Helmert parameters for the whole Slovenia, no regional parameters&#41;
 or more precise when used with the built-in affine/triangle-based
-transformation using the reference [virtual tie points v3.0] &#40;for
+transformation using the reference [virtual tie points v4.0] &#40;for
 detailed description see [AFT.md]&#41;, which is similar as the official
 conversion program [3Tra].
 
@@ -323,7 +323,7 @@ files can be easily opened by GIS programs.
 [SiTra]: http://sitra.sitranet.si
 [SiTraNet]: http://sitranet.si
 [LIDAR]: http://www.evode.gov.si/podatki/lidar-podatki/
-[virtual tie points v3.0]: http://www.e-prostor.gov.si/zbirke-prostorskih-podatkov/drzavni-koordinatni-sistem/horizontalni-drzavni-koordinatni-sistem-d48gk/#tab2-1025
+[virtual tie points v4.0]: http://www.e-prostor.gov.si/zbirke-prostorskih-podatkov/drzavni-koordinatni-sistem/transformacija-v-novi-koordinatni-sistem/#tab2-1177
 [AFT.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/aft/README.md
 [3Tra]: http://www.e-prostor.gov.si/zbirke-prostorskih-podatkov/drzavni-koordinatni-sistem/transformacija-v-novi-koordinatni-sistem/#tab2-1177
 [ESRI shapefile]: https://en.wikipedia.org/wiki/Shapefile
