@@ -15,7 +15,7 @@ IPATH = -Ishapelib -Ifltk -I/usr/local/include
 LDFLAGS = -s
 #LDFLAGS = 
 LPATH = 
-LIBS = -lm -lrt
+LIBS = -lpthread -lm -lrt
 XLDFLAGS = -s
 #XLDFLAGS = 
 ifeq ($(shell uname),FreeBSD)
@@ -23,8 +23,8 @@ XLPATH = -Lfltk/lib -L/usr/local/lib -L/usr/local/lib/fltk-devel
 XLIBS = -lfltk_images -lfltk -lX11 -lXft -lXcursor -lXinerama -lfontconfig -lXfixes -lXext -lXpm -lpng -lz -ljpeg -lpthread -lm -lrt
 else
 XLPATH = -Lfltk/lib -L/usr/local/lib
-XLIBS = -lfltk_images -lfltk -lX11 -lXft -lXcursor -lXinerama -lXpm -lpng -lz -ljpeg -lpthread -lm -lrt
-#XLIBS = -lfltk_images -lfltk -lfltk_png -lfltk_jpeg -lX11 -lXpm -lz -lpthread -ldl -lm -lrt
+XLIBS = -lfltk_images -lfltk -lX11 -lXft -lXcursor -lXinerama -lfontconfig -lXfixes -lXext -lXpm -lpng -lz -ljpeg -lpthread -lm -lrt -ldl
+#XLIBS = -lfltk_images -lfltk -lfltk_png -lfltk_jpeg -lX11 -lXft -lXcursor -lXinerama -lfontconfig -lXfixes -lXext -lXpm -lz -lpthread -lm -lrt -ldl
 endif
 
 TGTS = gk-slo gk-shp xgk-slo

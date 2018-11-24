@@ -383,7 +383,7 @@ void *convert(void *arg)
 {
   TARG *targ;
   char *url, orig_url[MAXS+1];
-  char line[MAXS+1], *linep;
+  char line[MAXL+14], *linep;
   char *msg, *msgp, *s;
   int sts;
 
@@ -397,7 +397,7 @@ void *convert(void *arg)
 
   linep = line;
 
-  snprintf(linep, MAXS, "Converting %s\n", url);
+  snprintf(linep, MAXL+13, "Converting %s\n", url);
   Fl::lock();
   brow->add(linep); brow->bottomline(brow->size());
   Fl::unlock();
