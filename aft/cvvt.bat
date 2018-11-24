@@ -5,14 +5,14 @@ if not exist %awk% echo There is a problem with %awk%
 @rem
 @rem Extract GK points from GURS data
 @rem
-%awk% -f extgk.awk virtualne_vezne_tocke_v4.0.txt > vvt-gk.node
+%awk% -f extgk.awk virtualne_vezne_tocke_v3.0.txt > vvt-gk.node
 if errorlevel 1 exit /b 1
 .\triangle.exe vvt-gk.node
 if errorlevel 1 exit /b 1
 @rem
 @rem Extract TM points from GURS data
 @rem
-%awk% -f exttm.awk virtualne_vezne_tocke_v4.0.txt > vvt-tm.node
+%awk% -f exttm.awk virtualne_vezne_tocke_v3.0.txt > vvt-tm.node
 if errorlevel 1 exit /b 1
 .\triangle.exe vvt-tm.node
 if errorlevel 1 exit /b 1
