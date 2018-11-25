@@ -99,9 +99,6 @@ pthread_mutex_t xlog_mutex; // xlog mutex
 pthread_mutex_t tn_mutex; // threads number mutex
 int tn; // number of active treads
 
-pthread_once_t tid_once = PTHREAD_ONCE_INIT;
-pthread_key_t tid_key; // thread-specific data key
-
 // thread arguments
 typedef struct targ {
   char text[MAXL+1];
