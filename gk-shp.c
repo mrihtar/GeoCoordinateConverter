@@ -21,11 +21,6 @@
 #include "geo.h"
 #include "shapefil.h"
 
-#include <pthread.h>
-#ifdef _MSC_VER // Microsoft C
-#define OLD_PTHREADS
-#endif
-
 #define SW_VERSION "1.08"
 #define SW_BUILD   "Nov 24, 2018"
 
@@ -37,9 +32,6 @@ int rev;     // reverse xy/fila
 
 extern int gid_wgs; // selected geoid on WGS 84 (in geo.c, via cmd line)
 extern int hsel;    // output height calculation (in geo.c, via cmd line)
-
-pthread_once_t tid_once = PTHREAD_ONCE_INIT;
-pthread_key_t tid_key; // thread-specific data key
 
 #ifdef _WIN32
 #ifdef __MINGW32__
