@@ -1,5 +1,5 @@
 // GK - Converter between Gauss-Krueger/TM and WGS84 coordinates for Slovenia
-// Copyright (c) 2014-2016 Matjaz Rihtar <matjaz@eunet.si>
+// Copyright (c) 2014-2018 Matjaz Rihtar <matjaz@eunet.si>
 // All rights reserved.
 //
 // This program is free software: you can redistribute it and/or modify
@@ -81,6 +81,7 @@
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #pragma GCC diagnostic ignored "-Wunused-result"
 #pragma GCC diagnostic ignored "-Wwrite-strings"
+#pragma GCC diagnostic ignored "-Wmisleading-indentation"
 #endif
 
 #include <stdio.h>
@@ -208,7 +209,6 @@ TCHAR *xstrerror(void);
 
 int xprintf(FILE *out, TCHAR *fmt, ...);
 
-// avoid error: conflicting types for 'clock_gettime' on MacOS:
 #ifndef __APPLE__
 int clock_gettime(int clk_id, struct timespec *tv);
 #endif

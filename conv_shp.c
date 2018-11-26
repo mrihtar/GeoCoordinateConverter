@@ -1,5 +1,5 @@
 // GK - Converter between Gauss-Krueger/TM and WGS84 coordinates for Slovenia
-// Copyright (c) 2014-2016 Matjaz Rihtar <matjaz@eunet.si>
+// Copyright (c) 2014-2018 Matjaz Rihtar <matjaz@eunet.si>
 // All rights reserved.
 //
 // This program is free software: you can redistribute it and/or modify
@@ -102,6 +102,7 @@ int convert_shp_file(char *inpurl, char *outurl, char *msg)
   char *iTuple, *oTuple;
   FILE *out; char *proj;
   int nPercentBefore, nPercent;
+  int last_tri = -1;
 
   if (inpurl == NULL) return 1;
   if (msg != NULL) msg[0] = '\0';
@@ -325,13 +326,13 @@ int convert_shp_file(char *inpurl, char *outurl, char *msg)
         case 6: // xy (d96tm) --> xy (d48gk)
           tmxy2gkxy(ixy, &oxy); break;
         case 7: // xy (d48gk) --> xy (d96tm), affine trans.
-          gkxy2tmxy_aft(ixy, &oxy); break;
+          gkxy2tmxy_aft(ixy, &oxy, &last_tri); break;
         case 8: // xy (d96tm) --> xy (d48gk), affine trans.
-          tmxy2gkxy_aft(ixy, &oxy); break;
+          tmxy2gkxy_aft(ixy, &oxy, &last_tri); break;
         case 9: // xy (d48gk) --> fila (etrs89), affine trans.
-          gkxy2fila_wgs_aft(ixy, &ofl); break;
+          gkxy2fila_wgs_aft(ixy, &ofl, &last_tri); break;
         case 10: // fila (etrs89) --> xy (d48gk), affine trans.
-          fila_wgs2gkxy_aft(ifl, &oxy); break;
+          fila_wgs2gkxy_aft(ifl, &oxy, &last_tri); break;
         default: // xy (d96tm) --> fila (etrs89)
           tmxy2fila_wgs(ixy, &ofl); break;
       }

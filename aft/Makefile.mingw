@@ -1,13 +1,14 @@
 # For GNU make
-SHELL = %SystemRoot%/System32/cmd.exe
+# Use //switch instead of /switch for Windows commands' switches
+#SHELL = %SystemRoot%/System32/cmd.exe
 CC = gcc
 CXX = g++
 LD = ld
 AR = ar
 RANLIB = ranlib
 RC = windres
-RM = del /q
-CP = copy /y
+RM = rm -f
+CP = cp
 
 DEBUG = -O2
 #DEBUG = -g
@@ -20,8 +21,8 @@ LPATH =
 LIBS = 
 
 TGTS = ctt.exe triangle.exe
-WOBJS = ctt.o ..\util.o
-INCL = ..\common.h ..\geo.h
+WOBJS = ctt.o ../util.o
+INCL = ../common.h ../geo.h
 TRIOBJS = triangle.o
 TRIINCL = triangle.h
 
@@ -30,9 +31,11 @@ TRIINCL = triangle.h
 all: $(TGTS)
 
 ctt.exe: $(WOBJS)
+	-taskkill //F //IM $@ //T
 	$(CC) -o $@ $(WOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
 
 triangle.exe: $(TRIOBJS)
+	-taskkill //F //IM $@ //T
 	$(CC) -o $@ $(TRIOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
 
 $(WOBJS): $(INCL)

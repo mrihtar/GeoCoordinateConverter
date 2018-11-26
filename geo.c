@@ -1,5 +1,5 @@
 // GK - Converter between Gauss-Krueger/TM and WGS84 coordinates for Slovenia
-// Copyright (c) 2014-2016 Matjaz Rihtar <matjaz@eunet.si>
+// Copyright (c) 2014-2018 Matjaz Rihtar <matjaz@eunet.si>
 // All rights reserved.
 //
 // This program is free software: you can redistribute it and/or modify
@@ -98,7 +98,6 @@ GKLM gkzones[] = {
 #include "aft_gktm.h"
 //AFT aft_tmgk[MAXAFT];  // Affine transformation table from TM to GK for Slovenia
 #include "aft_tmgk.h"
-int last_tri = -1; // last found triangle
 
 // Distance to triangle segment
 #define EPSILON  0.001
@@ -119,7 +118,10 @@ extern "C" {
 // ----------------------------------------------------------------------------
 void dms2deg(DMS dms, double *deg)
 {
-  *deg = dms.deg + (dms.min*60.0 + dms.sec)/3600.0;
+  if (dms.deg >= 0)
+    *deg = dms.deg + (dms.min*60.0 + dms.sec)/3600.0;
+  else
+    *deg = dms.deg - (dms.min*60.0 + dms.sec)/3600.0;
 } /* dms2deg */
 
 // ----------------------------------------------------------------------------
@@ -127,7 +129,10 @@ void dms2deg(DMS dms, double *deg)
 // ----------------------------------------------------------------------------
 void dm2deg(DMS dms, double *deg)
 {
-  *deg = dms.deg + dms.min*60.0/3600.0;
+  if (dms.deg >= 0)
+    *deg = dms.deg + dms.min*60.0/3600.0;
+  else
+    *deg = dms.deg - dms.min*60.0/3600.0;
 } /* dm2deg */
 
 // ----------------------------------------------------------------------------
@@ -135,7 +140,10 @@ void dm2deg(DMS dms, double *deg)
 // ----------------------------------------------------------------------------
 void dms2rad(DMS dms, double *rad)
 {
-  *rad = dms.deg + (dms.min*60.0 + dms.sec)/3600.0;
+  if (dms.deg >= 0)
+    *rad = dms.deg + (dms.min*60.0 + dms.sec)/3600.0;
+  else
+    *rad = dms.deg - (dms.min*60.0 + dms.sec)/3600.0;
   *rad = *rad*PI/180.0; // convert degrees to radians
 } /* dms2rad */
 
@@ -144,7 +152,10 @@ void dms2rad(DMS dms, double *rad)
 // ----------------------------------------------------------------------------
 void dm2rad(DMS dms, double *rad)
 {
-  *rad = dms.deg + dms.min*60.0/3600.0;
+  if (dms.deg >= 0)
+    *rad = dms.deg + dms.min*60.0/3600.0;
+  else
+    *rad = dms.deg - dms.min*60.0/3600.0;
   *rad = *rad*PI/180.0; // convert degrees to radians
 } /* dm2rad */
 
@@ -154,9 +165,15 @@ void dm2rad(DMS dms, double *rad)
 void deg2dms(double deg, DMS *dms)
 {
   dms->deg = xtrunc(deg);
-  dms->sec = (deg - dms->deg)*60.0;
+  dms->sec = (fabs(deg) - fabs(dms->deg))*60.0;
   dms->min = xtrunc(dms->sec);
   dms->sec = (dms->sec - dms->min)*60.0;
+  if (xround(dms->sec) >= 60) { dms->min++; dms->sec = 0.0; }
+  if (xround(dms->min) >= 60) {
+    if (dms->deg >= 0) dms->deg++;
+    else dms->deg--;
+    dms->min = 0.0;
+  }
 } /* deg2dms */
 
 // ----------------------------------------------------------------------------
@@ -165,7 +182,7 @@ void deg2dms(double deg, DMS *dms)
 void deg2dm(double deg, DMS *dms)
 {
   dms->deg = xtrunc(deg);
-  dms->min = (deg - dms->deg)*60.0;
+  dms->min = (fabs(deg) - fabs(dms->deg))*60.0;
   dms->sec = 0.0;
 } /* deg2dm */
 
@@ -176,9 +193,15 @@ void rad2dms(double rad, DMS *dms)
 {
   rad = rad*180.0/PI; // convert radians to degrees
   dms->deg = xtrunc(rad);
-  dms->sec = (rad - dms->deg)*60.0;
+  dms->sec = (fabs(rad) - fabs(dms->deg))*60.0;
   dms->min = xtrunc(dms->sec);
   dms->sec = (dms->sec - dms->min)*60.0;
+  if (xround(dms->sec) >= 60) { dms->min++; dms->sec = 0.0; }
+  if (xround(dms->min) >= 60) {
+    if (dms->deg >= 0) dms->deg++;
+    else dms->deg--;
+    dms->min = 0.0;
+  }
 } /* rad2dms */
 
 // ----------------------------------------------------------------------------
@@ -188,7 +211,7 @@ void rad2dm(double rad, DMS *dms)
 {
   rad = rad*180.0/PI; // convert radians to degrees
   dms->deg = xtrunc(rad);
-  dms->min = (rad - dms->deg)*60.0;
+  dms->min = (fabs(rad) - fabs(dms->deg))*60.0;
   dms->sec = 0.0;
 } /* rad2dm */
 
@@ -1317,7 +1340,7 @@ void tmxy2gkxy(GEOUTM in, GEOUTM *out)
 // Transform from GK x,y,H on Bessel 1841 to TM n,e,H on WGS 84
 // using pre-calculated affine transformation table
 // ----------------------------------------------------------------------------
-int gkxy2tmxy_aft(GEOUTM in, GEOUTM *out)
+int gkxy2tmxy_aft(GEOUTM in, GEOUTM *out, int *last_tri)
 {
   double H;
   int ii, jj, found;
@@ -1328,14 +1351,14 @@ int gkxy2tmxy_aft(GEOUTM in, GEOUTM *out)
 
   found = 0;
   // check if point is in last found triangle
-  if (last_tri >= 0) {
-    ii = last_tri;
+  if (*last_tri >= 0) {
+    ii = *last_tri;
     if (coord_in_triangle(in, aft_gktm[ii])) {
       out->x = aft_gktm[ii].a*in.x + aft_gktm[ii].b*in.y + aft_gktm[ii].c;
       out->y = aft_gktm[ii].d*in.x + aft_gktm[ii].e*in.y + aft_gktm[ii].f;
       found = 1;
     }
-    else last_tri = -1;
+    else *last_tri = -1;
   }
 
   // if not found, search from the middle of the table in both directions
@@ -1345,7 +1368,7 @@ int gkxy2tmxy_aft(GEOUTM in, GEOUTM *out)
       if (coord_in_triangle(in, aft_gktm[ii])) {
         out->x = aft_gktm[ii].a*in.x + aft_gktm[ii].b*in.y + aft_gktm[ii].c;
         out->y = aft_gktm[ii].d*in.x + aft_gktm[ii].e*in.y + aft_gktm[ii].f;
-        last_tri = ii;
+        *last_tri = ii;
         found = 1; break;
       }
       ii++;
@@ -1354,7 +1377,7 @@ int gkxy2tmxy_aft(GEOUTM in, GEOUTM *out)
       if (coord_in_triangle(in, aft_gktm[jj])) {
         out->x = aft_gktm[jj].a*in.x + aft_gktm[jj].b*in.y + aft_gktm[jj].c;
         out->y = aft_gktm[jj].d*in.x + aft_gktm[jj].e*in.y + aft_gktm[jj].f;
-        last_tri = jj;
+        *last_tri = jj;
         found = 1; break;
       }
       jj--;
@@ -1374,7 +1397,7 @@ int gkxy2tmxy_aft(GEOUTM in, GEOUTM *out)
 // Transform from TM n,e,H on WGS 84 to GK x,y,H on Bessel 1841
 // using pre-calculated affine transformation table
 // ----------------------------------------------------------------------------
-int tmxy2gkxy_aft(GEOUTM in, GEOUTM *out)
+int tmxy2gkxy_aft(GEOUTM in, GEOUTM *out, int *last_tri)
 {
   double H;
   int ii, jj, found;
@@ -1385,14 +1408,14 @@ int tmxy2gkxy_aft(GEOUTM in, GEOUTM *out)
 
   found = 0;
   // check if point is in last found triangle
-  if (last_tri >= 0) {
-    ii = last_tri;
+  if (*last_tri >= 0) {
+    ii = *last_tri;
     if (coord_in_triangle(in, aft_tmgk[ii])) {
       out->x = aft_tmgk[ii].a*in.x + aft_tmgk[ii].b*in.y + aft_tmgk[ii].c;
       out->y = aft_tmgk[ii].d*in.x + aft_tmgk[ii].e*in.y + aft_tmgk[ii].f;
       found = 1;
     }
-    else last_tri = -1;
+    else *last_tri = -1;
   }
 
   // if not found, search from the middle of the table in both directions
@@ -1402,7 +1425,7 @@ int tmxy2gkxy_aft(GEOUTM in, GEOUTM *out)
       if (coord_in_triangle(in, aft_tmgk[ii])) {
         out->x = aft_tmgk[ii].a*in.x + aft_tmgk[ii].b*in.y + aft_tmgk[ii].c;
         out->y = aft_tmgk[ii].d*in.x + aft_tmgk[ii].e*in.y + aft_tmgk[ii].f;
-        last_tri = ii;
+        *last_tri = ii;
         found = 1; break;
       }
       ii++;
@@ -1411,7 +1434,7 @@ int tmxy2gkxy_aft(GEOUTM in, GEOUTM *out)
       if (coord_in_triangle(in, aft_tmgk[jj])) {
         out->x = aft_tmgk[jj].a*in.x + aft_tmgk[jj].b*in.y + aft_tmgk[jj].c;
         out->y = aft_tmgk[jj].d*in.x + aft_tmgk[jj].e*in.y + aft_tmgk[jj].f;
-        last_tri = jj;
+        *last_tri = jj;
         found = 1; break;
       }
       jj--;
@@ -1471,11 +1494,11 @@ void fila_wgs2tmxy(GEOGRA in, GEOUTM *out)
 // Transform from GK x,y,H on Bessel 1841 to fi,la,h on WGS 84
 // using pre-calculated affine transformation table
 // ----------------------------------------------------------------------------
-void gkxy2fila_wgs_aft(GEOUTM in, GEOGRA *out)
+void gkxy2fila_wgs_aft(GEOUTM in, GEOGRA *out, int *last_tri)
 {
   GEOUTM tmxy;
 
-  gkxy2tmxy_aft(in, &tmxy);
+  gkxy2tmxy_aft(in, &tmxy, last_tri);
   tmxy2fila_wgs(tmxy, out);
 } /* gkxy2fila_wgs_aft */
 
@@ -1486,12 +1509,12 @@ void gkxy2fila_wgs_aft(GEOUTM in, GEOGRA *out)
 // Transform from fi,la,h on WGS 84 to GK x,y,H on Bessel 1841
 // using pre-calculated affine transformation table
 // ----------------------------------------------------------------------------
-void fila_wgs2gkxy_aft(GEOGRA in, GEOUTM *out)
+void fila_wgs2gkxy_aft(GEOGRA in, GEOUTM *out, int *last_tri)
 {
   GEOUTM tmxy;
 
   fila_wgs2tmxy(in, &tmxy);
-  tmxy2gkxy_aft(tmxy, out);
+  tmxy2gkxy_aft(tmxy, out, last_tri);
 } /* fila_wgs2gkxy_aft */
 
 #ifdef __cplusplus

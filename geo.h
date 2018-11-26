@@ -1,5 +1,5 @@
 // GK - Converter between Gauss-Krueger/TM and WGS84 coordinates for Slovenia
-// Copyright (c) 2014-2016 Matjaz Rihtar <matjaz@eunet.si>
+// Copyright (c) 2014-2018 Matjaz Rihtar <matjaz@eunet.si>
 // All rights reserved.
 //
 // This program is free software: you can redistribute it and/or modify
@@ -122,12 +122,12 @@ void gkxy2fila_wgs(GEOUTM in, GEOGRA *out);
 void fila_wgs2gkxy(GEOGRA in, GEOUTM *out);
 void gkxy2tmxy(GEOUTM in, GEOUTM *out);
 void tmxy2gkxy(GEOUTM in, GEOUTM *out);
-int gkxy2tmxy_aft(GEOUTM in, GEOUTM *out);
-int tmxy2gkxy_aft(GEOUTM in, GEOUTM *out);
+int gkxy2tmxy_aft(GEOUTM in, GEOUTM *out, int *last_tri);
+int tmxy2gkxy_aft(GEOUTM in, GEOUTM *out, int *last_tri);
 void tmxy2fila_wgs(GEOUTM in, GEOGRA *out);
 void fila_wgs2tmxy(GEOGRA in, GEOUTM *out);
-void gkxy2fila_wgs_aft(GEOUTM in, GEOGRA *out);
-void fila_wgs2gkxy_aft(GEOGRA in, GEOUTM *out);
+void gkxy2fila_wgs_aft(GEOUTM in, GEOGRA *out, int *last_tri);
+void fila_wgs2gkxy_aft(GEOGRA in, GEOUTM *out, int *last_tri);
 
 #ifdef __cplusplus
 }

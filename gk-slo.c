@@ -1,5 +1,5 @@
 // GK - Converter between Gauss-Krueger/TM and WGS84 coordinates for Slovenia
-// Copyright (c) 2014-2016 Matjaz Rihtar <matjaz@eunet.si>
+// Copyright (c) 2014-2018 Matjaz Rihtar <matjaz@eunet.si>
 // All rights reserved.
 //
 // This program is free software: you can redistribute it and/or modify
@@ -20,8 +20,8 @@
 #include "common.h"
 #include "geo.h"
 
-#define SW_VERSION "9.05"
-#define SW_BUILD   "Oct 25, 2016"
+#define SW_VERSION "9.06"
+#define SW_BUILD   "Nov 24, 2018"
 
 // global variables
 char *prog; // program name
@@ -58,6 +58,7 @@ void reftest()
   GEOGRA flref; GEOUTM d96ref, d48ref;
   GEOGRA fl; GEOUTM xy;
   DMS lat, lon;
+  int last_tri = -1;
 
 //Lokacija: Zgonji Lehen na Pohorju
 //WGS84: fi: 46.5375852874    la: 15.3015019823    h: 0.0
@@ -133,7 +134,7 @@ void reftest()
 
   printf("---------- Conversion D96/TM --> D48/GK (affine trans.)\n");
   printf("<-- x: %.3f, y: %.3f, H: %.3f\n", d96ref.x, d96ref.y, d96ref.H);
-  tmxy2gkxy_aft(d96ref, &xy);
+  tmxy2gkxy_aft(d96ref, &xy, &last_tri);
   printf("--> x: %.3f, y: %.3f, H: %.3f\n", xy.x, xy.y, xy.H);
 
   printf("---------- Conversion D48/GK --> D96/TM (result)\n");
@@ -143,12 +144,12 @@ void reftest()
 
   printf("---------- Conversion D48/GK --> D96/TM (affine trans.)\n");
   printf("<-- x: %.3f, y: %.3f, H: %.3f\n", d48ref.x, d48ref.y, d48ref.H);
-  gkxy2tmxy_aft(d48ref, &xy);
+  gkxy2tmxy_aft(d48ref, &xy, &last_tri);
   printf("--> x: %.3f, y: %.3f, H: %.3f\n", xy.x, xy.y, xy.H);
 
   printf("---------- Conversion D48/GK --> WGS84 (affine trans.)\n");
   printf("<-- x: %.3f, y: %.3f, H: %.3f\n", d48ref.x, d48ref.y, d48ref.H);
-  gkxy2fila_wgs_aft(d48ref, &fl);
+  gkxy2fila_wgs_aft(d48ref, &fl, &last_tri);
   deg2dms(fl.fi, &lat); deg2dms(fl.la, &lon);
   printf("--> fi: %.10f,   la: %.10f,  h: %.3f\n", fl.fi, fl.la, fl.h);
   printf("   lat: %2.0f %2.0f %8.5f, lon: %2.0f %2.0f %8.5f, h: %.3f\n",
@@ -156,7 +157,7 @@ void reftest()
 
   printf("---------- Conversion WGS84 --> D48/GK (affine trans.)\n");
   printf("<-- fi: %.10f, la: %.10f, h: %.3f\n", flref.fi, flref.la, flref.h);
-  fila_wgs2gkxy_aft(flref, &xy);
+  fila_wgs2gkxy_aft(flref, &xy, &last_tri);
   printf("--> x: %.3f, y: %.3f, H: %.3f\n", xy.x, xy.y, xy.H);
 
 #if 1
@@ -369,7 +370,7 @@ void gendata_fila()
 // ----------------------------------------------------------------------------
 void usage(int ver_only)
 {
-  fprintf(stderr, "%s %s  Copyright (c) 2014-2016 Matjaz Rihtar  (%s)\n",
+  fprintf(stderr, "%s %s  Copyright (c) 2014-2018 Matjaz Rihtar  (%s)\n",
           prog, SW_VERSION, SW_BUILD);
   if (ver_only) return;
   fprintf(stderr, "Usage: %s [<options>] [<inpname> ...]\n", prog);

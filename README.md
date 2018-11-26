@@ -1,5 +1,5 @@
 ## Geo Coordinate Converter http://geocoordinateconverter.tk
- [![Build Status](https://travis-ci.org/mrihtar/GeoCoordinateConverter.svg?branch=master)](https://travis-ci.org/mrihtar/GeoCoordinateConverter) [![codecov](https://codecov.io/gh/mrihtar/GeoCoordinateConverter/branch/master/graph/badge.svg)](https://codecov.io/gh/mrihtar/GeoCoordinateConverter)
+[![Build Status](https://travis-ci.org/mrihtar/GeoCoordinateConverter.svg?branch=master)](https://travis-ci.org/mrihtar/GeoCoordinateConverter) [![codecov](https://codecov.io/gh/mrihtar/GeoCoordinateConverter/branch/master/graph/badge.svg)](https://codecov.io/gh/mrihtar/GeoCoordinateConverter)
 
 Za slovensko verzijo te datoteke glej [PREBERIME.md].
 
@@ -97,7 +97,7 @@ or
 or  
 ```$ nmake -f Makefile.msc```
 #### MacOS (10.12 Sierra and later)
-```$ make -f Makefile.macos gk-slo gk-shp test```
+```$ make -f Makefile.macos gk-slo gk-shp```
 
 Options ```-msse2 -mfpmath=sse``` are needed because otherwise we'll get
 different results on different systems (for more explanation see
