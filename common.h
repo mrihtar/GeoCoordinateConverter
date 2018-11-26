@@ -209,7 +209,9 @@ TCHAR *xstrerror(void);
 
 int xprintf(FILE *out, TCHAR *fmt, ...);
 
+#ifndef __APPLE__
 int clock_gettime(int clk_id, struct timespec *tv);
+#endif
 
 TCHAR *fefind(TCHAR *fname, TCHAR *ext, TCHAR *newname);
 

@@ -1,3 +1,4 @@
+# Binaries (executables and intermediate objects)
 gk-shp.exe
 gk-shp
 gk-slo.exe
@@ -6,3 +7,13 @@ xgk-slo.exe
 xgk-slo
 *.obj
 *.o
+
+# Test output
+*.log
+
+# Clang code coverage traces for Codecov
+*.gcno
+*.gcda
+
+# MacOS specific
+.DS_Store

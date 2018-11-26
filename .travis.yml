@@ -1,0 +1,33 @@
+language: c
+
+matrix:
+  include:
+    - {os: linux,                      env: 'MAKEFILE="Makefile.unix"'}
+    #- {os: linux, dist: precise,       env: 'MAKEFILE="Makefile.unix"'}
+    - {os: osx,                        env: 'MAKEFILE="Makefile.clang"'}
+    - {os: osx,                        env: 'MAKEFILE="Makefile.macos"'}
+    #- {os: osx,   osx_image: xcode8.3, env: 'MAKEFILE="Makefile.macos"'}
+    #- {os: osx,   osx_image: xcode9.3beta, env: 'MAKEFILE="Makefile.macos"'}
+    #- {os: osx,   osx_image: xcode8,   env: 'MAKEFILE="Makefile.macos"'}
+
+addons:
+  apt:
+    packages:
+      - libx11-dev
+      - libxinerama-dev
+      - libxcursor-dev
+      - libfltk1.3-dev
+
+cache:
+  apt: true
+
+script:  
+  - make -f $MAKEFILE all test
+  - if [ "$MAKEFILE" == "Makefile.clang" ]; then
+      gcov gk-slo.c;
+    fi
+
+after_success:
+  - if [ "$MAKEFILE" == "Makefile.clang" ]; then
+      bash <(curl -s https://codecov.io/bash);
+    fi

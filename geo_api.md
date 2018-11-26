@@ -221,7 +221,7 @@ These two routines are included for curiosity only.
   - SHPOpen, DBFOpen, SHPGetInfo, SHPCreate, DBFCloneEmpty, SHPComputeExtents,
     SHPWriteObject, DBFWriteTuple, ...
 
-[geo.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo.c
+[geo.c]: geo.c
 [EGM2008]: http://earth-info.nga.mil/GandG/wgs84/gravitymod/egm2008/egm08_wgs84.html
 [Shapefile C Library]: http://shapelib.maptools.org
 

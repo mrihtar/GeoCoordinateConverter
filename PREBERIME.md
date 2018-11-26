@@ -1,4 +1,6 @@
 ## Geo Coordinate Converter http://geocoordinateconverter.tk
+[![Build Status](https://travis-ci.org/mrihtar/GeoCoordinateConverter.svg?branch=master)](https://travis-ci.org/mrihtar/GeoCoordinateConverter) [![codecov](https://codecov.io/gh/mrihtar/GeoCoordinateConverter/branch/master/graph/badge.svg)](https://codecov.io/gh/mrihtar/GeoCoordinateConverter)
+
 For English version of this file see [README.md].
 
 **gk-slo** je konverter med geografskimi kartezičnimi koordinatami
@@ -7,7 +9,7 @@ For English version of this file see [README.md].
 nadomestilo za uradni program za konverzijo [SiTra] &#40;s Helmertovimi
 parametri za vso Slovenijo, brez regionalnih parametrov&#41; ali natančnejši,
 če se uporabi vgrajena afina/trikotniška transformacija z referenčnimi
-[virtualnimi veznimi točkami v4.0] &#40;za natančen opis glej [AFT.md]&#41;,
+[virtualnimi veznimi točkami v3.0] &#40;za natančen opis glej [AFT.md]&#41;,
 kar je podobno kot pri uradnem programu za konverzijo [3Tra].
 
 <img src="images/GCC-Cover-Image.gif" width="660px">
@@ -94,6 +96,8 @@ ali
 &nbsp;&nbsp;&nbsp;```shapelib\shpopen.c shapelib\dbfopen.c shapelib\safileio.c shapelib\shptree.c```  
 ali  
 ```$ nmake -f Makefile.msc```
+#### MacOS (10.12 Sierra in novejši)
+```$ make -f Makefile.macos gk-slo gk-shp```
 
 Opciji ```-msse2 -mfpmath=sse``` sta potrebni, ker drugače dobimo različne
 rezultate na različnih sistemih (za podrobnejšo razlago glej [StackOverflow]).
@@ -319,29 +323,29 @@ V datoteki raba_conv.prj je shranjena izhodna projekcija (WGS84), kar omogoča
 lažje odpiranje v GIS programih.
 
 [Geo Coordinate Converter]: http://geocoordinateconverter.tk/indeks.html
-[README.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/README.md
+[README.md]: README.md
 [SiTra]: http://sitra.sitranet.si
 [SiTraNet]: http://sitranet.si
 [LIDAR]: http://www.evode.gov.si/podatki/lidar-podatki/
-[virtualnimi veznimi točkami v4.0]: http://www.e-prostor.gov.si/zbirke-prostorskih-podatkov/drzavni-koordinatni-sistem/transformacija-v-novi-koordinatni-sistem/#tab2-1177
-[AFT.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/aft/PREBERIME.md
+[virtualnimi veznimi točkami v3.0]: http://www.e-prostor.gov.si/zbirke-prostorskih-podatkov/drzavni-koordinatni-sistem/horizontalni-drzavni-koordinatni-sistem-d48gk/#tab2-1025
+[AFT.md]: aft/PREBERIME.md
 [3Tra]: http://www.e-prostor.gov.si/zbirke-prostorskih-podatkov/drzavni-koordinatni-sistem/transformacija-v-novi-koordinatni-sistem/#tab2-1177
 [ESRI shapefile]: https://en.wikipedia.org/wiki/Shapefile
 [EGM2008]: http://earth-info.nga.mil/GandG/wgs84/gravitymod/egm2008/egm08_wgs84.html
-[geo_api.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo_api.md
-[literature.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/literature.md
+[geo_api.md]: geo_api.md
+[literature.md]: literature.md
 [gk-slo-8.02.zip]: https://app.box.com/s/0blewuzbumx9q2iau6j2hal26dkg4ky9
-[common.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/common.h
-[util.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/util.c
-[geoid_slo.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geoid_slo.h
-[geoid_egm.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geoid_egm.h
-[aft_gktm.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/aft_gktm.h
-[aft_tmgk.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/aft_tmgk.h
-[geo.h]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo.h
-[geo.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo.c
-[gk-slo.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/gk-slo.c
-[gk-shp.c]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/gk-shp.c
-[shapelib]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/shapelib/
+[common.h]: common.h
+[util.c]: util.c
+[geoid_slo.h]: geoid_slo.h
+[geoid_egm.h]: geoid_egm.h
+[aft_gktm.h]: aft_gktm.h
+[aft_tmgk.h]: aft_tmgk.h
+[geo.h]: geo.h
+[geo.c]: geo.c
+[gk-slo.c]: gk-slo.c
+[gk-shp.c]: gk-shp.c
+[shapelib]: shapelib/
 [Shapefile C Library]: http://shapelib.maptools.org
 [StackOverflow]: http://stackoverflow.com/questions/13571073/how-to-ensure-same-float-numbers-on-different-systems
 [GERK]: http://rkg.gov.si/GERK/

@@ -37,7 +37,7 @@ This system can be solved using elimination method (row operations ⇒ identity
 matrix) or with other methods (Jacobi, Gauss-Seidel, ...).
 
 ### Pre-calculation
-For Slovenia we have 899 reference [virtual tie points] &#40;v4.0&#41; in both
+For Slovenia we have 899 reference [virtual tie points] &#40;v3.0&#41; in both
 coordinate systems (GK and TM), which form 1776 triangles:
 
 <img src="../images/Slovenia-tie-points.gif" width="400px">
@@ -52,7 +52,7 @@ exact Delaunay triangulations.
 
 #### Exact description of process
 - get the reference [virtual tie points] &#40;already supplied&#41;:  
-  ⇒ file ```virtualne_vezne_tocke_v4.0.txt```
+  ⇒ file ```virtualne_vezne_tocke_v3.0.txt```
 - extract GK and TM coordinates from the reference file
 - use [triangle] program to create triangles  
 - use the supplied program ```ctt``` to create tables to be included in a program:  
@@ -73,7 +73,7 @@ When/if such triangle is found, a simple transformation using parameters
 ```a..f``` is applied (see **Theory** above).
 
 
-[PREBERIME.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/aft/PREBERIME.md
-[virtual tie points]: http://www.e-prostor.gov.si/zbirke-prostorskih-podatkov/drzavni-koordinatni-sistem/transformacija-v-novi-koordinatni-sistem/#tab2-1177
+[PREBERIME.md]: PREBERIME.md
+[virtual tie points]: http://www.e-prostor.gov.si/zbirke-prostorskih-podatkov/drzavni-koordinatni-sistem/horizontalni-drzavni-koordinatni-sistem-d48gk/#tab2-1025
 [triangle]: http://www.cs.cmu.edu/~quake/triangle.html
-[geo_api.md]: https://github.com/mrihtar/GeoCoordinateConverter/blob/master/geo_api.md
+[geo_api.md]: ../geo_api.md
