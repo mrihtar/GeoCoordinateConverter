@@ -9,6 +9,7 @@ RANLIB = ranlib
 RC = windres
 RM = rm -f
 CP = cp
+DIFF = diff
 
 DEBUG = -O2
 #DEBUG = -g
@@ -39,19 +40,15 @@ YOBJS = flo.o
 all: $(TGTS)
 
 gk-slo.exe: $(WOBJS)
-	-taskkill //F //IM $@ //T
 	$(CC) -o $@ $(WOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
 
 gk-shp.exe: $(SOBJS) $(SHPOBJS)
-	-taskkill //F //IM $@ //T
 	$(CC) -o $@ $(SOBJS) $(SHPOBJS) $(LDFLAGS) $(LPATH) $(LIBS)
 
 xgk-slo.exe: $(XOBJS) $(SHPOBJS) xgk-slo.rc globe.ico
-	-taskkill //F //IM $@ //T
 	$(RC) $(@:.exe=).rc $(@:.exe=).res.o
 	$(CXX) -o $@ $(XOBJS) $(SHPOBJS) $(@:.exe=).res.o $(XLDFLAGS) $(XLPATH) $(XLIBS)
 flo.exe: $(YOBJS)
-	-taskkill //F //IM $@ //T
 	$(CXX) -o $@ $(YOBJS) $(XLDFLAGS) $(XLPATH) $(XLIBS)
 
 $(WOBJS): $(INCL)
@@ -60,11 +57,11 @@ $(SHPOBJS): $(SHPINCL)
 $(XOBJS): $(XINCL)
 
 test: gk-slo.exe # TODO add tests for all $(TGTS)
-	gk-slo.exe -x > gk-slo.tmp
-	fc //l gk-slo.tmp refout-slo.txt
-	gk-slo.exe -x -g egm > gk-slo.tmp
-	fc //l gk-slo.tmp refout-egm.txt
-	@$(RM) gk-slo.tmp > NUL
+	./gk-slo.exe -x > gk-slo.tmp
+	$(DIFF) gk-slo.tmp refout-slo.txt
+	./gk-slo.exe -x -g egm > gk-slo.tmp
+	$(DIFF) gk-slo.tmp refout-egm.txt
+	@$(RM) gk-slo.tmp
 
 install: $(TGTS)
 	@echo Copy gk-slo.exe, gk-shp.exe and xgk-slo.exe to a directory of your choice

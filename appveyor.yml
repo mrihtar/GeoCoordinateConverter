@@ -37,14 +37,14 @@ install:
   - if "%TOOLCHAIN%"=="MSYS2" set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
   - if "%TOOLCHAIN%"=="MSYS2" set PATH=%TOOLPATH%;%PATH%
 
-  - if "%TOOLCHAIN%" == "MSC" call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" %platform%
+  - if "%TOOLCHAIN%"=="MSC" call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" %platform%
 
 build_script:
   #- if "%TOOLCHAIN%"=="MSYS2" ( mingw32-make -f Makefile.mingw all ) # TODO
   - if "%TOOLCHAIN%"=="MSYS2" ( mingw32-make -f Makefile.mingw gk-slo.exe gk-shp.exe )
 
-  #- if "%TOOLCHAIN%" == "MSC" ( nmake /f Makefile.msc all ) # TODO
-  - if "%TOOLCHAIN%" == "MSC" ( nmake /f Makefile.msc gk-slo.exe gk-shp.exe )
+  #- if "%TOOLCHAIN%"=="MSC" ( nmake /f Makefile.msc all ) # TODO
+  - if "%TOOLCHAIN%"=="MSC" ( nmake /f Makefile.msc gk-slo.exe gk-shp.exe )
 
 #after_build:
 
