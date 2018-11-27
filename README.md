@@ -1,5 +1,5 @@
 ## Geo Coordinate Converter http://geocoordinateconverter.tk
-[![Build Status](https://travis-ci.org/mrihtar/GeoCoordinateConverter.svg?branch=master)](https://travis-ci.org/mrihtar/GeoCoordinateConverter) [![codecov](https://codecov.io/gh/mrihtar/GeoCoordinateConverter/branch/master/graph/badge.svg)](https://codecov.io/gh/mrihtar/GeoCoordinateConverter)
+[![Travis](https://travis-ci.org/mrihtar/GeoCoordinateConverter.svg?branch=master)](https://travis-ci.org/mrihtar/GeoCoordinateConverter) [![AppVeyor](https://ci.appveyor.com/api/projects/status/jq1a78tuf2eap0rf?svg=true)](https://ci.appveyor.com/project/mrihtar/geocoordinateconverter) [![Codecov](https://codecov.io/gh/mrihtar/GeoCoordinateConverter/branch/master/graph/badge.svg)](https://codecov.io/gh/mrihtar/GeoCoordinateConverter)
 
 Za slovensko verzijo te datoteke glej [PREBERIME.md].
 
