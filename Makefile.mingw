@@ -9,7 +9,7 @@ RANLIB = ranlib
 RC = windres
 RM = rm -f
 CP = cp
-DIFF = diff
+DIFF = diff -w
 
 DEBUG = -O2
 #DEBUG = -g
