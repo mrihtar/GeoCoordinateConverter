@@ -14,7 +14,7 @@ DIFF = diff -w
 DEBUG = -O2
 #DEBUG = -g
 CFLAGS = -Wall -Wshadow -msse2 -mfpmath=sse
-CXXFLAGS = -Wall -msse2 -mfpmath=sse -mwindows
+CXXFLAGS = -Wall -msse2 -mfpmath=sse -mwindows -Wno-maybe-uninitialized
 IPATH = -Ishapelib -Ifltk
 LDFLAGS = -s
 #LDFLAGS = 
@@ -22,7 +22,7 @@ LPATH =
 LIBS = 
 XLDFLAGS = -mwindows -s
 #XLDFLAGS = -mwindows
-XLPATH = -Lfltk/lib
+XLPATH = -Lfltk/mingw-lib
 XLIBS = -lfltk_images -lfltk -lfltk_png -lfltk_z -lfltk_jpeg -lpthread -lole32 -luuid -lcomctl32
 
 TGTS = gk-slo.exe gk-shp.exe xgk-slo.exe

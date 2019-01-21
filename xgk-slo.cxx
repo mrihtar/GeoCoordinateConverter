@@ -513,6 +513,29 @@ void *convert_all(void *arg)
   return NULL;
 } /* convert_all */
 
+
+// ----------------------------------------------------------------------------
+// GetGroup
+// ----------------------------------------------------------------------------
+double GetGroup(const char *str, MatchResult mr, int group)
+{
+  char grp[MAXS+1];
+  int gs, ge, maxs, n;
+  double rv;
+
+  gs = mr.GetGroupStart(group); ge = mr.GetGroupEnd(group);
+  maxs = ge - gs;
+  if (maxs > MAXS) maxs = MAXS;
+  xstrncpy(grp, str + gs, maxs);
+  n = sscanf(grp, "%lf", &rv);
+  if (n != 1) {
+    // error
+    rv = 0.0;
+  }
+  return rv;
+} /* GetGroup */
+
+
 // ----------------------------------------------------------------------------
 // parse_double
 // ----------------------------------------------------------------------------
@@ -533,14 +556,23 @@ int parse_double(const char *str, double *val)
 // ----------------------------------------------------------------------------
 int parse_double_xy(const char *str, double *val1, double *val2)
 {
-  int n;
+  // Decimal numbers (DN): 523125.803, 155370.642
+  // Regex: ^\s*([+-]?\d+(\.[0-9]{1,10})?)\s*(,|\s)\s*([+-]?\d+(\.[0-9]{1,10})?)\s*$
+  // 5 groups, needed: 1, 4
+  CRegexpT <char> regexp_dn("^\\s*([+-]?\\d+(\\.[0-9]{1,10})?)\\s*(,|\\s)\\s*([+-]?\\d+(\\.[0-9]{1,10})?)\\s*$");
+  MatchResult mr;
+  int rv = 0;
 
-  n = sscanf(str, "%lf %lf", val1, val2);
-  if (n != 1) {
-    *val1 = 0.0;
-    *val2 = 0.0;
+  *val1 = 0.0; *val2 = 0.0;
+  //xlog("parse_double_xy: |%s|\n", str);
+  mr = regexp_dn.MatchExact(str);
+  if (mr.IsMatched()) {
+    xlog("parse_double_xy: regexp_dn matched\n");
+    *val1 = GetGroup(str, mr, 1);
+    *val2 = GetGroup(str, mr, 4);
+    rv = 1;
   }
-  return 0;
+  return rv;
 } /* parse_double_xy */
 
 
@@ -593,42 +625,65 @@ int parse_dms(const char *str, double *val)
 // ----------------------------------------------------------------------------
 int parse_dms_fila(const char *str, double *val1, double *val2)
 {
-  DMS dms;
-  int n;
+  // Use same format as Google Maps, see https://support.google.com/maps/answer/18539
+  // Decimal degrees (DD): 46.5375852874, 15.3015019823
+  // Regex: ^\s*([+-]?\d+(\.[0-9]{1,10})?)\s*(,|\s)\s*([+-]?\d+(\.[0-9]{1,10})?)\s*$
+  // 5 groups, needed: 1, 4
+  CRegexpT <char> regexp_dd("^\\s*([+-]?\\d+(\\.[0-9]{1,10})?)\\s*(,|\\s)\\s*([+-]?\\d+(\\.[0-9]{1,10})?)\\s*$");
+  // Degrees and decimal minutes (DMM): 46 32.25511725, 15 18.09011893
+  // Regex: ^\s*([+-]?\d+)\s+(\d+(\.[0-9]{1,10})?)\s*(,|\s)\s*([+-]?\d+)\s+(\d+(\.[0-9]{1,10})?)\s*$
+  // 7 groups, needed: 1 2, 5 6
+  CRegexpT <char> regexp_dmm("^\\s*([+-]?\\d+)\\s+(\\d+(\\.[0-9]{1,10})?)\\s*(,|\\s)\\s*([+-]?\\d+)\\s+(\\d+(\\.[0-9]{1,10})?)\\s*$");
+  // Degrees, minutes, and seconds (DMS): 46°32'15.307035"N 15°18'05.407136"E
+  // Regex: ^\s*([+-]?\d+)\s*[^\d]+\s*(\d+)\s*[^\d]+\s*(\d+(\.[0-9]{1,10})?)\s*[^\d]+\s*[NS,]*\s+([+-]?\d+)\s*[^\d]+\s*(\d+)\s*[^\d]+\s*(\d+(\.[0-9]{1,10})?)\s*[^\d]+\s*[EW]*\s*$
+  // 8 groups, needed: 1 2 3, 5 6 7
+  CRegexpT <char> regexp_dms("^\\s*([+-]?\\d+)\\s*[^\\d]+\\s*(\\d+)\\s*[^\\d]+\\s*(\\d+(\\.[0-9]{1,10})?)\\s*[^\\d]+\\s*[NS,]*\\s+([+-]?\\d+)\\s*[^\\d]+\\s*(\\d+)\\s*[^\\d]+\\s*(\\d+(\\.[0-9]{1,10})?)\\s*[^\\d]+\\s*[EW]*\\s*$", IGNORECASE);
+  MatchResult mr;
+  DMS dms1, dms2;
+  int rv = 0;
 
-  dms.deg = 0.0; dms.min = 0.0; dms.sec = 0.0; // to keep compiler happy
+  dms1.deg = 0.0; dms1.min = 0.0; dms1.sec = 0.0; // to keep compiler happy
+  dms2.deg = 0.0; dms2.min = 0.0; dms2.sec = 0.0;
+  //xlog("parse_dms_fila: |%s|\n", str);
   switch (ddms) {
     case 1: // Dec. Degrees
-      n = sscanf(str, "%lf", &dms.deg);
-      if (n != 1) {
-        // error
-        dms.deg = 0.0;
+      mr = regexp_dd.MatchExact(str);
+      if (mr.IsMatched()) {
+        xlog("parse_dms_fila: regexp_dd matched\n");
+        dms1.deg = GetGroup(str, mr, 1);
+        dms2.deg = GetGroup(str, mr, 4);
+        rv = 1;
       }
       break;
     case 2: // Deg. Min.
-      n = sscanf(str, "%lf%*[^0-9.-]%lf", &dms.deg, &dms.min);
-      if (n != 2) {
-        // error
-        dms.min = 0.0;
-        if (n != 1) dms.deg = 0.0;
+      mr = regexp_dmm.MatchExact(str);
+      if (mr.IsMatched()) {
+        xlog("parse_dms_fila: regexp_dmm matched\n");
+        dms1.deg = GetGroup(str, mr, 1);
+        dms1.min = GetGroup(str, mr, 2);
+        dms2.deg = GetGroup(str, mr, 5);
+        dms2.min = GetGroup(str, mr, 6);
+        rv = 1;
       }
-      dms.min = fabs(dms.min);
       break;
     case 3: // Deg. Min. Sec.
-      n = sscanf(str, "%lf%*[^0-9.-]%lf%*[^0-9.-]%lf", &dms.deg, &dms.min, &dms.sec);
-      if (n != 3) {
-        // error
-        dms.sec = 0.0;
-        if (n != 2) dms.min = 0.0;
-        if (n != 1) dms.deg = 0.0;
+      mr = regexp_dms.MatchExact(str);
+      if (mr.IsMatched()) {
+        xlog("parse_dms_fila: regexp_dms matched\n");
+        dms1.deg = GetGroup(str, mr, 1);
+        dms1.min = GetGroup(str, mr, 2);
+        dms1.sec = GetGroup(str, mr, 3);
+        dms2.deg = GetGroup(str, mr, 5);
+        dms2.min = GetGroup(str, mr, 6);
+        dms2.sec = GetGroup(str, mr, 7);
+        rv = 1;
       }
-      dms.min = fabs(dms.min);
-      dms.sec = fabs(dms.sec);
       break;
   } // switch (ddms)
 
-  dms2deg(dms, val1);
-  return 0;
+  dms2deg(dms1, val1);
+  dms2deg(dms2, val2);
+  return rv;
 } /* parse_dms_fila */
 
 
@@ -641,6 +696,7 @@ void convert_cb(Fl_Widget *w, void *p)
 //Fl_Group *gtr;
   int n;
   char value1[MAXS+1], value2[MAXS+1], value3[MAXS+1];
+  char value12[MAXS+1], ns, ew;
   double fi, la, h, x, y, H;
   GEOGRA fl; GEOUTM xy, gkxy, tmxy;
   DMS lat, lon;
@@ -653,9 +709,10 @@ void convert_cb(Fl_Widget *w, void *p)
     case  1: // gtr1, xy (D96/TM) ==> fila (ETRS89)
     case  3: // gtr1, xy (D48/GK) ==> fila (ETRS89)
     case  9: // gtr1, xy (D48/GK) ==> fila (ETRS89), AFT
-      //parse_double_xy(input[gtr1_XY]->value(), &y, &x);
-      parse_double(input[gtr1_X]->value(), &y);
-      parse_double(input[gtr1_Y]->value(), &x);
+      if (!parse_double_xy(input[gtr1_XY]->value(), &y, &x)) {
+        parse_double(input[gtr1_X]->value(), &y);
+        parse_double(input[gtr1_Y]->value(), &x);
+      }
       parse_double(input[gtr1_H]->value(), &H);
       xlog("convert_cb: input(tr = %d): x = %g, y = %g, H = %g\n", tr, x, y, H);
       if (y < 200000.0) {
@@ -667,12 +724,13 @@ void convert_cb(Fl_Widget *w, void *p)
     case  2: // gtr2, fila (ETRS89) ==> xy (D96/TM)
     case  4: // gtr2, fila (ETRS89) ==> xy (D48/GK)
     case 10: // gtr2, fila (ETRS89) ==> xy (D48/GK), AFT
-      //parse_dms_fila(input[gtr2_FILA]->value(), &fi, &la);
-      parse_dms(input[gtr2_FI]->value(), &fi);
-      if (fi > 90.0 || fi < -90.0) fi = 0.0;
-      parse_dms(input[gtr2_LA]->value(), &la);
-      if (la > 180.0 || la < -180.0) la = 0.0;
+      if (!parse_dms_fila(input[gtr2_FILA]->value(), &fi, &la)) {
+        parse_dms(input[gtr2_FI]->value(), &fi);
+        parse_dms(input[gtr2_LA]->value(), &la);
+      }
       parse_double(input[gtr2_h]->value(), &h);
+      if (fi > 90.0 || fi < -90.0) fi = 0.0;
+      if (la > 180.0 || la < -180.0) la = 0.0;
       xlog("convert_cb: input(tr = %d): fi = %g, la = %g, h = %g\n", tr, fi, la, h);
       if (la > 17.0) {
         // warn: possibly reversed fi/la
@@ -684,9 +742,10 @@ void convert_cb(Fl_Widget *w, void *p)
     case  6: // gtr3, xy (D96/TM) ==> xy (D48/GK)
     case  7: // gtr3, xy (D48/GK) ==> xy (D96/TM), AFT
     case  8: // gtr3, xy (D96/TM) ==> xy (D48/GK), AFT
-      //parse_double_xy(input[gtr3_XYi]->value(), &y, &x);
-      parse_double(input[gtr3_Xi]->value(), &y);
-      parse_double(input[gtr3_Yi]->value(), &x);
+      if (!parse_double_xy(input[gtr3_XYi]->value(), &y, &x)) {
+        parse_double(input[gtr3_Xi]->value(), &y);
+        parse_double(input[gtr3_Yi]->value(), &x);
+      }
       parse_double(input[gtr3_Hi]->value(), &H);
       xlog("convert_cb: input(tr = %d): x = %g, y = %g, H = %g\n", tr, x, y, H);
       if (y < 200000.0) {
@@ -716,23 +775,29 @@ void convert_cb(Fl_Widget *w, void *p)
       xlog("convert_cb: output(tr = %d): fi = %.9f, la = %.9f, h = %.3f\n", tr, fl.fi, fl.la, fl.h);
       switch (ddms) {
         case 1: // Dec. Degrees
+          snprintf(value12, MAXS, "%.9f, %.9f", fl.fi, fl.la);
           snprintf(value1, MAXS, "%.9f", fl.fi);
           snprintf(value2, MAXS, "%.9f", fl.la);
           snprintf(value3, MAXS, "%.3f", fl.h);
           break;
         case 2: // Deg. Min.
           deg2dm(fl.fi, &lat); deg2dm(fl.la, &lon);
+          snprintf(value12, MAXS, "%.0f\xB0 %.7f', %.0f\xB0 %.7f'", lat.deg, lat.min, lon.deg, lon.min);
           snprintf(value1, MAXS, "%.0f\xB0 %.7f'", lat.deg, lat.min);
           snprintf(value2, MAXS, "%.0f\xB0 %.7f'", lon.deg, lon.min);
           snprintf(value3, MAXS, "%.3f", fl.h);
           break;
         case 3: // Deg. Min. Sec.
           deg2dms(fl.fi, &lat); deg2dms(fl.la, &lon);
+          if (fl.fi >= 0) ns = 'N'; else ns = 'S';
+          if (fl.la >= 0) ew = 'E'; else ew = 'W';
+          snprintf(value12, MAXS, "%.0f\xB0 %.0f' %.5f\"%c %.0f\xB0 %.0f' %.5f\"%c", lat.deg, lat.min, lat.sec, ns, lon.deg, lon.min, lon.sec, ew);
           snprintf(value1, MAXS, "%.0f\xB0 %.0f' %.5f\"", lat.deg, lat.min, lat.sec);
           snprintf(value2, MAXS, "%.0f\xB0 %.0f' %.5f\"", lon.deg, lon.min, lon.sec);
           snprintf(value3, MAXS, "%.3f", fl.h);
           break;
       } // switch (ddms)
+      output[gtr1_FILA]->value(value12);
       output[gtr1_FI]->value(value1);
       output[gtr1_LA]->value(value2);
       output[gtr1_h]->value(value3);
@@ -742,9 +807,11 @@ void convert_cb(Fl_Widget *w, void *p)
     case  4: // gtr2, fila (ETRS89) ==> xy (D48/GK)
     case 10: // gtr2, fila (ETRS89) ==> xy (D48/GK), AFT
       xlog("convert_cb: output(tr = %d): x = %.9f, y = %.9f, H = %.3f\n", tr, xy.x, xy.y, xy.H);
+      snprintf(value12, MAXS, "%.3f, %.3f", xy.y, xy.x);
       snprintf(value1, MAXS, "%.3f", xy.y);
       snprintf(value2, MAXS, "%.3f", xy.x);
       snprintf(value3, MAXS, "%.3f", xy.H);
+      output[gtr2_XY]->value(value12);
       output[gtr2_X]->value(value1);
       output[gtr2_Y]->value(value2);
       output[gtr2_H]->value(value3);
@@ -755,9 +822,11 @@ void convert_cb(Fl_Widget *w, void *p)
     case  7: // gtr3, xy (D48/GK) ==> xy (D96/TM), AFT
     case  8: // gtr3, xy (D96/TM) ==> xy (D48/GK), AFT
       xlog("convert_cb: output(tr = %d): x = %.9f, y = %.9f, H = %.3f\n", tr, xy.x, xy.y, xy.H);
+      snprintf(value12, MAXS, "%.3f, %.3f", xy.y, xy.x);
       snprintf(value1, MAXS, "%.3f", xy.y);
       snprintf(value2, MAXS, "%.3f", xy.x);
       snprintf(value3, MAXS, "%.3f", xy.H);
+      output[gtr3_XYo]->value(value12);
       output[gtr3_Xo]->value(value1);
       output[gtr3_Yo]->value(value2);
       output[gtr3_Ho]->value(value3);
@@ -1603,7 +1672,7 @@ int main(int argc, char *argv[])
   bt->callback(convert_cb, gtr1);
   ar = new Fl_Arrow_Box(bt->x(), bt->y()+bt->h(), bt->w(), 30);
 
-  output[gtr1_FILA] = new Fl_Output(bt->x()+bt->w()+80, input[gtr1_XY]->y(), 220, 25, "Lat Lon:");
+  output[gtr1_FILA] = new Fl_Output(bt->x()+bt->w()+80, input[gtr1_XY]->y(), 250, 25, "Lat Lon:");
   output[gtr1_FILA]->tooltip("Latitude (\xCF\x86, N/S) and Longitude (\xCE\xBB, E/W)");
 
   output[gtr1_FI] = new Fl_Output(bt->x()+bt->w()+80, input[gtr1_X]->y(), 150, 25, "Lat (\xCF\x86):");
@@ -1652,7 +1721,7 @@ int main(int argc, char *argv[])
   rb->callback(ddms_cb, NULL); rb_dms[ii++] = rb;
   g2->end();
 
-  input[gtr2_FILA] = new Fl_Input(g2->x()+g2->w(), g2->y(), 220, 25, "Lat Lon:");
+  input[gtr2_FILA] = new Fl_Input(g2->x()+g2->w()-30, g2->y(), 250, 25, "Lat Lon:");
   input[gtr2_FILA]->tooltip("Enter Latitude (\xCF\x86, N/S) and Longitude (\xCE\xBB, E/W)");
 
   input[gtr2_FI] = new Fl_Input(g2->x()+g2->w()+70, g2->y()+35, 150, 25, "Lat (\xCF\x86):");
