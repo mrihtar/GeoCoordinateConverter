@@ -1,5 +1,5 @@
 // GK - Converter between Gauss-Krueger/TM and WGS84 coordinates for Slovenia
-// Copyright (c) 2014-2018 Matjaz Rihtar <matjaz@eunet.si>
+// Copyright (c) 2014-2019 Matjaz Rihtar <matjaz@eunet.si>
 // All rights reserved.
 //
 // This program is free software: you can redistribute it and/or modify
@@ -51,8 +51,8 @@
 #include "globe.xpm"
 #endif
 
-#define SW_VERSION "1.38"
-#define SW_BUILD   "Nov 24, 2018"
+#define SW_VERSION "1.39"
+#define SW_BUILD   "Jan 23, 2019"
 
 #define HELP "xgk-help.html"
 
@@ -626,18 +626,18 @@ int parse_dms(const char *str, double *val)
 int parse_dms_fila(const char *str, double *val1, double *val2)
 {
   // Use same format as Google Maps, see https://support.google.com/maps/answer/18539
-  // Decimal degrees (DD): 46.5375852874, 15.3015019823
-  // Regex: ^\s*([+-]?\d+(\.[0-9]{1,10})?)\s*(,|\s)\s*([+-]?\d+(\.[0-9]{1,10})?)\s*$
-  // 5 groups, needed: 1, 4
-  CRegexpT <char> regexp_dd("^\\s*([+-]?\\d+(\\.[0-9]{1,10})?)\\s*(,|\\s)\\s*([+-]?\\d+(\\.[0-9]{1,10})?)\\s*$");
-  // Degrees and decimal minutes (DMM): 46 32.25511725, 15 18.09011893
-  // Regex: ^\s*([+-]?\d+)\s+(\d+(\.[0-9]{1,10})?)\s*(,|\s)\s*([+-]?\d+)\s+(\d+(\.[0-9]{1,10})?)\s*$
-  // 7 groups, needed: 1 2, 5 6
-  CRegexpT <char> regexp_dmm("^\\s*([+-]?\\d+)\\s+(\\d+(\\.[0-9]{1,10})?)\\s*(,|\\s)\\s*([+-]?\\d+)\\s+(\\d+(\\.[0-9]{1,10})?)\\s*$");
+  // Decimal degrees (DD): N 46.5375852874, E 15.3015019823
+  // Regex: ^\s*[NS]?\s*([+-]?\d+(\.\d+)?)\s*\D{0,2}\s*,?\s*[EW]?\s*([+-]?\d+(\.\d+)?)\s*\D{0,2}\s*$
+  // 4 groups, needed: 1, 3
+  CRegexpT <char> regexp_dd("^\\s*[NS]?\\s*([+-]?\\d+(\\.\\d+)?)\\s*\\D{0,2}\\s*,?\\s*[EW]?\\s*([+-]?\\d+(\\.\\d+)?)\\s*\\D{0,2}\\s*$", IGNORECASE);
+  // Degrees and decimal minutes (DMM): N 46 32.25511725, E 15 18.09011893
+  // Regex: ^\s*[NS]?\s*([+-]?\d+)\s*\D{0,2}\s*(\d+(\.\d+)?)\s*\D{0,2}\s*,?\s*[EW]?\s*([+-]?\d+)\s*\D{0,2}\s*(\d+(\.\d+)?)\s*\D{0,2}\s*$
+  // 6 groups, needed: 1 2, 4 5
+  CRegexpT <char> regexp_dmm("^\\s*[NS]?\\s*([+-]?\\d+)\\s*\\D{0,2}\\s*(\\d+(\\.\\d+)?)\\s*\\D{0,2}\\s*,?\\s*[EW]?\\s*([+-]?\\d+)\\s*\\D{0,2}\\s*(\\d+(\\.\\d+)?)\\s*\\D{0,2}\\s*$", IGNORECASE);
   // Degrees, minutes, and seconds (DMS): 46°32'15.307035"N 15°18'05.407136"E
-  // Regex: ^\s*([+-]?\d+)\s*[^\d]+\s*(\d+)\s*[^\d]+\s*(\d+(\.[0-9]{1,10})?)\s*[^\d]+\s*[NS,]*\s+([+-]?\d+)\s*[^\d]+\s*(\d+)\s*[^\d]+\s*(\d+(\.[0-9]{1,10})?)\s*[^\d]+\s*[EW]*\s*$
+  // Regex: ^\s*([+-]?\d+)\s*\D{0,2}\s*(\d+)\s*\D{0,2}\s*(\d+(\.\d+)?)\s*\D{0,2}\s*[NS]?\s*,?\s*([+-]?\d+)\s*\D{0,2}\s*(\d+)\s*\D{0,2}\s*(\d+(\.\d+)?)\s*\D{0,2}\s*[EW]?\s*$
   // 8 groups, needed: 1 2 3, 5 6 7
-  CRegexpT <char> regexp_dms("^\\s*([+-]?\\d+)\\s*[^\\d]+\\s*(\\d+)\\s*[^\\d]+\\s*(\\d+(\\.[0-9]{1,10})?)\\s*[^\\d]+\\s*[NS,]*\\s+([+-]?\\d+)\\s*[^\\d]+\\s*(\\d+)\\s*[^\\d]+\\s*(\\d+(\\.[0-9]{1,10})?)\\s*[^\\d]+\\s*[EW]*\\s*$", IGNORECASE);
+  CRegexpT <char> regexp_dms("^\\s*([+-]?\\d+)\\s*\\D{0,2}\\s*(\\d+)\\s*\\D{0,2}\\s*(\\d+(\\.\\d+)?)\\s*\\D{0,2}\\s*[NS]?\\s*,?\\s*([+-]?\\d+)\\s*\\D{0,2}\\s*(\\d+)\\s*\\D{0,2}\\s*(\\d+(\\.\\d+)?)\\s*\\D{0,2}\\s*[EW]?\\s*$", IGNORECASE);
   MatchResult mr;
   DMS dms1, dms2;
   int rv = 0;
@@ -651,7 +651,7 @@ int parse_dms_fila(const char *str, double *val1, double *val2)
       if (mr.IsMatched()) {
         xlog("parse_dms_fila: regexp_dd matched\n");
         dms1.deg = GetGroup(str, mr, 1);
-        dms2.deg = GetGroup(str, mr, 4);
+        dms2.deg = GetGroup(str, mr, 3);
         rv = 1;
       }
       break;
@@ -661,8 +661,8 @@ int parse_dms_fila(const char *str, double *val1, double *val2)
         xlog("parse_dms_fila: regexp_dmm matched\n");
         dms1.deg = GetGroup(str, mr, 1);
         dms1.min = GetGroup(str, mr, 2);
-        dms2.deg = GetGroup(str, mr, 5);
-        dms2.min = GetGroup(str, mr, 6);
+        dms2.deg = GetGroup(str, mr, 4);
+        dms2.min = GetGroup(str, mr, 5);
         rv = 1;
       }
       break;
@@ -1094,7 +1094,7 @@ void about_cb(Fl_Widget *w, void *p)
   // copyright:  Unicode: 00A9, UTF8: A9
   fl_message("Geo Coordinate Converter\n"
              "xgk-slo v%s (%s)\n"
-             "Copyright \xA9 2014-2018 Matjaz Rihtar",
+             "Copyright \xA9 2014-2019 Matjaz Rihtar",
              SW_VERSION, SW_BUILD);
 } /* about_cb */
 

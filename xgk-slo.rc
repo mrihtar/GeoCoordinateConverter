@@ -1,5 +1,5 @@
 // Microsoft Visual C++ resource script
-// Copyright (C) 2014-2018 Matjaz Rihtar
+// Copyright (C) 2014-2019 Matjaz Rihtar
 
 //////////////////////////////////////////////////////////////////////////////
 // English (U.S.) resources
@@ -36,10 +36,10 @@ IDI_ICON1 ICON DISCARDABLE "globe.ico"
       BLOCK "040904b0"  // U.S.English, Unicode
       BEGIN
         VALUE "FileDescription", "GUI for Geo Coordinate Converter"
-        VALUE "LegalCopyright", "Copyright © 2014-2018 Matjaz Rihtar"
+        VALUE "LegalCopyright", "Copyright © 2014-2019 Matjaz Rihtar"
         VALUE "Comments", "Converter between GK/TM and ETRS89 coordinates for Slovenia"
         VALUE "CompanyName", "Matjaz Rihtar"
-        VALUE "FileVersion", "1.38"
+        VALUE "FileVersion", "1.39"
 //*     VALUE "Language", "English (United States)"
 #ifdef _WIN64
         VALUE "InternalName", "xgk-slo64"
@@ -49,7 +49,7 @@ IDI_ICON1 ICON DISCARDABLE "globe.ico"
         VALUE "OriginalFilename", "xgk-slo.exe"
 #endif
         VALUE "ProductName", "Geo Coordinate Converter"
-        VALUE "ProductVersion", "1.38"
+        VALUE "ProductVersion", "1.39"
 //      VALUE "PrivateBuild", "Private build"
 //      VALUE "SpecialBuild", "Special build"
       END
