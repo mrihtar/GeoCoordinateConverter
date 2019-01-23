@@ -557,9 +557,9 @@ int parse_double(const char *str, double *val)
 int parse_double_xy(const char *str, double *val1, double *val2)
 {
   // Decimal numbers (DN): 523125.803, 155370.642
-  // Regex: ^\s*([+-]?\d+(\.[0-9]{1,10})?)\s*(,|\s)\s*([+-]?\d+(\.[0-9]{1,10})?)\s*$
-  // 5 groups, needed: 1, 4
-  CRegexpT <char> regexp_dn("^\\s*([+-]?\\d+(\\.[0-9]{1,10})?)\\s*(,|\\s)\\s*([+-]?\\d+(\\.[0-9]{1,10})?)\\s*$");
+  // Regex: ^\s*([+-]?\d+(\.\d+)?)\s*,?\s*([+-]?\d+(\.\d+)?)\s*$
+  // 5 groups, needed: 1, 3
+  CRegexpT <char> regexp_dn("^\\s*([+-]?\\d+(\\.\\d+)?)\\s*,?\\s*([+-]?\\d+(\\.\\d+)?)\\s*$");
   MatchResult mr;
   int rv = 0;
 
@@ -569,7 +569,7 @@ int parse_double_xy(const char *str, double *val1, double *val2)
   if (mr.IsMatched()) {
     xlog("parse_double_xy: regexp_dn matched\n");
     *val1 = GetGroup(str, mr, 1);
-    *val2 = GetGroup(str, mr, 4);
+    *val2 = GetGroup(str, mr, 3);
     rv = 1;
   }
   return rv;
@@ -635,9 +635,9 @@ int parse_dms_fila(const char *str, double *val1, double *val2)
   // 6 groups, needed: 1 2, 4 5
   CRegexpT <char> regexp_dmm("^\\s*[NS]?\\s*([+-]?\\d+)\\s*\\D{0,2}\\s*(\\d+(\\.\\d+)?)\\s*\\D{0,2}\\s*,?\\s*[EW]?\\s*([+-]?\\d+)\\s*\\D{0,2}\\s*(\\d+(\\.\\d+)?)\\s*\\D{0,2}\\s*$", IGNORECASE);
   // Degrees, minutes, and seconds (DMS): 46°32'15.307035"N 15°18'05.407136"E
-  // Regex: ^\s*([+-]?\d+)\s*\D{0,2}\s*(\d+)\s*\D{0,2}\s*(\d+(\.\d+)?)\s*\D{0,2}\s*[NS]?\s*,?\s*([+-]?\d+)\s*\D{0,2}\s*(\d+)\s*\D{0,2}\s*(\d+(\.\d+)?)\s*\D{0,2}\s*[EW]?\s*$
+  // Regex: ^\s*[NS]?\s*([+-]?\d+)\s*\D{0,2}\s*(\d+)\s*\D{0,2}\s*(\d+(\.\d+)?)\s*\D{0,2}\s*[NS]?\s*,?\s*[EW]?\s*([+-]?\d+)\s*\D{0,2}\s*(\d+)\s*\D{0,2}\s*(\d+(\.\d+)?)\s*\D{0,2}\s*[EW]?\s*$
   // 8 groups, needed: 1 2 3, 5 6 7
-  CRegexpT <char> regexp_dms("^\\s*([+-]?\\d+)\\s*\\D{0,2}\\s*(\\d+)\\s*\\D{0,2}\\s*(\\d+(\\.\\d+)?)\\s*\\D{0,2}\\s*[NS]?\\s*,?\\s*([+-]?\\d+)\\s*\\D{0,2}\\s*(\\d+)\\s*\\D{0,2}\\s*(\\d+(\\.\\d+)?)\\s*\\D{0,2}\\s*[EW]?\\s*$", IGNORECASE);
+  CRegexpT <char> regexp_dms("^\\s*[NS]?\\s*([+-]?\\d+)\\s*\\D{0,2}\\s*(\\d+)\\s*\\D{0,2}\\s*(\\d+(\\.\\d+)?)\\s*\\D{0,2}\\s*[NS]?\\s*,?\\s*[EW]?\\s*([+-]?\\d+)\\s*\\D{0,2}\\s*(\\d+)\\s*\\D{0,2}\\s*(\\d+(\\.\\d+)?)\\s*\\D{0,2}\\s*[EW]?\\s*$", IGNORECASE);
   MatchResult mr;
   DMS dms1, dms2;
   int rv = 0;
