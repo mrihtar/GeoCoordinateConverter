@@ -41,7 +41,7 @@ Detailed description of coordinate conversion routines and their API
 List of literature used (with links to documents) is in file [literature.md].
 
 Precompiled version of **gk-slo/gk-shp for Windows** (32-bit, compiled with
-MinGW) can be downloaded from [gk-slo-8.02.zip].
+MinGW) can be downloaded from [gk-slo-9.07.zip].
 
 
 ### Conventions
@@ -327,14 +327,14 @@ files can be easily opened by GIS programs.
 [SiTra]: http://sitra.sitranet.si
 [SiTraNet]: http://sitranet.si
 [LIDAR]: http://www.evode.gov.si/podatki/lidar-podatki/
-[virtual tie points v3.0]: http://www.e-prostor.gov.si/zbirke-prostorskih-podatkov/drzavni-koordinatni-sistem/horizontalni-drzavni-koordinatni-sistem-d48gk/#tab2-1025
+[virtual tie points v3.0]: http://www.e-prostor.gov.si/zbirke-prostorskih-podatkov/drzavni-prostorski-koordinatni-sistem/transformacija-v-novi-koordinatni-sistem/transformacijski-parametri/
 [AFT.md]: aft/README.md
-[3Tra]: http://www.e-prostor.gov.si/zbirke-prostorskih-podatkov/drzavni-koordinatni-sistem/transformacija-v-novi-koordinatni-sistem/#tab2-1177
+[3Tra]: http://www.e-prostor.gov.si/zbirke-prostorskih-podatkov/drzavni-prostorski-koordinatni-sistem/transformacija-v-novi-koordinatni-sistem/aplikacije-za-izvedbo-transformacije/
 [ESRI shapefile]: https://en.wikipedia.org/wiki/Shapefile
 [EGM2008]: http://earth-info.nga.mil/GandG/wgs84/gravitymod/egm2008/egm08_wgs84.html
 [geo_api.md]: geo_api.md
 [literature.md]: literature.md
-[gk-slo-8.02.zip]: https://app.box.com/s/0blewuzbumx9q2iau6j2hal26dkg4ky9
+[gk-slo-9.07.zip]: http://app.box.com/s/om58dclxmoc8wqh9rilo98g6v8b1s2cu
 [common.h]: common.h
 [util.c]: util.c
 [geoid_slo.h]: geoid_slo.h
