@@ -557,9 +557,9 @@ int parse_double(const char *str, double *val)
 int parse_double_xy(const char *str, double *val1, double *val2)
 {
   // Decimal numbers (DN): 523125.803, 155370.642
-  // Regex: ^\s*([+-]?\d+(\.\d+)?)\s*,?\s*([+-]?\d+(\.\d+)?)\s*$
-  // 5 groups, needed: 1, 3
-  CRegexpT <char> regexp_dn("^\\s*([+-]?\\d+(\\.\\d+)?)\\s*,?\\s*([+-]?\\d+(\\.\\d+)?)\\s*$");
+  // Regex: ^\s*?([+-]??\d+?(\.\d*?)??)\s*?(,|\s)\s*?([+-]??\d+?(\.\d*?)??)\s*$
+  // 5 groups, needed: 1, 4
+  CRegexpT <char> regexp_dn("^\\s*?([+-]??\\d+?(\\.\\d*?)?""?)\\s*?(,|\\s)\\s*?([+-]??\\d+?(\\.\\d*?)?""?)\\s*$");
   MatchResult mr;
   int rv = 0;
 
@@ -569,7 +569,7 @@ int parse_double_xy(const char *str, double *val1, double *val2)
   if (mr.IsMatched()) {
     xlog("parse_double_xy: regexp_dn matched\n");
     *val1 = GetGroup(str, mr, 1);
-    *val2 = GetGroup(str, mr, 3);
+    *val2 = GetGroup(str, mr, 4);
     rv = 1;
   }
   return rv;
@@ -627,17 +627,17 @@ int parse_dms_fila(const char *str, double *val1, double *val2)
 {
   // Use same format as Google Maps, see https://support.google.com/maps/answer/18539
   // Decimal degrees (DD): N 46.5375852874, E 15.3015019823
-  // Regex: ^\s*[NS]?\s*([+-]?\d+(\.\d+)?)\s*\D{0,2}\s*,?\s*[EW]?\s*([+-]?\d+(\.\d+)?)\s*\D{0,2}\s*$
+  // Regex: ^\s*?[NS]??\s*?([+-]??\d+?(\.\d*?)??)\s*?\D{0,2}?\s*?,??\s*?[EW]??\s*?([+-]??\d+?(\.\d*?)??)\s*?\D{0,2}?\s*$
   // 4 groups, needed: 1, 3
-  CRegexpT <char> regexp_dd("^\\s*[NS]?\\s*([+-]?\\d+(\\.\\d+)?)\\s*\\D{0,2}\\s*,?\\s*[EW]?\\s*([+-]?\\d+(\\.\\d+)?)\\s*\\D{0,2}\\s*$", IGNORECASE);
+  CRegexpT <char> regexp_dd("^\\s*?[NS]??\\s*?([+-]??\\d+?(\\.\\d*?)?""?)\\s*?\\D{0,2}?\\s*?,??\\s*?[EW]??\\s*?([+-]??\\d+?(\\.\\d*?)?""?)\\s*?\\D{0,2}?\\s*$", IGNORECASE);
   // Degrees and decimal minutes (DMM): N 46 32.25511725, E 15 18.09011893
-  // Regex: ^\s*[NS]?\s*([+-]?\d+)\s*\D{0,2}\s*(\d+(\.\d+)?)\s*\D{0,2}\s*,?\s*[EW]?\s*([+-]?\d+)\s*\D{0,2}\s*(\d+(\.\d+)?)\s*\D{0,2}\s*$
+  // Regex: ^\s*?[NS]??\s*?([+-]??\d+?)\s*?\D{0,2}?\s*?(\d+?(\.\d*?)??)\s*?\D{0,2}?\s*?,??\s*?[EW]??\s*?([+-]??\d+?)\s*?\D{0,2}?\s*?(\d+?(\.\d*?)??)\s*?\D{0,2}?\s*$
   // 6 groups, needed: 1 2, 4 5
-  CRegexpT <char> regexp_dmm("^\\s*[NS]?\\s*([+-]?\\d+)\\s*\\D{0,2}\\s*(\\d+(\\.\\d+)?)\\s*\\D{0,2}\\s*,?\\s*[EW]?\\s*([+-]?\\d+)\\s*\\D{0,2}\\s*(\\d+(\\.\\d+)?)\\s*\\D{0,2}\\s*$", IGNORECASE);
-  // Degrees, minutes, and seconds (DMS): 46°32'15.307035"N 15°18'05.407136"E
-  // Regex: ^\s*[NS]?\s*([+-]?\d+)\s*\D{0,2}\s*(\d+)\s*\D{0,2}\s*(\d+(\.\d+)?)\s*\D{0,2}\s*[NS]?\s*,?\s*[EW]?\s*([+-]?\d+)\s*\D{0,2}\s*(\d+)\s*\D{0,2}\s*(\d+(\.\d+)?)\s*\D{0,2}\s*[EW]?\s*$
+  CRegexpT <char> regexp_dmm("^\\s*?[NS]??\\s*?([+-]??\\d+?)\\s*?\\D{0,2}?\\s*?(\\d+?(\\.\\d*?)?""?)\\s*?\\D{0,2}?\\s*?,??\\s*?[EW]??\\s*?([+-]??\\d+?)\\s*?\\D{0,2}?\\s*?(\\d+?(\\.\\d*?)?""?)\\s*?\\D{0,2}?\\s*$", IGNORECASE);
+  // Degrees, minutes, and seconds (DMS): 46°32'15.307035"N 15°18'5.407136"E
+  // Regex: ^\s*?([+-]??\d+?)\s*?\D{0,2}?\s*?(\d+?)\s*?\D{0,2}?\s*?(\d+?(\.\d*?)??)\s*?\D{0,2}?\s*?[NS]??\s*?,??\s*?([+-]??\d+?)\s*?\D{0,2}?\s*?(\d+?)\s*?\D{0,2}?\s*?(\d+?(\.\d*?)??)\s*?\D{0,2}?\s*?[EW]??\s*$
   // 8 groups, needed: 1 2 3, 5 6 7
-  CRegexpT <char> regexp_dms("^\\s*[NS]?\\s*([+-]?\\d+)\\s*\\D{0,2}\\s*(\\d+)\\s*\\D{0,2}\\s*(\\d+(\\.\\d+)?)\\s*\\D{0,2}\\s*[NS]?\\s*,?\\s*[EW]?\\s*([+-]?\\d+)\\s*\\D{0,2}\\s*(\\d+)\\s*\\D{0,2}\\s*(\\d+(\\.\\d+)?)\\s*\\D{0,2}\\s*[EW]?\\s*$", IGNORECASE);
+  CRegexpT <char> regexp_dms("^\\s*?([+-]??\\d+?)\\s*?\\D{0,2}?\\s*?(\\d+?)\\s*?\\D{0,2}?\\s*?(\\d+?(\\.\\d*?)?""?)\\s*?\\D{0,2}?\\s*?[NS]??\\s*?,??\\s*?([+-]??\\d+?)\\s*?\\D{0,2}?\\s*?(\\d+?)\\s*?\\D{0,2}?\\s*?(\\d+?(\\.\\d*?)?""?)\\s*?\\D{0,2}?\\s*?[EW]??\\s*$", IGNORECASE);
   MatchResult mr;
   DMS dms1, dms2;
   int rv = 0;
@@ -709,7 +709,11 @@ void convert_cb(Fl_Widget *w, void *p)
     case  1: // gtr1, xy (D96/TM) ==> fila (ETRS89)
     case  3: // gtr1, xy (D48/GK) ==> fila (ETRS89)
     case  9: // gtr1, xy (D48/GK) ==> fila (ETRS89), AFT
-      if (!parse_double_xy(input[gtr1_XY]->value(), &y, &x)) {
+      if (parse_double_xy(input[gtr1_XY]->value(), &y, &x)) {
+        input[gtr1_X]->value("");
+        input[gtr1_Y]->value("");
+      }
+      else {
         parse_double(input[gtr1_X]->value(), &y);
         parse_double(input[gtr1_Y]->value(), &x);
       }
@@ -724,7 +728,11 @@ void convert_cb(Fl_Widget *w, void *p)
     case  2: // gtr2, fila (ETRS89) ==> xy (D96/TM)
     case  4: // gtr2, fila (ETRS89) ==> xy (D48/GK)
     case 10: // gtr2, fila (ETRS89) ==> xy (D48/GK), AFT
-      if (!parse_dms_fila(input[gtr2_FILA]->value(), &fi, &la)) {
+      if (parse_dms_fila(input[gtr2_FILA]->value(), &fi, &la)) {
+        input[gtr2_FI]->value("");
+        input[gtr2_LA]->value("");
+      }
+      else {
         parse_dms(input[gtr2_FI]->value(), &fi);
         parse_dms(input[gtr2_LA]->value(), &la);
       }
@@ -742,7 +750,11 @@ void convert_cb(Fl_Widget *w, void *p)
     case  6: // gtr3, xy (D96/TM) ==> xy (D48/GK)
     case  7: // gtr3, xy (D48/GK) ==> xy (D96/TM), AFT
     case  8: // gtr3, xy (D96/TM) ==> xy (D48/GK), AFT
-      if (!parse_double_xy(input[gtr3_XYi]->value(), &y, &x)) {
+      if (parse_double_xy(input[gtr3_XYi]->value(), &y, &x)) {
+        input[gtr3_Xi]->value("");
+        input[gtr3_Yi]->value("");
+      }
+      else {
         parse_double(input[gtr3_Xi]->value(), &y);
         parse_double(input[gtr3_Yi]->value(), &x);
       }
@@ -883,8 +895,8 @@ void show_cb(Fl_Widget *w, void *p)
     case  3: // gtr1, xy (D48/GK) ==> fila (ETRS89)
     case  9: // gtr1, xy (D48/GK) ==> fila (ETRS89), AFT
       parse_dms(output[gtr1_FI]->value(), &fi);
-      if (fi > 90.0 || fi < -90.0) fi = 0.0;
       parse_dms(output[gtr1_LA]->value(), &la);
+      if (fi > 90.0 || fi < -90.0) fi = 0.0;
       if (la > 180.0 || la < -180.0) la = 0.0;
 
       if (fi == 0.0 || la == 0.0) {
@@ -904,8 +916,8 @@ void show_cb(Fl_Widget *w, void *p)
     case  4: // gtr2, fila (ETRS89) ==> xy (D48/GK)
     case 10: // gtr2, fila (ETRS89) ==> xy (D48/GK), AFT
       parse_dms(input[gtr2_FI]->value(), &fi);
-      if (fi > 90.0 || fi < -90.0) fi = 0.0;
       parse_dms(input[gtr2_LA]->value(), &la);
+      if (fi > 90.0 || fi < -90.0) fi = 0.0;
       if (la > 180.0 || la < -180.0) la = 0.0;
       break;
 
@@ -926,8 +938,8 @@ void show_cb(Fl_Widget *w, void *p)
       break;
   } // switch (tr)
 
-  fip = 'N'; if (fi < 0.0) fip = 'S';
-  lap = 'E'; if (la < 0.0) lap = 'W';
+  if (fi >= 0) fip = 'N'; else fip = 'S';
+  if (la >= 0) lap = 'E'; else lap = 'W';
   snprintf(url, MAXS, "https://tools.wmflabs.org/geohack/geohack.php?params=%.9f_%c_%.9f_%c_scale:%d\n",
     fabs(fi), fip, fabs(la), lap, SCALE);
 
@@ -1332,6 +1344,7 @@ void redisplay_dms(int gtrn, int new_ddms)
   }
   if (fi > 90.0 || fi < -90.0) fi = 0.0;
   if (la > 180.0 || la < -180.0) la = 0.0;
+  xlog("redisplay_dms: fi: %g, la: %g\n", fi, la);
 
   switch (new_ddms) {
     case 1: // Dec. Degrees
@@ -1352,12 +1365,12 @@ void redisplay_dms(int gtrn, int new_ddms)
 
   switch (gtrn) {
     case 1: // gtr1: xy ==> fila
-      output[gtr1_FI]->value(value1);
-      output[gtr1_LA]->value(value2);
+      if (fi != 0.0) output[gtr1_FI]->value(value1);
+      if (la != 0.0) output[gtr1_LA]->value(value2);
       break;
     case 2: // gtr2: fila ==> xy
-      input[gtr2_FI]->value(value1);
-      input[gtr2_LA]->value(value2);
+      if (fi != 0.0) input[gtr2_FI]->value(value1);
+      if (la != 0.0) input[gtr2_LA]->value(value2);
       break;
   }
 } /* redisplay_dms */
@@ -1672,7 +1685,7 @@ int main(int argc, char *argv[])
   bt->callback(convert_cb, gtr1);
   ar = new Fl_Arrow_Box(bt->x(), bt->y()+bt->h(), bt->w(), 30);
 
-  output[gtr1_FILA] = new Fl_Output(bt->x()+bt->w()+80, input[gtr1_XY]->y(), 250, 25, "Lat Lon:");
+  output[gtr1_FILA] = new Fl_Output(bt->x()+bt->w()+80, input[gtr1_XY]->y(), 260, 25, "Lat Lon:");
   output[gtr1_FILA]->tooltip("Latitude (\xCF\x86, N/S) and Longitude (\xCE\xBB, E/W)");
 
   output[gtr1_FI] = new Fl_Output(bt->x()+bt->w()+80, input[gtr1_X]->y(), 150, 25, "Lat (\xCF\x86):");
@@ -1721,7 +1734,7 @@ int main(int argc, char *argv[])
   rb->callback(ddms_cb, NULL); rb_dms[ii++] = rb;
   g2->end();
 
-  input[gtr2_FILA] = new Fl_Input(g2->x()+g2->w()-30, g2->y(), 250, 25, "Lat Lon:");
+  input[gtr2_FILA] = new Fl_Input(g2->x()+g2->w()-40, g2->y(), 260, 25, "Lat Lon:");
   input[gtr2_FILA]->tooltip("Enter Latitude (\xCF\x86, N/S) and Longitude (\xCE\xBB, E/W)");
 
   input[gtr2_FI] = new Fl_Input(g2->x()+g2->w()+70, g2->y()+35, 150, 25, "Lat (\xCF\x86):");
